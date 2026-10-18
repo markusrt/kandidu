@@ -1,194 +1,188 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  createItem,
-  type DemoItem,
-  deleteItem,
-  TITLE_MAX,
-  toggleItem,
-} from "../domain/items";
-import type { DemoStore } from "../storage/port";
+import type { KandiduStore } from "../storage/port";
+import { Home } from "./Home";
 import { errorMessage, useMessages } from "./i18n";
+import { LeadView } from "./lead/LeadView";
+import { NotFound } from "./NotFound";
+import { PlaceholderHelp } from "./PlaceholderHelp";
+import { ProjectView } from "./project/ProjectView";
+import { Link, type Route, useRoute } from "./router";
+import { SetupView } from "./setup/SetupView";
+import { AppProvider, useApp } from "./state";
 
-export function App({ store }: { store: DemoStore }) {
+export function App({ store }: { store: KandiduStore }) {
+  return (
+    <AppProvider store={store}>
+      <Shell />
+    </AppProvider>
+  );
+}
+
+function routeKey(route: Route): string {
+  return JSON.stringify(route);
+}
+
+function Shell() {
   const m = useMessages();
-  const [items, setItems] = useState<DemoItem[]>([]);
-  const [title, setTitle] = useState("");
-  const [ready, setReady] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const [confirmReset, setConfirmReset] = useState(false);
-  const locked = useRef(false);
-  const input = useRef<HTMLInputElement>(null);
+  const route = useRoute();
+  const { state, stale, notice } = useApp();
+  const main = useRef<HTMLElement>(null);
+  const firstRoute = useRef(true);
+  const key = routeKey(route);
 
-  async function load() {
-    if (locked.current) return;
-    locked.current = true;
-    setBusy(true);
-    setReady(false);
-    setError("");
-    setNotice("");
-    try {
-      setItems(await store.load());
-      setReady(true);
-      setNotice(m.loaded);
-    } catch (cause) {
-      setError(errorMessage(cause, m));
-    } finally {
-      locked.current = false;
-      setBusy(false);
-    }
-  }
-
-  // The injected store is stable for the lifetime of the application.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: initial load only
+  // Move focus to the new page heading on navigation (not on first load).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs per route
   useEffect(() => {
-    void load();
-  }, []);
-
-  async function save(next: () => DemoItem[], after?: () => void) {
-    if (locked.current || !ready) return;
-    locked.current = true;
-    setBusy(true);
-    setError("");
-    setNotice("");
-    try {
-      const updated = next();
-      await store.save(updated);
-      setItems(updated);
-      setNotice(m.saved);
-      after?.();
-    } catch (cause) {
-      setError(errorMessage(cause, m));
-    } finally {
-      locked.current = false;
-      setBusy(false);
-      input.current?.focus();
+    if (firstRoute.current) {
+      firstRoute.current = false;
+      return;
     }
-  }
-
-  async function reset() {
-    if (locked.current) return;
-    locked.current = true;
-    setBusy(true);
-    setError("");
-    setNotice("");
-    try {
-      await store.reset();
-      setItems([]);
-      setTitle("");
-      setReady(true);
-      setConfirmReset(false);
-      setNotice(m.resetDone);
-    } catch (cause) {
-      setError(errorMessage(cause, m));
-    } finally {
-      locked.current = false;
-      setBusy(false);
+    const heading = main.current?.querySelector("h1");
+    if (heading instanceof HTMLElement) {
+      heading.tabIndex = -1;
+      heading.focus();
     }
-  }
+  }, [key]);
 
   return (
-    <main>
-      <header>
-        <p className="eyebrow">{m.eyebrow}</p>
-        <h1>{m.heading}</h1>
-        <p>{m.intro}</p>
-      </header>
-      <section aria-labelledby="demo-heading" aria-busy={busy}>
-        <h2 id="demo-heading">{m.listHeading}</h2>
-        <p>{m.listNote}</p>
-        <p role="status">{busy ? m.working : notice}</p>
-        {error && (
-          <p role="alert" className="error">
-            {error}
-          </p>
-        )}
-        {!ready && !busy && (
-          <button type="button" onClick={() => void load()}>
-            {m.retryLoading}
-          </button>
-        )}
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            void save(
-              () => createItem(items, title, crypto.randomUUID()),
-              () => setTitle(""),
-            );
-          }}
-        >
-          <label htmlFor="title">{m.newItemLabel}</label>
-          <div className="entry">
-            <input
-              ref={input}
-              id="title"
-              value={title}
-              maxLength={TITLE_MAX}
-              required
-              disabled={!ready || busy}
-              onChange={(event) => setTitle(event.target.value)}
-            />
-            <button disabled={!ready || busy || !title.trim()} type="submit">
-              {m.addItem}
-            </button>
-          </div>
-        </form>
-        {ready && items.length === 0 && <p>{m.empty}</p>}
-        {ready && (
-          <ul>
-            {items.map((item) => (
-              <li key={item.id}>
-                <label className="item">
-                  <input
-                    type="checkbox"
-                    checked={item.completed}
-                    disabled={busy}
-                    onChange={() => void save(() => toggleItem(items, item.id))}
-                  />
-                  <span className={item.completed ? "completed" : ""}>
-                    {item.title}
-                  </span>
-                </label>
-                <button
-                  type="button"
-                  disabled={busy}
-                  aria-label={m.deleteItemLabel(item.title)}
-                  onClick={() => void save(() => deleteItem(items, item.id))}
-                >
-                  {m.deleteItem}
-                </button>
+    <>
+      <button
+        type="button"
+        className="skip-link"
+        onClick={() => main.current?.focus()}
+      >
+        {m.common.skipToContent}
+      </button>
+      <header className="app-header">
+        <div className="app-header-inner">
+          <a href="#/" className="brand">
+            {m.common.appName}
+          </a>
+          <nav aria-label={m.nav.label}>
+            <ul>
+              <li>
+                <Link to={{ name: "home" }}>{m.nav.home}</Link>
               </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      <footer>
-        {confirmReset ? (
-          <div>
-            <p>{m.resetPrompt}</p>
-            <button type="button" disabled={busy} onClick={() => void reset()}>
-              {m.confirmReset}
-            </button>{" "}
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setConfirmReset(false)}
-            >
-              {m.cancel}
-            </button>
-          </div>
-        ) : (
+              <li>
+                <Link to={{ name: "setup", step: "profil" }}>
+                  {m.nav.setup}
+                </Link>
+              </li>
+              <li>
+                <Link to={{ name: "placeholders" }}>{m.nav.placeholders}</Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+      <main id="main" ref={main} tabIndex={-1}>
+        {stale && <StaleBanner />}
+        <div className="live" role="status" aria-live="polite">
+          {notice?.kind === "status" && (
+            <span key={notice.id}>{notice.text}</span>
+          )}
+        </div>
+        <div className="live-alert" role="alert">
+          {notice?.kind === "error" && (
+            <p key={notice.id} className="error">
+              {notice.text}
+            </p>
+          )}
+        </div>
+        {state.kind === "loading" && <p>{m.common.working}</p>}
+        {state.kind === "failed" && <Recovery cause={state.cause} />}
+        {state.kind === "ready" && <Page route={route} />}
+      </main>
+      <footer className="app-footer">
+        <p>{m.common.localNotice}</p>
+      </footer>
+    </>
+  );
+}
+
+function StaleBanner() {
+  const m = useMessages();
+  return (
+    <div className="banner" role="alert">
+      <p>{m.common.staleBanner}</p>
+      <button type="button" onClick={() => window.location.reload()}>
+        {m.common.reload}
+      </button>
+    </div>
+  );
+}
+
+function Recovery({ cause }: { cause: unknown }) {
+  const m = useMessages();
+  const { reload, reset, busy } = useApp();
+  const [confirming, setConfirming] = useState(false);
+  return (
+    <section className="card" aria-labelledby="recovery-heading">
+      <h1 id="recovery-heading">{m.recovery.heading}</h1>
+      <p className="error">{errorMessage(cause, m)}</p>
+      <p>{m.recovery.intro}</p>
+      <div className="actions">
+        <button type="button" disabled={busy} onClick={() => void reload()}>
+          {m.common.retry}
+        </button>
+        {!confirming && (
           <button
             type="button"
+            className="secondary"
             disabled={busy}
-            onClick={() => setConfirmReset(true)}
+            onClick={() => setConfirming(true)}
           >
-            {m.resetData}
+            {m.recovery.resetStart}
           </button>
         )}
-        <p>{m.footerNote}</p>
-      </footer>
-    </main>
+      </div>
+      {confirming && (
+        <fieldset className="confirm">
+          <legend>{m.recovery.resetStart}</legend>
+          <p>{m.recovery.resetPrompt}</p>
+          <div className="actions">
+            <button
+              type="button"
+              className="danger"
+              disabled={busy}
+              onClick={() => void reset()}
+            >
+              {m.recovery.resetConfirm}
+            </button>
+            <button
+              type="button"
+              className="secondary"
+              disabled={busy}
+              onClick={() => setConfirming(false)}
+            >
+              {m.common.cancel}
+            </button>
+          </div>
+        </fieldset>
+      )}
+    </section>
   );
+}
+
+function Page({ route }: { route: Route }) {
+  switch (route.name) {
+    case "home":
+      return <Home />;
+    case "setup":
+      return <SetupView step={route.step} />;
+    case "placeholders":
+      return <PlaceholderHelp />;
+    case "project":
+      return <ProjectView projectId={route.projectId} step={route.step} />;
+    case "lead":
+      return (
+        <LeadView
+          projectId={route.projectId}
+          leadId={route.leadId}
+          step={route.step}
+        />
+      );
+    case "notFound":
+      return <NotFound />;
+  }
 }

@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserStore } from "./storage/browser";
+import { createIndexedDbStore } from "./storage/indexeddb";
 import { App } from "./ui/App";
 import { catalogs, defaultLocale, MessagesProvider } from "./ui/i18n";
 import "./ui/style.css";
@@ -14,7 +14,7 @@ if (!root) throw new Error("Missing application root.");
 createRoot(root).render(
   <StrictMode>
     <MessagesProvider locale={locale}>
-      <App store={createBrowserStore()} />
+      <App store={createIndexedDbStore()} />
     </MessagesProvider>
   </StrictMode>,
 );

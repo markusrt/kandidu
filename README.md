@@ -1,13 +1,9 @@
-# mvp-starter
+# Kandidu
 
-An agent-agnostic, local-first web starter: a verified tech stack, a
-[constitution](.specify/memory/constitution.md), and a checkpointed way of working
-built on [GitHub Spec Kit](https://github.com/github/spec-kit). You bring a product
-idea; an agent specifies, plans, and implements it autonomously and stops at
-checkpoints C1–C3 so you can review a running MVP. The included demo (create,
-check, delete tasks with explicit persistence/recovery) is a walking skeleton
-proving the stack, not a spec. See [docs/STATUS.md](docs/STATUS.md) for
-verification and pending human review.
+Kandidu is a local-first browser app that guides one person through job
+applications. All data stays in the browser. See the
+[feature spec](specs/001-bewerbungs-mvp/spec.md) for requirements and
+[docs/STATUS.md](docs/STATUS.md) for current progress and pending reviews.
 
 ## Make an independent project
 

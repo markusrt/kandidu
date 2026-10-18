@@ -1,0 +1,72 @@
+[
+  {
+    "sourceUrl": "https://example.org/stellen/123",
+    "position": {
+      "title": "Ausbildung zum Industriekaufmann (m/w/d)",
+      "referenceNumber": "IK-2027",
+      "location": "Beispielstadt",
+      "startDate": "01.08.2027"
+    },
+    "company": {
+      "name": "Beispiel GmbH",
+      "website": "https://example.org",
+      "address": {
+        "street": "Hauptstraße 5",
+        "postalCode": "54321",
+        "city": "Beispielstadt"
+      }
+    },
+    "contact": {
+      "salutation": "Frau",
+      "title": "Dr.",
+      "firstName": "Eva",
+      "lastName": "Muster",
+      "role": "Ausbildungsleitung",
+      "email": "ausbildung@example.org"
+    },
+    "application": {
+      "channel": "email",
+      "email": "ausbildung@example.org",
+      "deadline": "31.12.2026",
+      "notes": "Unterlagen bitte als ein PDF senden."
+    },
+    "process": "1. Online-Test\n2. Vorstellungsgespräch vor Ort",
+    "research": "## Unternehmen\nDie Beispiel GmbH ist ein erfundenes Unternehmen für Tests ([Quelle](https://example.org/ueber-uns)).\n\n- Gegründet 1999\n- 120 Beschäftigte",
+    "motivation": "Die Ausbildung bei der Beispiel GmbH reizt mich, weil ich gern organisiere und mit Zahlen arbeite.\n\nBesonders anspruchsvoll finde ich die Verbindung von Einkauf und Vertrieb, die Sie in der Ausbildung vorsehen."
+  },
+  {
+    "sourceUrl": "https://example.org/stellen/456",
+    "position": {
+      "title": "Ausbildung zum Industriekaufmann (m/w/d)",
+      "referenceNumber": "IK-2027",
+      "location": "Beispielstadt",
+      "startDate": "01.08.2027"
+    },
+    "company": {
+      "name": "Muster AG",
+      "website": "https://example.org",
+      "address": {
+        "street": "Hauptstraße 5",
+        "postalCode": "54321",
+        "city": "Beispielstadt"
+      }
+    },
+    "contact": {
+      "salutation": "Frau",
+      "title": "Dr.",
+      "firstName": "Eva",
+      "lastName": "Muster",
+      "role": "Ausbildungsleitung",
+      "email": "ausbildung@example.org"
+    },
+    "application": {
+      "channel": "email",
+      "email": "ausbildung@example.org",
+      "deadline": "31.12.2026",
+      "notes": "Unterlagen bitte als ein PDF senden."
+    },
+    "process": "1. Online-Test\n2. Vorstellungsgespräch vor Ort",
+    "research": "## Unternehmen\nDie Beispiel GmbH ist ein erfundenes Unternehmen für Tests ([Quelle](https://example.org/ueber-uns)).\n\n- Gegründet 1999\n- 120 Beschäftigte",
+    "motivation": "Die Ausbildung bei der Beispiel GmbH reizt mich, weil ich gern organisiere und mit Zahlen arbeite.\n\nBesonders anspruchsvoll finde ich die Verbindung von Einkauf und Vertrieb, die Sie in der Ausbildung vorsehen."
+  }
+]
