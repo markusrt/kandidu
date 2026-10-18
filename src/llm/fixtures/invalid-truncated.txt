@@ -1,0 +1,26 @@
+{
+  "leads": [
+    {
+      "sourceUrl": "https://example.org/stellen/123",
+      "position": {
+        "title": "Ausbildung zum Industriekaufmann (m/w/d)",
+        "referenceNumber": "IK-2027",
+        "location": "Beispielstadt",
+        "startDate": "01.08.2027"
+      },
+      "company": {
+        "name": "Beispiel GmbH",
+        "website": "https://example.org",
+        "address": {
+          "street": "Hauptstraße 5",
+          "postalCode": "54321",
+          "city": "Beispielstadt"
+        }
+      },
+      "contact": {
+        "salutation": "Frau",
+        "title": "Dr.",
+        "firstName": "Eva",
+        "lastName": "Muster",
+        "role": "Ausbildungsleitung",
+        "email": "ausbildung

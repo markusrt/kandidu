@@ -1,0 +1,39 @@
+{
+  "leads": [
+    {
+      "sourceUrl": "example.org/ohne-protokoll",
+      "position": {
+        "title": "Ausbildung zum Industriekaufmann (m/w/d)",
+        "referenceNumber": "IK-2027",
+        "location": "Beispielstadt",
+        "startDate": "01.08.2027"
+      },
+      "company": {
+        "name": "Warn GmbH",
+        "website": "https://example.org",
+        "address": {
+          "street": "Hauptstraße 5",
+          "postalCode": "54321",
+          "city": "Beispielstadt"
+        }
+      },
+      "contact": {
+        "salutation": "Frau",
+        "title": "Dr.",
+        "firstName": "Eva",
+        "lastName": "Muster",
+        "role": "Ausbildungsleitung",
+        "email": "ausbildung@example.org"
+      },
+      "application": {
+        "channel": "persönlich abgeben",
+        "email": "ausbildung@example.org",
+        "deadline": "31.12.2026",
+        "notes": "Unterlagen bitte als ein PDF senden."
+      },
+      "process": "1. Online-Test\n2. Vorstellungsgespräch vor Ort",
+      "research": "## Unternehmen\nDie Beispiel GmbH ist ein erfundenes Unternehmen für Tests ([Quelle](https://example.org/ueber-uns)).\n\n- Gegründet 1999\n- 120 Beschäftigte",
+      "motivation": "Eins.\n\nZwei.\n\nDrei."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+export function downloadBytes(
+  bytes: Uint8Array,
+  fileName: string,
+  mimeType: string,
+): void {
+  const blob = new Blob([bytes as BlobPart], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Firefox may abort large blob downloads if the URL is revoked too early.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}

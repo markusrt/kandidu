@@ -1,6 +1,8 @@
 # ADR 002: Replaceable local demo storage
 
 Status: selected starter direction; actual implementation/evidence in `docs/STATUS.md`.
+Superseded for Kandidu product data by [ADR 008](008-indexeddb-storage.md)
+(IndexedDB); the recovery principles below still apply.
 
 ## Context
 

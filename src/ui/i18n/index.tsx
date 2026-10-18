@@ -1,15 +1,19 @@
 import { createContext, type ReactNode, useContext } from "react";
-import { ItemError } from "../../domain/items";
+import { LeadError } from "../../domain/lead";
+import type { LetterFormatter } from "../../domain/letterData";
+import { ProfileError } from "../../domain/profile";
+import { ProjectError } from "../../domain/project";
+import { FileError } from "../../files/errors";
 import { StoreError } from "../../storage/port";
-import { en } from "./en";
-import type { Messages } from "./messages";
+import { de } from "./de";
+import { assertErrorCatalog, type ErrorCode, type Messages } from "./messages";
 
 export type { Messages } from "./messages";
 
 // Add a locale by adding its catalog here; the spec language is the default.
-export const catalogs = { en } satisfies Record<string, Messages>;
+export const catalogs = { de } satisfies Record<string, Messages>;
 export type Locale = keyof typeof catalogs;
-export const defaultLocale: Locale = "en";
+export const defaultLocale: Locale = "de";
 
 const MessagesContext = createContext<Messages>(catalogs[defaultLocale]);
 
@@ -31,9 +35,45 @@ export function useMessages(): Messages {
   return useContext(MessagesContext);
 }
 
-export function errorMessage(cause: unknown, messages: Messages): string {
-  if (cause instanceof ItemError || cause instanceof StoreError) {
-    return messages.errors[cause.code];
+export function errorCode(cause: unknown): ErrorCode {
+  if (
+    cause instanceof StoreError ||
+    cause instanceof FileError ||
+    cause instanceof ProfileError ||
+    cause instanceof ProjectError ||
+    cause instanceof LeadError
+  ) {
+    return cause.code;
   }
-  return messages.errors.unexpected;
+  return "unexpected";
+}
+
+/** Localized text for any thrown value; never raw technical messages. */
+export function errorMessage(cause: unknown, messages: Messages): string {
+  return assertErrorCatalog(messages)[errorCode(cause)];
+}
+
+/** Letter wording for the domain's letter data builder. */
+export function letterFormatter(messages: Messages): LetterFormatter {
+  return {
+    longDate: messages.format.date,
+    shortDate: messages.format.shortDate,
+    salutation: (kind, contact) => {
+      const title = contact?.title?.trim() ?? "";
+      const lastName = contact?.lastName?.trim() ?? "";
+      if (kind === "female") return messages.letter.female(title, lastName);
+      if (kind === "male") return messages.letter.male(title, lastName);
+      return messages.letter.neutral;
+    },
+    contactName: (contact) =>
+      [
+        contact?.salutation,
+        contact?.title,
+        contact?.firstName,
+        contact?.lastName,
+      ]
+        .map((part) => part?.trim())
+        .filter(Boolean)
+        .join(" "),
+  };
 }

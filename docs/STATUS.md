@@ -3,173 +3,211 @@
 ## Checkpoint and authorization
 
 - Updated: 2026-10-18.
-- Repository/branch: `markusrt/mvp-starter`, `copilot/populate-mvp-starter`.
-- Checkpoint: **starter accepted; squash-merged to `main` via PR #1**. This is
-  not C1 of any product. No product feature exists in `specs/`.
-- Active feature: none. The starter ships no sample spec (ADR 004).
-- Approval: owner requested the Spec Kit migration on 2026-10-18, which covers
-  the constitution move/amendment (v2.0.0, later v2.1.0) recorded in ADRs 004
-  and 005, and the ship flow (ADR 007).
-- Human acceptance of the starter: **accepted on 2026-10-18**. The owner made
-  the repository public, enabled GitHub Pages (source: GitHub Actions,
-  `https://markusrt.github.io/mvp-starter/`), and explicitly asked to
-  squash-merge PR #1 into `main`. The resulting deployment is evidence for
-  the next change; it is not recorded here in advance.
-- Prior commits: `ad5a7c0` (starter implementation), `8b79d3e` (initialization
-  wording). Inspect actual `git status --short` and `git log` on resume.
+- Product: **Kandidu** (Bewerbungs-Assistent), repository `markusrt/kandidu`.
+- Branch: `001-bewerbungs-mvp` (local only; not pushed). Base: `907c144 chore:
+  initialize Spec Kit` on top of the template's initial commit.
+- Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
+  contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
+- Checkpoint: **C1 – Risky core: implemented and verified; pending human review.**
+  GATE task T038. No later phase may start until a decision is recorded here.
+- Approval state: none yet for C1. Silence is not approval.
+- Ship mode: **not recorded yet.** The brief says: ask at the first approved gate
+  (recommend `auto-merge` if the repository is public and GitHub Pages is
+  enabled, otherwise `expert-review`). Until then: local commits only, no push.
+- Owner instructions this session (2026-10-18): work on local branch
+  `001-bewerbungs-mvp`, push only once ship mode is clear; `.gitattributes` with
+  `*.sh text eol=lf`; commit the `specify init` output separately as
+  `chore: initialize Spec Kit` (done: `907c144`).
 
-## What changed and actual evidence
+## Clarifications recorded (2026-10-18, spec `## Clarifications`)
 
-2026-10-18 Spec Kit migration:
+1. CV PDF: uploaded once, global for all leads, no per-lead override.
+2. Lifecycle: main path review → ready → sent → interview (repeatable) →
+   accepted | rejected; plus withdrawn and failed; last change undoable.
+3. Prompt: optional user-written context per project, off by default, shown in
+   the prompt with a notice; never profile data.
+4. Limits: 20 MB per PDF, 10 MB per DOCX; quota warning at 80 %; request
+   persistent storage with explanation.
 
-- Constitution moved to `.specify/memory/constitution.md` in Spec Kit format,
-  same rules, plus explicit C1–C3 checkpoints and mandatory tests.
-- `docs/SPEC.md` (demo spec S1–S7) removed. Product specs come from
-  `/speckit-specify` under `specs/NNN-*/`. Demo e2e titles no longer cite S-IDs.
-- `.specify/templates/overrides/tasks-template.md` adds C1–C3 GATE tasks,
-  mandatory tests, stack paths, and per-slice commits.
-- `biome.json` excludes tool-managed `.specify/`.
-- AGENTS.md, BOOTSTRAP-PROMPT.md, README.md, ADR 003 updated; ADR 004 added.
+## C1 scope and spec IDs
 
-2026-10-18 language policy (owner request): constitution v2.1.0 adds principle
-XII and ADR 005. Spec language is the user's best-fit language (default: the
-brief's). Technical docs and code are English. Spec Kit structure (headings,
-markers, IDs) stays English. The UI defaults to the spec language through a
-message catalog. AGENTS.md, BOOTSTRAP-PROMPT.md (SPEC/UI LANGUAGE fields),
-README, and the tasks override (catalog setup T003, C3 localization pass)
-updated. Basis: grep of specify-cli 1.2.1 scripts found no content parsing, and
-the skills reference only the English markers listed in ADR 005. Not run: no
-non-English `/speckit-*` session yet.
+| Item | State |
+| --- | --- |
+| US1 (P1) one lead end to end | implemented, verified (unit + e2e), **not yet human-accepted** |
+| FR-001–FR-008 profile, templates, placeholder checks | implemented, verified |
+| FR-012–FR-014, FR-016 project, links, prompt, copy (+ manual fallback) | implemented, verified |
+| FR-017 resume after pause | partly: response draft autosaved and project reopens at the step matching its prompt state; full resume proof is US4 (C2) |
+| FR-018–FR-020 tolerant parsing, field-level errors, paste never lost | implemented, verified |
+| FR-021 | re-pasting an already imported answer asks first (UI + e2e); partial import is US3 (C2) |
+| FR-022–FR-029 review/edit, salutation, DOCX download, missing-value check, no DOCX→PDF, file names, CV/cover PDFs, gate | implemented, verified |
+| FR-030–FR-032 one package PDF, names, in-browser merge + ZIP | implemented, verified (multi-package is US3/C2) |
+| FR-033 package definition stored | implemented for the single C1 package |
+| FR-039 no network / CSP | implemented, e2e network guard on every test |
+| FR-040, FR-041 saved-after-commit, validated load, recovery view | implemented; storage adapter unit-verified (abort, quota mapping, corrupt data, blocked writes); UI path only by e2e happy path — UI failure injection is US4 (C2) |
+| FR-042 size limits | limits enforced; usage display/quota warning/persistence request are US4 (C2) |
+| FR-044 multi-tab | adapter conflict detection + reload banner implemented; e2e proof is US4 (C2) |
+| FR-046–FR-048 stepper, keyboard baseline, de-DE catalog | implemented; full keyboard/axe proof is C2 |
+| SC-002 | automated: split-run templates fill correctly, DOCX re-opens; **Word/LibreOffice "no repair prompt" not checked** (neither installed on the agent machine) |
+| SC-003, SC-004, SC-005, SC-008 | verified (see evidence) |
 
-2026-10-18 ship flow and GitHub Pages (owner request, ADR 007): gates now
-include a local review (`.claude/agents/speckit-reviewer.md`, opus, read-only)
-and local feedback before shipping. `scripts/ship.mjs` (`pnpm ship`) supports
-`expert-review` and `auto-merge`. CI gains `pages-check` and `deploy` jobs for
-`main`. `models:check` expects the reviewer on opus and gains `--require <type>`.
-AGENTS.md, BOOTSTRAP-PROMPT.md (SHIP MODE), and README are updated. The README
-no longer claims the template flag is off: the API reports `is_template: true`.
-Evidence: workflow YAML parses (jobs verify → pages-check → deploy); action SHAs
-resolved from each action's latest release tag (configure-pages v6.0.0,
-upload-pages-artifact v5.0.0, deploy-pages v5.0.1); a base-path build
-(`vite build --base /mvp-starter/`) emits `/mvp-starter/assets/...` and the
-default build is unchanged. `ship.mjs` exits 2 on usage errors and 3 on a dirty
-tree; further dry runs are below. Repository facts: private, free plan, Pages
-404, branch protection 403, auto-merge setting off. Not run: real push, PR
-merge, CI deploy, or live URL check, because merging is the owner's decision.
-The first real run must be watched.
+Riskiest assumptions (constitution I):
+1. docxtemplater fills user-edited templates and explains placeholder errors —
+   **supported**: tags split across 2–4 formatted runs with `w:proofErr`/bookmarks
+   render correctly; every docxtemplater error id we rely on maps to a German
+   explanation with tag/context; unknown names get suggestions (`{Vornahme}` →
+   „Meinten Sie {Vorname}?“). Open: real Word/LibreOffice round trip (review step 2).
+2. Arbitrary LLM JSON is parsed robustly — **supported**: 18-file synthetic corpus
+   (fences, prose, single object, root array, trailing commas, typographic
+   quotes, two blocks, nulls/empty strings, numbers, unknown channel) all handled;
+   invalid answers create no leads and keep the paste.
+3. Storing/merging PDFs and ZIP in the browser at realistic size — **supported**:
+   2 × 13.5 MB / 30 pages uploaded through the UI, merged to 60 pages and zipped in
+   **0.6–0.7 s** in desktop Chromium (target < 30 s); merge order verified per page.
 
-2026-10-18 routing sanity check (owner request): `scripts/check-model-routing.mjs`
-(`pnpm models:check`) and an AGENTS.md procedure (probe before the first
-implementation task, table at every GATE, stop on mismatch). Tested on real
-local transcripts: this Opus-only session gives exit 0, and exit 1 with
-`--require-agent` ("speckit-implementer (never ran)"). A Unity session with
-Explore subagents on Haiku 4.5 gives a correct mismatch for its Sonnet 4.6
-main session and the wrong Explore expectation (exit 1). An unknown project
-gives exit 2. Biome passes.
+## Commands and actual evidence (2026-10-18, Node 24.21.0, pnpm 10.34.7)
 
-2026-10-18 model routing (owner request, ADR 006): `.claude/agents/
-speckit-implementer.md` (`sonnet`, effort `medium`) implements `[ROUTINE]` tasks.
-The main session (`opus`) keeps planning, untagged tasks, review, verify,
-commits, and gates. The tasks override defines and samples `[ROUTINE]`;
-AGENTS.md, BOOTSTRAP-PROMPT.md (MODELS field), and README are updated.
-Evidence: specify-cli 1.2.1 source shows workflow steps accept `model:` but
-dispatch headless `claude -p` (option rejected, see ADR). `specify init --here`
-on a scratch copy left the subagent file byte-identical, and the PowerShell
-template resolver returns the tagged override. Not run: no live delegation
-(it needs a product and spends model usage); subagent fields are checked
-against the Claude Code docs only.
-
-2026-10-18 localization-ready skeleton (owner request): domain throws
-`ItemError` codes and storage `StoreError` codes instead of English text. All UI
-text lives in `src/ui/i18n` (typed `Messages`, `en` catalog, locale registry,
-`errorMessage`; unknown errors show a generic message, never raw technical
-text). `src/main.tsx` sets `<html lang>` and the title. `TITLE_MAX` is shared by
-domain, schema, input, and message. English wording is unchanged. On Node
-24.21.0: **`pnpm verify` passed** (22 files linted, 17 modules/28 dependencies
-with no violations, **15 unit tests** including 3 new catalog tests, build,
-**8 Playwright scenarios** unchanged and passing). One behavior change: invalid
-data at save time now shows the generic catalog message instead of a raw
-validation error.
-
-2026-10-18 Node upgrade (owner request): pin raised from 22.23.3 to **24.21.0**
-(Active LTS) in `.node-version`, `.nvmrc`, `engines`; `@types/node` 22.20.5 →
-24.19.2; ADR 001, AGENTS.md, README updated. CI reads `.node-version`. On Node
-24.21.0 with pnpm 10.34.7: `pnpm install --frozen-lockfile` succeeded, **`pnpm
-verify` passed** (18 files linted, 13 modules/14 dependencies with no violations,
-12 unit tests, build, 8 Playwright scenarios), `pnpm audit`: no known
-vulnerabilities. Node 24.22.0 (2026-10-14) exists; 24.21.0 was chosen to match
-the owner's installed runtime.
-
-Spec Kit migration commands, run earlier on 2026-10-18 under the previous Node
-22.23.3 pin (portable Node with corepack pnpm 10.34.7):
-
-- `specify init sk-probe --integration claude --script sh --non-interactive`
-  (specify-cli 1.2.1, scratch copy): generated `.claude/skills/speckit-*` (10)
-  and `.specify/` (memory, scripts, templates, workflows). No git repository or
-  CLAUDE.md/AGENTS.md created.
-- Biome on that initialized copy with the old config: **5 format errors** in
-  generated `.specify/*.json`; with the `.specify` exclusion: **pass**.
-- `specify init --here --force` on a scratch copy of this working tree:
-  existing constitution **preserved**, no tracked file modified,
-  `resolve-template.sh tasks-template` returns the GATE override, and Biome passes.
-- `pnpm install --frozen-lockfile`: succeeded.
-- **`pnpm verify`: passed.** Biome (18 files); typecheck; dependency-cruiser
-  (13 modules, 14 dependencies, no violations); **12 unit tests**; production build
-  (known Zod comment warnings only); **8 Playwright scenarios** (chromium + mobile).
-  The first run failed on formatting from the e2e title change; fixed with
-  `biome format --write`, then rerun green.
+- `pnpm add` of the ADR 009 libraries; `pnpm audit`: **no known vulnerabilities**.
+- **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0** (final run after review fixes).
+  Biome 98 files; `tsc -b` ok; dependency-cruiser 98 modules / 312 dependencies,
+  no violations; Vitest **22 files / 196 tests** passed; `vite build` ok;
+  Playwright **9 passed, 1 skipped** (the size test runs on the chromium project
+  only, by design). Port override: on the owner's machine VS Code listens on
+  127.0.0.1:4173 after a reboot, so `playwright.config.ts` now reads
+  `KANDIDU_E2E_PORT` (default 4173, CI unchanged). Plain `pnpm verify` fails here
+  only because of that port (`http://127.0.0.1:4173 is already used`).
+- Playwright journeys: `e2e/c1-lead-journey.spec.ts` (full US1 journey, missing-CV
+  gate, keyboard smoke) and `e2e/c1-package-size.spec.ts` (SC-005, 21 MB
+  rejection), each on Desktop Chrome and Pixel 7, with a network guard that fails
+  on any request outside the preview origin (SC-008).
 - `pnpm dev --host 127.0.0.1 --port 5173 --strictPort`: `http://127.0.0.1:5173/`
-  returned HTTP 200 with the demo page title. Loopback only, on the agent's machine.
+  returned HTTP 200 with `lang="de"` and title „Kandidu“. Loopback only: reachable
+  on the machine running the server, not from other devices.
+- Bundle (production): start chunk 128 KB gzip; DOCX (64 KB), PDF (246 KB),
+  Markdown (48 KB) load on demand.
 
-Not run: no `/speckit-*` command was executed end to end, because that needs a
-product brief.
+## Model routing (ADR 006)
 
-Hosted CI (2026-10-18): pushing `0af0a7c` with `pnpm ship --mode expert-review`
-(the first real ship run; it reused PR #1) ran the workflow on GitHub for the
-first time. Push [run 39121570064](https://github.com/markusrt/mvp-starter/actions/runs/39121570064)
-and PR [run 39121572288](https://github.com/markusrt/mvp-starter/actions/runs/39121572288):
-`verify` passed, and `pages-check`/`deploy` were skipped as designed (not
-`main`). PR #1 was retitled, marked ready for review, and GitHub reports it
-`mergeable_state: clean`. Local `gh` 2.30.0 fails on `gh pr edit` (a GraphQL
-projectCards removal), so the REST API was used; `ship.mjs` does not depend on
-`pr edit`.
+`pnpm models:check` (exit 0, "Routing OK"):
 
-Earlier 2026-10-16 evidence (pnpm audit clean, CodeQL zero alerts, live browser
-inspection) applies to unchanged application code. It was not re-executed.
+| Agent | Models (responses) | Expected |
+| --- | --- | --- |
+| main session | claude-opus-5-5 (533) | opus |
+| speckit-reviewer (run 1, interrupted by the crash) | claude-opus-5-5 (18) | opus |
+| speckit-reviewer (run 2, complete) | claude-opus-5-5 (97) | opus |
+| speckit-implementer (probe) | claude-sonnet-5-5 (2) | sonnet |
+| speckit-implementer T001, T010 | claude-sonnet-5-5 (13) | sonnet |
+| speckit-implementer T019, T024 | claude-sonnet-5-5 (17) | sonnet |
+| speckit-implementer T021, T023, T031, T032 | claude-sonnet-5-5 (44) | sonnet |
+| speckit-implementer T035 | claude-sonnet-5-5 (26) | sonnet |
 
-## Start / review / resume
+Delegated `[ROUTINE]` tasks: **T001, T010, T019, T024, T021, T023, T031, T032,
+T035**. All diffs reviewed in the main session; corrections made there:
+`addResponse` kept clearing the paste draft on failed parses (FR-020) → fixed;
+review long-text fields used `aria-label` only → visible labels; Markdown loaded
+eagerly → lazy. All other tasks were done in the main session.
 
-1. `pnpm install --frozen-lockfile`, then
-   `pnpm dev --host 127.0.0.1 --port 5173 --strictPort`; the walking skeleton
-   still runs at the printed local URL.
-2. Read README "Make an independent project", BOOTSTRAP-PROMPT.md, and the GATE
-   tasks in `.specify/templates/overrides/tasks-template.md`. Optionally try it
-   in a scratch copy: `specify init --here --integration claude`, paste the prompt.
-3. The demo walking skeleton is kept: the owner had it made localization-ready
-   instead of stripping it.
+## Local review (speckit-reviewer, opus, fresh context)
 
-The dev server may not survive the session; restart with the command above.
-After the merge, `main` deploys the demo to `https://markusrt.github.io/mvp-starter/`.
+Verdict: **no blockers.** Fixed in this slice (should-fix 1–6):
 
-Fresh agent: read constitution → AGENTS → this status → active `specs/` feature
-(none) → relevant ADRs. No starter gate is pending.
+1. Response draft could be lost when leaving within 800 ms or when a write was
+   running (`commit()` silently refused concurrent writes). Now `commit()` queues
+   writes; the draft is flushed on blur, unmount and `pagehide`; failed saves retry.
+   Side effect found by e2e: blur-save disabled the submit button mid-click; the
+   button now depends only on its own submit state.
+2. Unsaved edits in profile and lead review were dropped on navigation. Now an
+   „Ungespeicherte Änderungen“ hint plus a confirm before leaving (in-app links,
+   tab close).
+3. Merge order was untested. Unit test and e2e now check page order per source
+   (distinct page widths), including reordering in the UI and persistence of the
+   order (FR-033).
+4. FR-021 duplicate guard was not wired. Re-pasting an imported answer now asks
+   first (domain `findImportedResponse`, UI confirm, e2e).
+5. Gate failure feedback was vague. It now lists what is missing, in a
+   `role="alert"` linked to the checkbox.
+6. STATUS/ADR claims corrected (this section, FR-021/FR-040 rows, SC-005 timing,
+   ADR 008 quota sentence).
 
-## Limits, decisions, and next action
+Nits fixed: oversized paste no longer silently truncated (limit message instead);
+package file name shown as sanitized; hardcoded „Anschreiben.pdf“ and „ · “ moved
+to the catalog; domain file-name fallback is neutral; malformed URL hash shows
+„Nicht gefunden“ instead of a blank app; download URL revoked after 60 s (Firefox);
+review required-field errors linked via `aria-invalid`/`aria-describedby`;
+adapter resets `loaded` before each load; CV upload with empty file name.
 
-- Discardable nonsensitive demo only; no backup/export, auth, backend, sync,
-  conflict resolution, or PWA/offline loading. Static GitHub Pages deployment
-  per ADR 007. Storage limits: ADR 002.
-- The tasks override copies the spec-kit 1.2.1 core template. On Spec Kit
-  upgrades, diff the core template against the override (ADR 004).
-- Spec Kit needs Python and `uv` on each machine that runs `specify`.
-- `.sh` scripts are generated locally per product by `specify init`
-  (`--script sh|ps`); the starter commits none.
-- No license chosen. The repository is public and marked as a template.
-- Ship flow not yet exercised end to end: the first `main` deployment happens
-  with this merge, and `auto-merge` has not run.
-- **Exact next action:** owner creates the first product repository (`kandidu`)
-  from this template, runs `specify init --here --integration claude`, and starts
-  `claude --model opus` with the Kandidu bootstrap prompt.
+Remaining (accepted for C1, noted for C2):
+- Permission-restricted PDF merge test checks page count, not decrypted content.
+- `response.issue()` composes field + verb inside one catalog function (fine for
+  de; revisit if a second locale is added).
+- Copying the prompt again after „answered“ resets the state to „copied“ (as
+  designed in data-model.md: a new round), so reopening the project lands on
+  „Antwort“, not „Leads“.
+
+## Decisions, deviations, findings during C1
+
+- ADR 008: IndexedDB `kandidu:data` behind the async store port (owner decision).
+- ADR 009: library choices; `@cantoo/pdf-lib` instead of unmaintained `pdf-lib`;
+  docxtemplater's bundled InspectModule needs undeclared `lodash`, so a 12-line
+  tag collector on the public module hook replaces it.
+- PDFs that only restrict permissions (empty open password) are accepted and
+  merged; PDFs that need a password to open are rejected (`pdf-encrypted`).
+- Demo templates contain a core placeholder set, not every redundant variant
+  (contract updated); the full list is on the help page.
+- New storage error codes `store-blocked`, `record-invalid` (contract updated).
+
+## Limits and known gaps (honest)
+
+- Data lives only in this browser profile (IndexedDB). It is not encrypted, can be
+  evicted or cleared, and is not backed up until US5 (C2) adds export/import.
+- No Word/LibreOffice on the agent machine: "opens without repair prompt" is
+  unverified by automation.
+- Not in C1 (planned C2/C3): evidence documents and tags, several leads per
+  answer in the UI flow (parser already supports them), partial import, multiple
+  packages, storage usage/persistence UI, backup, write-failure UI tests, axe
+  scan, 360 px proof, lifecycle beyond ready, comments, overview, deletion.
+- Agent environment: drive C: was 100 % full during part of this session (tests
+  ran with TMP/TEMP on D:), and the owner's PC crashed (bluescreen) before the
+  first feature commit. After the crash: `git fsck` clean, no empty/NUL files,
+  full `pnpm verify` green. A non-branch safety snapshot was written to
+  `refs/backup/c1-wip` (local ref, never pushed); it can be deleted with
+  `git update-ref -d refs/backup/c1-wip`. Not product issues.
+
+## Questions for the owner
+
+Blocking for the gate: the C1 decision (approve / request changes) and the ship
+mode (see next action). Nonblocking:
+
+1. CV download shows „Trotzdem herunterladen“ whenever optional profile fields
+   used by the demo CV (Geburtsort, Staatsangehörigkeit, Website) are empty.
+   Keep (spec FR-025) or warn only for required fields?
+2. Trademark search (DPMA/EUIPO/WIPO) before any public launch (open item from the
+   brief; the 2026-10-18 web/domain check is not a clearance).
+
+## Review steps for the owner (≤ 3)
+
+1. Start: `pnpm install --frozen-lockfile` then
+   `pnpm dev --host 127.0.0.1 --port 5173 --strictPort`, open
+   `http://127.0.0.1:5173/` on this machine.
+2. Try US1 with synthetic data (quickstart.md "Manual C1 walkthrough"): profile →
+   Vorlagen (download the cover-letter demo, edit it in Word/LibreOffice, add
+   `{Vornahme}`, upload → see the explanation, fix, upload) → Lebenslauf-PDF →
+   new project with one link → copy prompt → paste
+   `src/llm/fixtures/valid-fenced.txt` (or a real LLM answer) → edit lead →
+   download Anschreiben, open in Word/LibreOffice (no repair prompt?), save as PDF
+   → Freigabe → Paket → ZIP.
+3. Decide: approve C1 or request changes, and choose the ship mode
+   (`local-only`, `expert-review`, or `auto-merge`).
+
+## Worktree and next action
+
+- Worktree: the C1 slice is committed on `001-bewerbungs-mvp` in the commit that
+  contains this file (see `git log`); nothing pushed. Dev server verified at
+  `http://127.0.0.1:5173/` (HTTP 200, `lang="de"`, title „Kandidu“), loopback only;
+  it may not survive the session — restart with the command in step 1.
+- **Exact next action:** owner reviews the running app and records a C1 decision
+  and ship mode here. On approval: ship per the chosen mode, then start C2
+  (Phase 4, T039) with `/speckit-implement`. On change requests: fold them into
+  spec.md via `/speckit-clarify`, refresh tasks, re-run to T038.
 
 ## Subsequent handoff schema
 

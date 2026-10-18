@@ -1,32 +1,22 @@
-import type { ItemErrorCode } from "../../domain/items";
+import type { LeadErrorCode } from "../../domain/lead";
+import type { ProfileErrorCode } from "../../domain/profile";
+import type { ProjectErrorCode } from "../../domain/project";
+import type { FileErrorCode } from "../../files/errors";
 import type { StoreErrorCode } from "../../storage/port";
+import type { Messages } from "./de";
 
-export type ErrorCode = ItemErrorCode | StoreErrorCode | "unexpected";
+export type { Messages } from "./de";
 
-// Every locale implements this shape, so a missing string is a type error.
-// Parameterized text is a function: translators control word order instead of
-// the UI concatenating sentence fragments.
-export interface Messages {
-  readonly documentTitle: string;
-  readonly eyebrow: string;
-  readonly heading: string;
-  readonly intro: string;
-  readonly listHeading: string;
-  readonly listNote: string;
-  readonly working: string;
-  readonly loaded: string;
-  readonly saved: string;
-  readonly resetDone: string;
-  readonly retryLoading: string;
-  readonly newItemLabel: string;
-  readonly addItem: string;
-  readonly empty: string;
-  readonly deleteItem: string;
-  readonly deleteItemLabel: (title: string) => string;
-  readonly resetPrompt: string;
-  readonly confirmReset: string;
-  readonly cancel: string;
-  readonly resetData: string;
-  readonly footerNote: string;
-  readonly errors: Readonly<Record<ErrorCode, string>>;
-}
+export type ErrorCode =
+  | StoreErrorCode
+  | FileErrorCode
+  | ProfileErrorCode
+  | ProjectErrorCode
+  | LeadErrorCode
+  | "unexpected";
+
+// Every error code has catalog text; a missing entry is a type error.
+export type ErrorCatalog = Readonly<Record<ErrorCode, string>>;
+
+export const assertErrorCatalog = (messages: Messages): ErrorCatalog =>
+  messages.errors satisfies ErrorCatalog;

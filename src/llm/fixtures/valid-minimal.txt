@@ -1,0 +1,28 @@
+{
+  "leads": [
+    {
+      "position": {
+        "title": "Ausbildung zur Kauffrau für Büromanagement",
+        "referenceNumber": null
+      },
+      "company": {
+        "name": "Muster AG",
+        "website": "",
+        "address": null
+      },
+      "contact": {
+        "salutation": "",
+        "lastName": null
+      },
+      "application": {
+        "channel": "E-Mail",
+        "email": "jobs@example.org"
+      },
+      "research": "Kurze Recherche.",
+      "motivation": "Ein Absatz.",
+      "unbekanntesFeld": {
+        "wird": "ignoriert"
+      }
+    }
+  ]
+}
