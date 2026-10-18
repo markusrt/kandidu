@@ -119,7 +119,7 @@ in `docs/STATUS.md`.
 
 ### C1 GATE
 
-- [ ] T038 [GATE] C1 checkpoint: run `pnpm verify`; start `pnpm dev --host 127.0.0.1 --port 5173 --strictPort` and confirm the URL responds; update docs/STATUS.md (checkpoint, spec IDs, commands and outcomes, URL and who can reach it, ≤3 review steps, questions, next action) and the spec in the same commit; commit the slice; then **STOP** and wait for an explicit human decision. Do not start later phases until docs/STATUS.md records approval.
+- [X] T038 [GATE] C1 checkpoint: run `pnpm verify`; start `pnpm dev --host 127.0.0.1 --port 5173 --strictPort` and confirm the URL responds; update docs/STATUS.md (checkpoint, spec IDs, commands and outcomes, URL and who can reach it, ≤3 review steps, questions, next action) and the spec in the same commit; commit the slice; then **STOP** and wait for an explicit human decision. Do not start later phases until docs/STATUS.md records approval.
 
 ---
 

@@ -8,12 +8,16 @@
   initialize Spec Kit` on top of the template's initial commit.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
-- Checkpoint: **C1 – Risky core: implemented and verified; pending human review.**
-  GATE task T038. No later phase may start until a decision is recorded here.
-- Approval state: none yet for C1. Silence is not approval.
-- Ship mode: **not recorded yet.** The brief says: ask at the first approved gate
-  (recommend `auto-merge` if the repository is public and GitHub Pages is
-  enabled, otherwise `expert-review`). Until then: local commits only, no push.
+- Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
+  gebe C1 frei mit auto-merge"). GATE task T038 done. C2 (Phase 4, T039) may start
+  after the C1 ship completes.
+- Approval state: C1 approved without change requests.
+- Ship mode: **`auto-merge`** (owner decision 2026-10-18). This authorizes push,
+  PR, merge after green CI, and the GitHub Pages deployment for this product.
+- Ship precondition (checked 2026-10-18): repository `markusrt/kandidu` is public;
+  GitHub Pages is **not set up yet** (`gh api repos/markusrt/kandidu/pages` → 404),
+  so `pnpm ship --mode auto-merge` stops with exit 3 until Pages uses GitHub
+  Actions as its source.
 - Owner instructions this session (2026-10-18): work on local branch
   `001-bewerbungs-mvp`, push only once ship mode is clear; `.gitattributes` with
   `*.sh text eol=lf`; commit the `specify init` output separately as
@@ -204,10 +208,12 @@ mode (see next action). Nonblocking:
   contains this file (see `git log`); nothing pushed. Dev server verified at
   `http://127.0.0.1:5173/` (HTTP 200, `lang="de"`, title „Kandidu“), loopback only;
   it may not survive the session — restart with the command in step 1.
-- **Exact next action:** owner reviews the running app and records a C1 decision
-  and ship mode here. On approval: ship per the chosen mode, then start C2
-  (Phase 4, T039) with `/speckit-implement`. On change requests: fold them into
-  spec.md via `/speckit-clarify`, refresh tasks, re-run to T038.
+- **Exact next action:** enable GitHub Pages (Settings → Pages → Build and
+  deployment → Source: GitHub Actions, or with the owner's permission
+  `gh api -X POST repos/markusrt/kandidu/pages -f build_type=workflow`), then run
+  `pnpm ship --mode auto-merge --title "feat: deliver C1 – one application lead end to end in the browser" --body-file <file outside the repo>`
+  and record PR URL, CI result, run link and live URL here with the next change.
+  Afterwards start C2 (Phase 4, T039) with `/speckit-implement` on a new branch.
 
 ## Subsequent handoff schema
 
