@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-18
 
-**Status**: C1 (US1) implemented and verified; pending human review at the C1 gate (T038)
+**Status**: C1 (US1) accepted by the owner on 2026-10-18; C2 next
 
 **Spec Language**: de-DE
 
