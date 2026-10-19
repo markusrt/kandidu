@@ -10,9 +10,10 @@
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
   gebe C1 frei mit auto-merge") and **shipped** (see "C1 ship result"). GATE task
-  T038 done. **C2 – Useful and recoverable: in progress** (Phase 4 onward, up to
-  GATE T057).
-- Approval state: C1 approved without change requests. C2 not yet reviewed.
+  T038 done. **C2 – Useful and recoverable: implemented and verified, GATE T057
+  pending an explicit human decision** (2026-10-19). Nothing of C3 started.
+- Approval state: C1 approved without change requests. **C2 awaiting the
+  owner's decision** (approve, or request changes); silence is not approval.
 - Ship mode: **`auto-merge`** (owner decision 2026-10-18). This authorizes push,
   PR, merge after green CI, and the GitHub Pages deployment for this product,
   after each approved gate. C2 work stays local until the C2 gate is approved.
@@ -45,13 +46,15 @@
   `curl`: HTTP 200, `lang="de"`, `<title>Kandidu</title>`. Public (GitHub Pages);
   all data stays in the visitor's browser.
 
-## C2 in progress (2026-10-19)
+## C2 scope and evidence (GATE T057 pending, 2026-10-19)
 
-State of branch `001-bewerbungs-mvp` after the commit "feat: deliver C2 evidence
-management (US2) with started US3/US5 work". Owner rule from now on: one story
-at a time, one commit per story (AGENTS.md "Owner working rules").
+All C2 tasks T039–T056 and T071–T073 are ticked; T057 (GATE) is open. Every
+story below is implemented and verified by tests, **none is human-accepted
+yet**. Commits per story (owner rule "one story at a time"): `c715960` (T071),
+`f5739c0` (US2 + started US3/US5), `ace67cc` (US3), `e7fba0e` (US4),
+`5ac1c78` (US5), then the C2 review-fix commit and the gate handoff commit.
 
-### Done (ticked in tasks.md)
+### US2 and C1 feedback (ticked in tasks.md)
 
 | Task | Spec IDs | Evidence |
 | --- | --- | --- |
@@ -89,7 +92,7 @@ US4 (Pausieren, Fortsetzen und Fehler überstehen), main session, own commit
 | Task | Spec IDs | Evidence |
 | --- | --- | --- |
 | T048 resume after browser restart (`promptState` routing, "Antwort ausstehend", draft kept) | FR-017, FR-046, SC-006 | e2e `C2 resume: … survive a browser restart` (new context from `storageState({ indexedDB: true })`) |
-| T049 failed writes: "Nicht gespeichert …", "Erneut versuchen"/"Abbrechen", input kept, follow-up only after success; damaged data → recovery view, never overwritten, confirmed reset | FR-040, FR-041, SC-006 | e2e `C2 recovery: a failed save …`, `… a full storage …` (injected `put` failures: UnknownError, QuotaExceededError), `… damaged stored data …` |
+| T049 failed writes: "Nicht gespeichert …" alert with "Erneut versuchen" (repeats the person's own action on the current state) and "Schließen", input kept, focus stays on the triggering control; damaged data → recovery view, never overwritten, confirmed reset (design changed after the C2 review, see "C2 local review") | FR-040, FR-041, SC-006 | e2e `C2 recovery: a failed save …`, `… a full storage …`, `… with full storage, backup export and deleting files still work`, `… a retried response import keeps its response …` (injected `put` failures on data stores: UnknownError, QuotaExceededError), `… damaged stored data …` |
 | T050 `#/daten`: local-only notice, usage with 80 % warning, persistence state/request/denial, confirmed reset; upload warning in every file field | FR-042, FR-045 | `quota.test.ts` (threshold, clamping, unusable estimates); e2e `C2 storage: …` (2 tests, faked `StorageManager`) |
 | T051 two tabs: banner after a broadcast or a `conflict` write, stale write refused, input kept | FR-044 | `indexeddb.test.ts` (conflict; new: broadcast only after commit, unsubscribe); e2e `C2 multi-tab: …` |
 | T052 keyboard-only US1 path (Tab reachability + visible focus checked per element) and axe scans of 16 views + parse-error state | FR-046, FR-047, SC-009 | e2e `C2 keyboard: …`, `C2 a11y: …` (0 critical/serious, WCAG 2.1 A/AA tags) |
@@ -107,7 +110,7 @@ import a full backup (US5)":
 
 | Task | Spec IDs | Evidence |
 | --- | --- | --- |
-| T054 backup storage (manifest, SHA-256, LIESMICH from the catalog, validate first, one replacing transaction, works after a failed load) + `persistenceState()` | FR-043, SC-007 | `backup.test.ts` (17 tests); `indexeddb.test.ts` new: `persistenceState` granted/denied/unsupported/throwing, never prompts |
+| T054 backup storage (manifest, SHA-256, LIESMICH from the catalog, validate first, one replacing transaction, works after a failed load) + `persistenceState()` | FR-043, SC-007 | `backup.test.ts` (15 tests); `indexeddb.test.ts` new: `persistenceState` granted/denied/unsupported/throwing, never prompts |
 | T055 backup UI on `#/daten` and in the recovery view | FR-041, FR-043, FR-045 | e2e `C2 backup: export is named by date …` (name `JJJJ-MM-TT_Kandidu_Sicherung.zip`, notice, LIESMICH), `… import asks before replacing, and invalid or newer backups change nothing`, `… the recovery view imports a backup over damaged data` |
 | T056 e2e journey (delegated, reviewed) | FR-043, SC-007 | e2e `C2 backup: a full C1 state survives export and import into a fresh browser` (profile, lead, status, ZIP entry names and page counts identical; empty target imports without asking) |
 
@@ -115,19 +118,12 @@ Review fixes on the delegated T056 test: removed a constant snapshot field
 that proved nothing; the package page count is now also checked absolutely
 (3 = cover letter 1 + CV 2), not only before vs. after.
 
-### Started before US3, now finished (history)
+T054 was started before US3 (storage part, `backup.test.ts` 15 tests: round
+trip bit-identical, replace, recovery import, 11 damage cases, stale-tab
+conflict); its open points (UI, `persistenceState()` test, backup-specific
+"newer version" text) were closed in US5.
 
-| Task | State | Open points |
-| --- | --- | --- |
-| T054 backup storage (US5) | `src/storage/backup.ts` (`buildBackup`, `parseBackup`), adapter `exportBackup(readme)` / `importBackup` (allowed after a failed load, one replacing transaction, export does not move the known revision), new port method `persistenceState()`, new error `backup-invalid`; `backup.test.ts` 17 tests (round trip bit-identical, replace, recovery import, 11 damage cases, stale-tab conflict) | no UI yet (T055); `persistenceState()` has no adapter test; `unsupported-version` text says "gespeicherte Daten" and needs a backup-specific wording in T055; contracts updated |
-
-The T054 open points above are resolved in US5. Not started: T057 (GATE).
-
-Already present from C1 and relevant later: revision conflict detection and the
-stale-tab banner (T051 needs only UI/e2e proof), resume routing by `promptState`
-and the "Antwort ausstehend" badge (T048 needs the restart e2e).
-
-### Known problems and notes
+### Notes
 
 - "ZIP hang" in the C1 journey (reported by a delegated implementer): not
   reproducible on the finished tree; all C1 journeys passed (11 passed, 1
@@ -136,12 +132,20 @@ and the "Antwort ausstehend" badge (T048 needs the restart e2e).
 - Process lesson: work ran across US2, US3 and US5 at the same time, so their
   files overlap (`de.ts`, `packages.ts`, `PackageStep.tsx`) and could not be
   committed per story. From now on: one story at a time.
-- Tag text typed without Enter or a suggestion click is not added on upload
-  (T041 behaviour; the hint says "Mit Enter …"). Candidate for the C2 review.
 - On this machine port 4173 is taken: run e2e and verify with
   `KANDIDU_E2E_PORT=4174`.
 
 ### Checks (2026-10-19, Node 24.21.0, pnpm 10.34.7)
+
+- **Gate run, after the C2 review fixes: `KANDIDU_E2E_PORT=4174 pnpm verify`:
+  exit 0.** Biome 117 files; `tsc -b` ok; dependency-cruiser 111 modules /
+  388 dependencies, no violations; Vitest **26 files / 245 tests**; build ok;
+  Playwright **59 passed, 1 skipped** (the size test runs on the chromium
+  project only, by design). Specs: `c1-lead-journey`, `c1-package-size`,
+  `c2-evidence`, `c2-multi`, `c2-recovery`, `c2-a11y`, `c2-mobile`,
+  `c2-backup`, each on Desktop Chrome and Pixel 7 with the network guard.
+- `pnpm audit` after adding `@axe-core/playwright`: no known vulnerabilities.
+- `pnpm models:check`: exit 0, "Routing OK" (table under "C2 model routing").
 
 - After US5: **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0.** Biome 117 files;
   `tsc -b` ok; dependency-cruiser 111 modules / 388 dependencies, no
@@ -179,6 +183,70 @@ there: `suggestTags` no longer throws on over-long input, evidence list layout
 class, two e2e locator races in `c2-evidence.spec.ts` (identical status text;
 edit-mode heading).
 
+### C2 model routing (session of US3–US5 and the gate)
+
+`pnpm models:check`: exit 0, "Routing OK".
+
+| Agent | Models (responses) | Expected |
+| --- | --- | --- |
+| main session | claude-opus-5-5 (452) | opus |
+| speckit-implementer T056 | claude-sonnet-5-5 (26) | sonnet |
+| speckit-reviewer (C2 gate review) | claude-opus-5-5 (66) | opus |
+
+Delegated `[ROUTINE]` tasks in C2: **T039, T041, T043, T047 (draft), T056**.
+All other C2 tasks were done in the main session (US3 review, all of US4,
+T054/T055 and the review fixes).
+
+### C2 local review (speckit-reviewer, opus, fresh context)
+
+Verdict before fixes: **not ready, 1 blocker, 4 should-fix**. All fixed in the
+commit "fix: address the C2 review findings", then the full `pnpm verify` was
+rerun (see Checks).
+
+1. **Blocker B1**: during the first retry design, a failed write held the
+   write queue open; a draft autosave built from the older project could run
+   after the retried response import and drop the stored response (FR-020),
+   which also disabled the FR-021 duplicate guard. Fix: a failed write no
+   longer holds anything. "Erneut versuchen" repeats the person's own action
+   (clicks the triggering button again or re-submits its form), so it always
+   runs on the current state; `commit()` hands the latest saved snapshot to the
+   write when it runs, and the draft autosave builds its project from it.
+   Background autosaves get no retry button (they retry on the next change)
+   and never hide an open retry. New e2e `C2 recovery: a retried response
+   import keeps its response, so pasting it again asks first`.
+2. **S1** full storage had no in-app way out while the failure was open. Now
+   nothing is blocked; backup export depends only on its own task. New e2e
+   `C2 recovery: with full storage, backup export and deleting files still
+   work`.
+3. **S2** failure alert lost focus. Focus now stays on (or returns to) the
+   control that started the write; the alert closes on navigation. The e2e
+   checks focus; axe scans now also cover the failure alert, the recovery view
+   and the backup confirmation.
+4. **S3** a tag typed without Enter was dropped on upload/save. Now it is
+   taken over on save, with a hint below the field. New e2e `C2 evidence: a tag
+   typed without Enter is kept on upload and on save`.
+5. **S4** STATUS claims: backup test count (15, not 17), outdated limits, C1
+   rows that read as pending, missing T056 routing entry. Corrected here.
+
+Nits fixed: `suggestTags` could still throw during render for inputs whose
+lower case is longer ("İ" × 21; unit test added); backup replace confirmation
+announced (`role="alert"`); restore returns to Home like reset; `busy` is
+derived from pending writes and the reset/restore lock; retry is idempotent;
+read errors of the picked backup file are shown; tag list sentence moved into
+the catalog; `exportBackup` no longer uses `this`; no "storage almost full"
+upload warning on the backup import field.
+
+Remaining (not fixed, for C3 or later):
+- Focus after removing an element (tag, link, package, evidence edit/delete,
+  closing the backup confirmation) falls to `<body>`.
+- No size cap before reading a backup file into memory.
+- T073: the gate step's "CV missing" state is not asserted in e2e (the
+  package step's is).
+- No unit tests for `commit()` itself (proved through e2e only) and none for
+  `importBackup` aborting on a full disk mid-transaction.
+- Accepted from C1: permission-restricted PDF merge checks page count only;
+  `response.issue()` composes field + verb in one catalog function.
+
 ## Clarifications recorded (2026-10-18, spec `## Clarifications`)
 
 1. CV PDF: uploaded once, global for all leads, no per-lead override.
@@ -189,7 +257,9 @@ edit-mode heading).
 4. Limits: 20 MB per PDF, 10 MB per DOCX; quota warning at 80 %; request
    persistent storage with explanation.
 
-## C1 scope and spec IDs
+## C1 scope and spec IDs (history: state at C1 acceptance)
+
+Rows that say "US3/US4/US5 (C2)" are done now; see "C2 scope and evidence".
 
 | Item | State |
 | --- | --- |
@@ -317,14 +387,19 @@ Remaining (accepted for C1, noted for C2):
 
 ## Limits and known gaps (honest)
 
-- Data lives only in this browser profile (IndexedDB). It is not encrypted, can be
-  evicted or cleared, and is not backed up until US5 (C2) adds export/import.
+- Data lives only in this browser profile (IndexedDB). It is not encrypted and
+  can be evicted or cleared; the backup ZIP (US5) is the only safeguard and is
+  itself unencrypted personal data. Persistent storage is requested only on
+  the person's click; browsers may refuse it.
 - No Word/LibreOffice on the agent machine: "opens without repair prompt" is
-  unverified by automation.
-- Not in C1 (planned C2/C3): evidence documents and tags, several leads per
-  answer in the UI flow (parser already supports them), partial import, multiple
-  packages, storage usage/persistence UI, backup, write-failure UI tests, axe
-  scan, 360 px proof, lifecycle beyond ready, comments, overview, deletion.
+  unverified by automation (SC-002).
+- Browser coverage: automated tests run in Chromium (Desktop Chrome, Pixel 7
+  emulation) only; Firefox/Safari are not tested. Quota and persistence are
+  faked in e2e (`StorageManager`), write failures are injected; a real full
+  disk was not produced.
+- Not yet built (C3): lifecycle beyond "ready", comments, overview with
+  filter/sort, deleting leads and projects (US6, US7); remaining review items
+  above.
 - Agent environment: drive C: was 100 % full during part of this session (tests
   ran with TMP/TEMP on D:), and the owner's PC crashed (bluescreen) before the
   first feature commit. After the crash: `git fsck` clean, no empty/NUL files,
@@ -343,6 +418,28 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
    task T071).
 2. Trademark search (DPMA/EUIPO/WIPO) before any public launch (open item from the
    brief; the 2026-10-18 web/domain check is not a clearance). Nonblocking.
+3. **C2 decision (blocking for C3 and for shipping C2):** approve C2, or
+   request changes. On approval the recorded ship mode `auto-merge` pushes the
+   branch, opens the PR, merges after green CI and deploys to GitHub Pages.
+
+## Review steps for the owner at C2 (≤ 3)
+
+The dev server was started with `pnpm dev --host 127.0.0.1 --port 5173
+--strictPort` and answered on **<http://127.0.0.1:5173/>** (HTTP 200,
+`lang="de"`, title "Kandidu"). Loopback only: reachable on this machine, not
+from other devices; it runs only while the agent session's process lives. If
+it is gone: `pnpm install --frozen-lockfile`, then the same command.
+
+1. Open `http://127.0.0.1:5173/` and try US2 + US3 with synthetic data
+   (setup as in quickstart.md "Manual C1 walkthrough"): "Nachweise" (upload two PDFs, tags with and without
+   Enter, filter, rename, delete), a project with three links (edit one), paste
+   `src/llm/fixtures/valid-three-leads.txt`, release one lead, "Paket" with two
+   package PDFs → ZIP.
+2. Try US4 + US5: copy a prompt, close the browser, reopen → "Antwort
+   ausstehend"; "Daten" → "Sicherung herunterladen", then in a private window
+   "Sicherung importieren" and compare; optionally open two tabs and change
+   something in one; and keyboard only / phone width (DevTools 360 px).
+3. Decide: approve C2 (ship via `auto-merge`) or name the changes you want.
 
 ## Review steps for the owner at C1 (≤ 3, done)
 
@@ -361,12 +458,16 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
 
 ## Worktree and next action
 
-- Worktree: C1 is merged into `main` (`b8af643`) and live. C2 work is on the
-  local branch `001-bewerbungs-mvp`: `01abef1` (docs), `c715960` (T071), then the
-  US2 commit with the started US3/US5 work (see "C2 in progress"). Nothing
-  pushed until the C2 gate is approved. Untracked local safety ref
-  `refs/backup/c1-wip` still exists (never pushed).
-- **Exact next action:** C2 GATE T057 (handoff procedure in AGENTS.md).
+- Worktree: C1 is merged into `main` (`b8af643`) and live. C2 is on the local
+  branch `001-bewerbungs-mvp`: `01abef1` (docs), `c715960` (T071), `f5739c0`
+  (US2), `ace67cc` (US3), `e7fba0e` (US4), `5ac1c78` (US5), then the C2
+  review-fix commit and the gate handoff commit (this file). Clean after the
+  handoff commit; nothing pushed. Local safety ref `refs/backup/c1-wip` still
+  exists (never pushed).
+- **Exact next action:** wait for the owner's C2 decision (GATE T057). On
+  approval: record it here, tick T057, run `pnpm ship --mode auto-merge`. On
+  change requests: fold them in and repeat the handoff. Do not start C3 (US6)
+  before that.
 
 ## Subsequent handoff schema
 
