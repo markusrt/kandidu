@@ -33,7 +33,7 @@ required data (FR-025, clarification 2026-10-19). The catalog marks them
 | Placeholder | Value |
 | --- | --- |
 | `{Datum}` | today, long German date, e.g. "18. Oktober 2026" (system) |
-| `{Stelle}` | position title |
+| `{Stelle}` | lead's "Stelle im Anschreiben", else the project's "Stelle (im Anschreiben)", else the advertisement's position title (FR-049, C3) |
 | `{Referenznummer}` | reference number or empty |
 | `{Firma}` | company name |
 | `{FirmaStrasse}` / `{FirmaPLZ}` / `{FirmaOrt}` | company address (postal address of the application channel wins if set) |

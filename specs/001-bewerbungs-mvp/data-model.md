@@ -6,11 +6,11 @@ Zod in `src/storage/schema.ts` on every load (constitution IV). IDs are
 domain functions. Timestamps are ISO-8601 strings (`YYYY-MM-DDTHH:mm:ss.sssZ`);
 calendar dates entered by the user are `YYYY-MM-DD`.
 
-## Storage layout (IndexedDB `kandidu:data`, version 1)
+## Storage layout (IndexedDB `kandidu:data`, version 2 since C3)
 
 | Object store | Key | Value |
 | --- | --- | --- |
-| `meta` | `"meta"` | `{ schemaVersion: 1, revision: number }` |
+| `meta` | `"meta"` | `{ schemaVersion: 2, revision: number }` |
 | `profile` | `"profile"` | `Profile` |
 | `templates` | `TemplateKind` | `TemplateRecord` (only user uploads; absence = demo active) |
 | `documents` | `id` | `DocumentRecord` (Nachweise and the global CV PDF) |
@@ -20,6 +20,29 @@ calendar dates entered by the user are `YYYY-MM-DD`.
 
 Every write transaction includes `meta` and increments `revision` (R1). File bytes
 and their metadata are written in the same transaction.
+
+### Migrations (FR-053, FR-054; ADR 008 "explicit tested `onupgradeneeded` steps")
+
+| From → to | Change | Data rewrite |
+| --- | --- | --- |
+| 1 → 2 (C3) | new optional fields `Project.position`, `Lead.letterPosition`, `Lead.originalPostingUrl`, `Lead.sources` | none: every v1 record is a valid v2 record (fields absent = empty) |
+
+- The IndexedDB version equals `SCHEMA_VERSION`. `openDB(…, 2)` runs the upgrade
+  in the browser's single version-change transaction: `oldVersion < 1` creates the
+  stores; `oldVersion < 2` sets `meta.schemaVersion = 2` and increments
+  `meta.revision` when a `meta` record exists (an empty database gets its meta on
+  the first write as before). If the upgrade fails (e.g. quota), the browser aborts
+  it and the database stays at version 1 unchanged; the open fails with
+  `read-failed` and the recovery view appears.
+- Records are not rewritten; the v2 Zod schemas validate them on every load as
+  before, so a damaged v1 record still leads to the recovery view.
+- After a successful upgrade the adapter posts on `kandidu:changes`, so a tab that
+  still runs the previous version shows its "reload" banner; that tab's connection
+  is closed by `versionchange` and its next write fails (it can no longer open
+  version 2), so it never overwrites migrated data.
+- Backups: `parseBackup` accepts `schemaVersion` 1 and 2 (v1 records validate
+  unchanged with the v2 schemas); imported data is written with `schemaVersion: 2`.
+  Exports write `schemaVersion: 2`; `formatVersion` stays 1 (ZIP layout unchanged).
 
 ## Entities
 
@@ -79,6 +102,7 @@ Predefined tags (FR-010): `zeugnis`, `zertifikat`, `arbeitszeugnis`, `schulzeugn
 | title | string | required, 1–120 |
 | links | `{ id, url }[]` | 1–20 at prompt time; http(s) URL ≤ 2 000; unique |
 | promptContext | string | default `""`, ≤ 2 000; included only when non-empty (FR-015) |
+| position | string \| undefined | "Stelle (im Anschreiben)", trimmed, ≤ 200, empty = absent (FR-049, v2); not part of the prompt |
 | promptState | `"draft" \| "copied" \| "answered"` | see transitions |
 | promptCopiedAt | timestamp \| undefined | |
 | responses | `Response[]` | append-only until project deletion (FR-020) |
@@ -107,7 +131,10 @@ again for a new round.
 | --- | --- | --- |
 | id, projectId | string | |
 | responseId, responseIndex | string, number | origin (duplicate guard, FR-021) |
-| sourceUrl | string \| undefined | http(s) |
+| sourceUrl | string \| undefined | http(s); the entered project link this lead came from; on import, if absent and the project has exactly one link, that link (FR-051) |
+| originalPostingUrl | string \| undefined | http(s) ≤ 2 000; the company's own advertisement found by the LLM (FR-051, v2) |
+| sources | `{ title?, url }[]` \| undefined | research sources; ≤ 20, url http(s) ≤ 2 000 unique, title ≤ 200; absent = none (FR-050, FR-051, v2) |
+| letterPosition | string \| undefined | overrides `Project.position` for `{Stelle}`, trimmed, ≤ 200, empty = absent; editable in review (FR-049, v2) |
 | position | `{ title, referenceNumber?, location?, startDate?, employmentType? }` | title required 1–200 |
 | company | `{ name, website?, address?: Address }` | name required 1–200 |
 | contact | `Contact \| undefined` | `{ salutation?: "Frau"\|"Herr", title?, firstName?, lastName?, role?, email?, phone? }` |
@@ -183,4 +210,4 @@ templates: TemplateKind[], source: "profile"|"lead"|"system" }`.
   `nothing-to-undo`, `lead-invalid`, `already-imported`.
 - `ProjectError`: `title-invalid`, `link-invalid`, `link-duplicate`,
   `too-many-links`, `no-links`, `context-too-long`, `draft-too-large`,
-  `link-not-found`. `ProfileError`: `profile-invalid`.
+  `link-not-found`, `position-too-long` (C3). `ProfileError`: `profile-invalid`.

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-18
 
-**Status**: C1 (US1) accepted by the owner on 2026-10-18 and shipped; C2 (US2–US5) approved by the owner on 2026-10-19 with follow-ups R1–R6 (`feedback/C2.md`, GATE T057); C3 not started
+**Status**: C1 (US1) accepted by the owner on 2026-10-18 and shipped; C2 (US2–US5) approved by the owner on 2026-10-19 with follow-ups R1–R6 (`feedback/C2.md`, GATE T057) and shipped; C3 planned: C2 follow-ups R1–R4 (FR-049–FR-054), US6, US7; R5–R6 in the Backlog
 
 **Spec Language**: de-DE
 
@@ -45,7 +45,7 @@ daraus Bewerbungspakete als ZIP zusammen und verfolgt den weiteren Verlauf.
 | --- | --- | --- |
 | C1 – Risky core | US1 | Ein Lead durchgängig mit synthetischen Daten |
 | C2 – Useful and recoverable | US2, US3, US4, US5 | Dokumente mit Tags, mehrere Links/Leads, flexible Pakete, Fortsetzen nach Pause, Sicherung, Fehler/Wiederherstellung, Tastatur, Barrierefreiheit, Mobil |
-| C3 – Agreed acceptance | US6, US7 | Lebenszyklus mit Kommentaren und Daten, Übersicht und Verwaltung, Löschen, Abnahme |
+| C3 – Agreed acceptance | C2-Feedback R1–R4 (Änderungen an US1/US3), US6, US7 | Links im Prüfen-Schritt, Original-Ausschreibung und Firmenanschrift im Prompt, Stelle auf Projektebene, Umstellung gespeicherter Daten; Lebenszyklus mit Kommentaren und Daten, Übersicht und Verwaltung, Löschen, Abnahme |
 
 ## Clarifications
 
@@ -59,6 +59,10 @@ daraus Bewerbungspakete als ZIP zusammen und verfolgt den weiteren Verlauf.
 ### Session 2026-10-19
 
 - Q: Soll der Lebenslauf-Download „Trotzdem herunterladen“ verlangen, wenn nur optionale Profilfelder (Geburtsdatum, Geburtsort, Staatsangehörigkeit, Website) leer sind? → A: Nein. Leere optionale Platzhalter werden nur als Hinweis angezeigt, der Download geht normal; die bewusste Bestätigung („Trotzdem herunterladen“) gibt es nur, wenn Platzhalter für Pflichtangaben leer bleiben würden. Das Anschreiben bleibt unverändert.
+- Q: Gilt die Stelle aus dem Projekt (`{Stelle}`) für alle Leads des Projekts, oder ist sie ein Vorschlag, den die Person je Lead ändern kann? (C2-Feedback R4) → A: Vorgabe, je Lead änderbar. Das Projekt hat ein Feld „Stelle (im Anschreiben)“; `{Stelle}` nimmt den Wert des Leads, sonst den des Projekts, sonst den Anzeigentitel. Bestehende Leads ändern sich nicht (FR-049).
+- Q: Wie werden die Links oben im Schritt „Lead prüfen“ gespeichert und bearbeitet? (C2-Feedback R1, R2) → A: Feste Felder plus Quellenliste: eingegebener Link, Original-Ausschreibung (neu, vom LLM nur bei sicherem Fund), Bewerbungsportal, Unternehmens-Website und eine Liste „Quellen“ (Titel und URL, neu im Antwortschema). Alle klickbar (neuer Tab) und im Review editierbar; der Recherche-Text bleibt unverändert; die Projektlinks bleiben die eingegebenen (FR-050, FR-051).
+- Q: Wie werden bereits im Browser gespeicherte Daten auf das neue Format umgestellt? → A: Automatisch beim ersten Öffnen der neuen Version in einer einzigen Transaktion; neue Felder bleiben leer, nichts wird gelöscht. Schlägt die Umstellung fehl, bleibt der alte Stand unverändert und die Wiederherstellungsansicht erscheint; ein offener Tab mit der alten Version wird zum Neuladen aufgefordert (FR-053).
+- Q: Was gilt beim Sicherungs-ZIP, wenn sich das Datenformat ändert? → A: Vorhandene Sicherungen (Datenversion 1) bleiben importierbar und werden beim Import umgestellt; neue Sicherungen tragen Datenversion 2 bei unverändertem ZIP-Aufbau; eine ältere Kandidu-Version lehnt neue Sicherungen mit „neuere Version“ ab, ohne etwas zu ändern (FR-054).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -147,6 +151,32 @@ hochladen und Freigabe bestätigen → ein zusammengeführtes PDF im ZIP prüfen
 13. **Given** eine hochgeladene Datei, die kein lesbares PDF ist (falscher Typ,
     beschädigt, passwortgeschützt), **When** sie hochgeladen oder zusammengeführt
     wird, **Then** meldet die App das verständlich und bewahrt alle bisherigen Daten.
+
+Ergänzungen aus dem C2-Feedback (R1–R4, Umsetzung in C3):
+
+14. **Given** ein Lead im Review, **When** die Person den Schritt „Lead prüfen“
+    öffnet, **Then** stehen ganz oben die Links (eingegebener Link,
+    Original-Ausschreibung, Bewerbungsportal, Unternehmens-Website, Quellen); jeder
+    vorhandene Link öffnet in einem neuen Tab, jeder ist im Review änderbar, und
+    nach dem Speichern und Neuladen sind die Änderungen vorhanden (FR-050).
+15. **Given** ein Projekt, **When** die Person den Prompt öffnet, **Then** verlangt
+    er, möglichst die Original-Ausschreibung auf der Seite des Unternehmens zu finden,
+    deren Angaben (z. B. Vergütung) vorzuziehen, bei unsicherem Fund keinen Link zu
+    nennen und fehlende Anschrift und Website des Unternehmens zu recherchieren, mit
+    Quellen (FR-051, FR-052).
+16. **Given** eine Antwort mit Original-Ausschreibung und Quellen, **When** sie
+    eingelesen wird, **Then** speichert der Lead den eingegebenen Link, die
+    Original-Ausschreibung und alle Quellen; die Projektlinks bleiben unverändert
+    (FR-051).
+17. **Given** ein Projekt mit der Stelle „Industriekaufmann“ und zwei Leads, von
+    denen einer die Stelle überschreibt, **When** die Person die Anschreiben
+    herunterlädt, **Then** enthält `{Stelle}` im einen „Industriekaufmann“ und im
+    anderen den überschriebenen Wert; ohne beide Werte wie bisher den Anzeigentitel
+    (FR-049).
+18. **Given** im Browser gespeicherte Daten einer früheren Version, **When** die
+    Person die neue Version öffnet, **Then** sind alle Daten unverändert vorhanden
+    und die neuen Felder leer; eine Sicherung der früheren Version lässt sich
+    importieren (FR-053, FR-054).
 
 ---
 
@@ -361,6 +391,24 @@ gespeichert sind.
   bestehen.
 - Upload über der Größengrenze (20 MB PDF, 10 MB DOCX): Ablehnung mit Nennung der
   Grenze, vor jedem Speichern.
+- Das LLM findet keine sichere Original-Ausschreibung: Das Feld bleibt leer, es
+  gelten die eingegebenen Links (FR-051).
+- Das LLM gibt als eingegebenen Link eine Adresse zurück, die nicht zu den
+  Projektlinks gehört, oder lässt sie weg: Hat das Projekt genau einen Link, gilt
+  dieser; sonst bleibt der vom LLM gelieferte Wert stehen und ist im Review
+  änderbar (FR-051).
+- Vom LLM recherchierte Anschrift oder Website ist falsch: Sie steht in denselben
+  änderbaren Feldern wie Angaben aus der Anzeige; der Links-Block weist darauf
+  hin, gefundene Angaben vor dem Versand zu prüfen (FR-050, FR-052).
+- Die Stelle im Projekt wird geändert, nachdem Leads existieren: Sie gilt für alle
+  künftigen Anschreiben-Downloads der Leads ohne eigenen Wert; bereits hochgeladene
+  Anschreiben-PDFs bleiben unverändert (FR-049).
+- Ein zweiter Tab mit der früheren Version ist offen, während die neue Version die
+  Daten umstellt: Der alte Tab schreibt nichts mehr und fordert zum Neuladen auf
+  (FR-044, FR-053).
+- Umstellung der gespeicherten Daten schlägt fehl (z. B. Speicher voll): Der alte
+  Stand bleibt unverändert, die Wiederherstellungsansicht erscheint (FR-041,
+  FR-053).
 
 ## Requirements *(mandatory)*
 
@@ -418,7 +466,23 @@ gespeichert sind.
   Unternehmen, Ansprechpartner, Firmenadresse, Bewerbungsweg (Portal-Link, E-Mail,
   Post, Sonstiges), Infos zum Bewerbungsprozess, Unternehmensrecherche passend zur
   Stelle mit Quellenlinks (Markdown) und einen Vorschlag für den Motivationsteil
-  (höchstens 2 Absätze), je Stellenausschreibung ein Eintrag.
+  (höchstens 2 Absätze), je Stellenausschreibung ein Eintrag; dazu die
+  Original-Ausschreibung (FR-051), die Quellen als Liste und die recherchierte
+  Anschrift und Website des Unternehmens (FR-052).
+- **FR-051**: Der Prompt MUSS das LLM anweisen, je Eintrag den eingegebenen Link
+  unverändert zurückzugeben und möglichst die Original-Ausschreibung des
+  Unternehmens (z. B. dessen Karriereseite) zu finden, deren Angaben (z. B.
+  Vergütung) denen von Jobportalen vorzuziehen und die Original-Ausschreibung nur
+  bei sicherem Fund zu nennen. Kandidu MUSS je Lead alle Links speichern: den
+  eingegebenen Link, die Original-Ausschreibung, das Bewerbungsportal, die
+  Unternehmens-Website und die Quellen der Recherche (Titel optional, URL). Liefert
+  das LLM keinen eingegebenen Link und hat das Projekt genau einen Link, gilt dieser.
+  Die Projektlinks bleiben die vom Nutzer eingegebenen. (C2-Feedback R2)
+- **FR-052**: Nennt eine Ausschreibung nur Firmenname und Ort, MUSS der Prompt das
+  LLM anweisen, Anschrift und Website des Unternehmens zu recherchieren (z. B. über
+  Impressum oder Kontaktseite), die Fundstelle als Quelle anzugeben und unbekannte
+  Angaben leer zu lassen statt sie zu erfinden. Recherchierte Angaben landen in den
+  normalen, im Review änderbaren Feldern. (C2-Feedback R3)
 - **FR-014**: Der Prompt DARF standardmäßig keine persönlichen Daten enthalten und
   MUSS vor dem Kopieren vollständig und unverändert so angezeigt werden, wie er
   kopiert wird.
@@ -457,8 +521,24 @@ gespeichert sind.
 - **FR-022**: Nutzer MÜSSEN je Lead bearbeiten können: Stelle, Unternehmen,
   Ansprechpartner (Anrede, Titel, Vor-/Nachname, Funktion, E-Mail, Telefon),
   Firmenadresse, Bewerbungsweg, Prozess-Infos, Recherche (Markdown, mit formatierter
-  Vorschau; Links öffnen in neuem Tab) und Motivationsteil (Plain-Text, Absätze durch
-  Leerzeile, höchstens 2 Absätze, mit sichtbarem Hinweis bei Überschreitung).
+  Vorschau; Links öffnen in neuem Tab), Motivationsteil (Plain-Text, Absätze durch
+  Leerzeile, höchstens 2 Absätze, mit sichtbarem Hinweis bei Überschreitung), die
+  Links (FR-050) und die Stelle im Anschreiben (FR-049).
+- **FR-049**: Nutzer MÜSSEN je Projekt optional eine „Stelle (im Anschreiben)“
+  festlegen (z. B. „Industriekaufmann“, höchstens 200 Zeichen) und je Lead
+  überschreiben können. Der Platzhalter `{Stelle}` nimmt den Wert des Leads, sonst
+  den des Projekts, sonst den Stellentitel aus der Anzeige. Bestehende Leads
+  behalten ihr Ergebnis, solange weder Projekt noch Lead einen Wert haben.
+  (C2-Feedback R4, Clarification 2026-10-19)
+- **FR-050**: Der Schritt „Lead prüfen“ MUSS ganz oben einen Block „Links“ zeigen:
+  eingegebener Link, Original-Ausschreibung, Bewerbungsportal, Unternehmens-Website
+  und die Quellen. Jeder vorhandene Link ist ein Link, der in einem neuen Tab öffnet
+  (ohne Zugriff der Zielseite auf Kandidu); im Review ist jeder Link änderbar, Quellen
+  lassen sich hinzufügen und entfernen (höchstens 20, http(s)); Änderungen werden mit
+  dem Lead gespeichert, ungültige Adressen am Feld gemeldet. Nach der Freigabe sind
+  die Links weiter klickbar, aber schreibgeschützt (FR-029). Der Block weist darauf
+  hin, vom LLM gefundene Links und Angaben vor dem Versand zu prüfen.
+  (C2-Feedback R1)
 - **FR-023**: Das System MUSS eine Briefanrede vorschlagen (bekannter Ansprechpartner
   mit Anrede → „Sehr geehrte Frau …“/„Sehr geehrter Herr …“, sonst „Sehr geehrte
   Damen und Herren“), die der Nutzer überschreiben kann.
@@ -554,6 +634,18 @@ gespeichert sind.
 - **FR-045**: Das System MUSS die Person deutlich darauf hinweisen, dass Daten nur in
   diesem Browser liegen, durch Löschen der Browserdaten verloren gehen können und
   regelmäßig gesichert werden sollten.
+- **FR-053**: Gespeicherte Daten einer früheren Datenversion MUSS das System beim
+  ersten Öffnen automatisch in einer einzigen Transaktion auf die aktuelle Version
+  umstellen, ohne Daten zu löschen oder zu verändern; neue Felder bleiben leer.
+  Schlägt die Umstellung fehl, bleibt der alte Stand unverändert und die
+  Wiederherstellungsansicht erscheint (FR-041). Ein noch offener Tab mit der früheren
+  Version schreibt danach nichts mehr und fordert zum Neuladen auf (FR-044).
+  (Clarification 2026-10-19)
+- **FR-054**: Sicherungen einer früheren Datenversion MÜSSEN importierbar bleiben und
+  beim Import auf die aktuelle Version umgestellt werden. Neue Sicherungen tragen die
+  aktuelle Datenversion bei unverändertem ZIP-Aufbau; Sicherungen einer neueren
+  Version werden wie bisher mit „neuere Version“ abgelehnt, ohne etwas zu ändern
+  (FR-043). (Clarification 2026-10-19)
 
 **Bedienbarkeit und Sprache**
 
@@ -577,19 +669,23 @@ gespeichert sind.
   (Profil/Lead), Pflicht ja/nein.
 - **Nachweis (Dokument)**: PDF-Datei mit Name, Tags, Seitenzahl, Größe, Hochladedatum.
 - **Tag**: Bezeichnung; vorgegeben oder eigen.
-- **Projekt**: Titel, Links, optionaler Prompt-Kontext, Prompt-Zwischenstand
+- **Projekt**: Titel, Links, optionaler Prompt-Kontext, optionale Stelle (im
+  Anschreiben, FR-049), Prompt-Zwischenstand
   (erzeugt/kopiert/Antwort ausstehend/eingelesen), gespeicherte Antworten, Leads.
 - **Antwort (LLM-Rohtext)**: eingefügter Text mit Zeitpunkt und Einleseergebnis;
   geht nie verloren, bis Projekt gelöscht wird.
 - **Lead**: Stelle, Unternehmen, Ansprechpartner, Firmenadresse, Bewerbungsweg,
-  Prozess-Infos, Recherche (Markdown), Motivationsteil, Briefanrede, Quelle (Link),
+  Prozess-Infos, Recherche (Markdown), Motivationsteil, Briefanrede, optionale
+  Stelle im Anschreiben (FR-049), Links (eingegebener Link, Original-Ausschreibung,
+  Bewerbungsportal, Unternehmens-Website, Quellen mit Titel und URL; FR-050, FR-051),
   Status mit Verlauf, Kommentare, Anschreiben-PDF, Pakete.
 - **Paket**: Name, geordnete Liste von Bestandteilen (Anschreiben-PDF, Lebenslauf-PDF,
   Nachweise).
 - **Statuseintrag**: Zustand, Datum, Details (z. B. Gesprächsort, online-Link),
   Kennzeichen „rückgängig gemacht“.
 - **Kommentar**: Datum, Text.
-- **Sicherung**: ZIP mit allen Entitäten und Dateien sowie Format-Version.
+- **Sicherung**: ZIP mit allen Entitäten und Dateien sowie Format-Version und
+  Datenversion (FR-054).
 
 ## Success Criteria *(mandatory)*
 
@@ -663,3 +759,21 @@ gespeichert sind.
 - Markenrecherche (DPMA/EUIPO/WIPO) vor einem öffentlichen Start; die Namensprüfung
   vom 2026-10-18 (keine Marke/kein Produkt im Web gefunden, Domains frei) ist keine
   Markenfreigabe.
+
+### Backlog
+
+Vom Owner als „später“ eingestuft (C2-Feedback vom 2026-10-19); nicht Teil von C3
+und nicht Teil der Abnahme dieses Features. Vor einer Umsetzung braucht jeder Punkt
+eine eigene Spezifikation bzw. Entscheidung.
+
+- **R5 – Anschreiben-Vorlage je Projekt** (Erweiterung, Bezug FR-004): Neben der
+  zentralen Anschreiben-Vorlage optional eine eigene Vorlage je Projekt. Offen: ob
+  die Projektvorlage die zentrale ersetzt oder nur für neue Downloads gilt, wie sie
+  beim Löschen des Projekts (FR-037) und in der Sicherung behandelt wird.
+- **R6 – Datum im PDF bleibt fest** (Spike, Bezug FR-026, FR-027): Lebenslauf und
+  Anschreiben enthalten ein Datum, das im DOCX beim Download entsteht, im
+  hochgeladenen PDF aber fest ist; üblich wäre das Datum des Tages, an dem das Paket
+  entsteht. Eine Lösung bräuchte die PDF-Erzeugung aus dem DOCX zur Laufzeit, die
+  FR-026 (Owner-Entscheidung) ausschließt. Vorschlag: zeitlich begrenzter
+  Fail-fast-Spike, ob es ohne DOCX→PDF-Umwandlung geht (z. B. Hinweis beim Paket,
+  wenn das Anschreiben-PDF älter als n Tage ist).

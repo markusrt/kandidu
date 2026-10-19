@@ -14,7 +14,7 @@ LIESMICH.txt            (German note: contains personal data, keep safe)
 {
   "format": "kandidu-backup",
   "formatVersion": 1,
-  "schemaVersion": 1,
+  "schemaVersion": 2,                       // 1 before C3; both are importable
   "exportedAt": "2026-10-18T12:00:00.000Z",
   "data": { "profile": … | null, "templates": […], "documents": […], "projects": […], "leads": […] },
   "files": [{ "id": "…", "size": 12345, "sha256": "hex…" }]
@@ -33,6 +33,14 @@ Import rules:
 3. Only when 1–2 pass, and after explicit user confirmation if data exists, the
    adapter replaces all stores in a single transaction. Any failure leaves the
    current data untouched.
+
+Versions (FR-054, C3): `formatVersion` describes the ZIP layout and stays 1;
+`schemaVersion` is the data version (data-model.md "Migrations"). Import accepts
+every `schemaVersion` from 1 up to the current one and migrates older data on the
+way in (1 → 2 needs no record changes, since v1 records are valid v2 records); the
+replaced database carries the current `schemaVersion`. Older Kandidu versions
+reject a v2 backup as `unsupported-version` without changing anything. A test keeps
+a committed synthetic v1 backup fixture importable.
 
 Only files referenced by data are exported (`files/<fileId>`, stored without
 compression because PDF/DOCX are compressed already). Implementation:
