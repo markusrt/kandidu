@@ -190,6 +190,18 @@ slice below; nothing of C3 is human-accepted.
   cancel above, axe scan). `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0
   (dependency-cruiser 116 modules / 432 dependencies, Vitest 317 tests,
   Playwright 105 passed, 1 skipped).
+- **T067 localization pass (delegated, reviewed): implemented and
+  verified.** Audit: no user-facing text outside `src/ui/i18n/`; domain,
+  storage, files and llm only use typed codes. Numbers in catalog texts now
+  go through `Intl.NumberFormat("de-DE")` (`plural`, small byte sizes, step
+  counter, status counts, partial import, lead count, JSON position, name
+  hint). New guard `src/ui/i18n/catalog-usage.test.ts` (fails on JSX text
+  or literal `aria-label`/`placeholder`/`title`/`alt` with letters in any
+  component; self-check included). New e2e `C3 l10n: views tolerate 40 %
+  longer text at 360 px` (13 views with widened letter and word spacing): no
+  overflow, no CSS change needed. `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0
+  (Biome 128 files, dependency-cruiser 117 modules / 433 dependencies,
+  Vitest 28 files / 352 tests, Playwright 107 passed, 1 skipped).
 
 | Feedback | Timing | Spec | Tasks |
 | --- | --- | --- | --- |
@@ -215,8 +227,8 @@ session appends its table and delegated task IDs here.
 - Session 1 (2026-10-19, C2 ship, C3 planning, C3 Phase A): routing probe
   before the first task (`pnpm models:check --require-agent`: exit 0, main
   `claude-opus-5-5`, speckit-implementer `claude-sonnet-5-5`). Delegated:
-  **T080, T060, T061, T065**. Final table of this session follows at the
-  gate.
+  **T080, T060, T061, T065, T067**. Final table of this session follows at
+  the gate.
 
 ## C2 ship result (2026-10-19)
 
