@@ -133,6 +133,23 @@ items make `/speckit-implement` ask before proceeding.
 5. Commit the coherent slice when authorized, not individual tasks or files. Use
    a conventional WHAT subject and a WHY body with trade-offs and evidence.
 
+### Owner working rules (Kandidu, 2026-10-18)
+
+Standing rules from the product owner; they apply to every agent and session.
+
+- **Edit files with the file-edit tool.** Change project files with the agent's
+  edit/write tool (for Claude Code: `Edit` for targeted changes, `Write` for new
+  or fully rewritten files), not with ad-hoc Python, `sed`, or shell
+  string-replacement scripts. The shell is for running commands (tests, git,
+  generators). Why: scripted replacements are hard to review, and a broken
+  heredoc corrupted an edit during C1.
+- **Commit after each finished user story** (from C2 on). As soon as a story's
+  tasks are ticked and its checks are green, make one conventional commit for
+  that story (WHAT subject, WHY body, evidence), plus the gate commit for the
+  STATUS handoff. Do not leave a whole checkpoint uncommitted until its gate.
+  Why: in C1 the entire slice was uncommitted when the machine crashed. Commits
+  stay local until the ship mode authorizes pushing (after an approved gate).
+
 ## Commands and architecture
 
 Inspect `package.json` and the available toolchain before running commands.

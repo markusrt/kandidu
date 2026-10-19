@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-18
 
-**Status**: C1 (US1) accepted by the owner on 2026-10-18; C2 next
+**Status**: C1 (US1) accepted by the owner on 2026-10-18 and shipped; C2 (US2–US5) in progress
 
 **Spec Language**: de-DE
 
@@ -55,6 +55,10 @@ daraus Bewerbungspakete als ZIP zusammen und verfolgt den weiteren Verlauf.
 - Q: Welche Zustände und Übergänge soll der Lebenszyklus eines Leads haben? → A: Hauptpfad Review → Bereit zum Versenden → Versendet (Datum) → Einladung zum Gespräch (mehrfach möglich) → Zusage | Absage; zusätzlich Zurückgezogen und Fehlgeschlagen; der jeweils letzte Statuswechsel ist rückgängig machbar; jeder Wechsel wird datiert im Verlauf geführt.
 - Q: Darf der LLM-Prompt optional einen selbst geschriebenen Kurztext (z. B. Qualifikationen) enthalten? → A: Ja, optional je Projekt, standardmäßig leer/aus; wenn befüllt, im vollständigen Prompt sichtbar mit Hinweis, dass der Text an das externe LLM geht; nie automatisch Profildaten.
 - Q: Welche Größengrenzen für Uploads und welches Verhalten bei knappem Browser-Speicher? → A: Höchstens 20 MB je PDF und 10 MB je DOCX-Vorlage; Speicherstand anzeigen, Warnung ab 80 % des vom Browser gemeldeten Kontingents, Browser um dauerhaften Speicher bitten; bei Ablehnung Hinweis auf möglichen Datenverlust und Sicherung empfehlen.
+
+### Session 2026-10-19
+
+- Q: Soll der Lebenslauf-Download „Trotzdem herunterladen“ verlangen, wenn nur optionale Profilfelder (Geburtsdatum, Geburtsort, Staatsangehörigkeit, Website) leer sind? → A: Nein. Leere optionale Platzhalter werden nur als Hinweis angezeigt, der Download geht normal; die bewusste Bestätigung („Trotzdem herunterladen“) gibt es nur, wenn Platzhalter für Pflichtangaben leer bleiben würden. Das Anschreiben bleibt unverändert.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -464,7 +468,9 @@ gespeichert sind.
   erhalten, und der Motivationsteil erscheint als getrennte Absätze.
 - **FR-025**: Vor dem Download MUSS das System anzeigen, welche in der Vorlage
   verwendeten Platzhalter leer bleiben würden, und Ergänzen oder bewusstes
-  Fortfahren ermöglichen.
+  Fortfahren ermöglichen. Beim Lebenslauf verlangt nur ein leerer Platzhalter für
+  eine Pflichtangabe (FR-001) das bewusste Fortfahren; leere optionale Platzhalter
+  werden nur als Hinweis angezeigt (Clarification 2026-10-19).
 - **FR-026**: Das System DARF KEIN DOCX in PDF umwandeln; es erklärt dem Nutzer
   stattdessen, wie er die PDF in Word bzw. LibreOffice erstellt.
 - **FR-027**: Downloads MÜSSEN sinnvoll benannt sein: `JJJJ-MM-TT_Firma_Anschreiben.docx`

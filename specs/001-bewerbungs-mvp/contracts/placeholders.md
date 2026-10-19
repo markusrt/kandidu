@@ -22,6 +22,12 @@ braces are tolerated (`{ Vorname }` = `{Vorname}`).
 | `{Staatsangehoerigkeit}` | optional |
 | `{Website}` | optional |
 
+`Geburtsdatum`, `Geburtsort`, `Staatsangehoerigkeit` and `Website` come from
+optional profile fields (FR-001). When they are empty, the CV download only shows a
+notice; an explicit "download anyway" is needed only for empty placeholders of
+required data (FR-025, clarification 2026-10-19). The catalog marks them
+`optional: true`.
+
 ## Cover letter only (source `lead` or `system`)
 
 | Placeholder | Value |

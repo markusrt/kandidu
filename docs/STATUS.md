@@ -2,26 +2,44 @@
 
 ## Checkpoint and authorization
 
-- Updated: 2026-10-18.
+- Updated: 2026-10-19.
 - Product: **Kandidu** (Bewerbungs-Assistent), repository `markusrt/kandidu`.
-- Branch: `001-bewerbungs-mvp` (local only; not pushed). Base: `907c144 chore:
-  initialize Spec Kit` on top of the template's initial commit.
+- Branch: `001-bewerbungs-mvp` (local, recreated from `main` at `b8af643` for C2;
+  the remote branch of the same name was deleted when PR #1 merged). Not pushed.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
-  gebe C1 frei mit auto-merge"). GATE task T038 done. C2 (Phase 4, T039) may start
-  after the C1 ship completes.
-- Approval state: C1 approved without change requests.
+  gebe C1 frei mit auto-merge") and **shipped** (see "C1 ship result"). GATE task
+  T038 done. **C2 – Useful and recoverable: in progress** (Phase 4 onward, up to
+  GATE T057).
+- Approval state: C1 approved without change requests. C2 not yet reviewed.
 - Ship mode: **`auto-merge`** (owner decision 2026-10-18). This authorizes push,
-  PR, merge after green CI, and the GitHub Pages deployment for this product.
-- Ship precondition (checked 2026-10-18): repository `markusrt/kandidu` is public;
-  GitHub Pages is **not set up yet** (`gh api repos/markusrt/kandidu/pages` → 404),
-  so `pnpm ship --mode auto-merge` stops with exit 3 until Pages uses GitHub
-  Actions as its source.
-- Owner instructions this session (2026-10-18): work on local branch
-  `001-bewerbungs-mvp`, push only once ship mode is clear; `.gitattributes` with
-  `*.sh text eol=lf`; commit the `specify init` output separately as
-  `chore: initialize Spec Kit` (done: `907c144`).
+  PR, merge after green CI, and the GitHub Pages deployment for this product,
+  after each approved gate. C2 work stays local until the C2 gate is approved.
+- Owner instructions (2026-10-18, still valid): `.gitattributes` with
+  `*.sh text eol=lf`; Spec Kit init committed separately (`54fa373 chore:
+  initialize Spec Kit` after the rebase merge).
+- Owner instructions (2026-10-19): local C2 branch; record the C1 ship result;
+  working rules in AGENTS.md "Owner working rules" (edit files with the edit
+  tool; commit after each finished user story); add the gaps FR-012 (edit links
+  in the UI) and FR-028 (delete the CV PDF) as tasks and list FR IDs on the open
+  tasks; CV download: empty optional placeholders only give a notice, the
+  "download anyway" confirmation is only for empty required placeholders
+  (answers question 1 below); then `/speckit-implement` up to the C2 gate.
+
+## C1 ship result (2026-10-18, verified 2026-10-19)
+
+- `pnpm ship --mode auto-merge` after GitHub Pages was switched to GitHub
+  Actions (`gh api repos/markusrt/kandidu/pages` → `build_type: workflow`).
+- PR: [#1](https://github.com/markusrt/kandidu/pull/1) "feat: deliver C1 – one
+  application lead end to end in the browser", **merged** 2026-10-18 15:34 UTC
+  (rebase; `main` head `b8af643`). PR check run `39141008188`: success.
+- `main` run: [39141108997](https://github.com/markusrt/kandidu/actions/runs/39141108997),
+  jobs `verify`, `pages-check`, `deploy`: all success. PR comment: "Deployed
+  b8af643 to `https://markusrt.github.io/kandidu/`".
+- Live URL: **<https://markusrt.github.io/kandidu/>**, rechecked 2026-10-19 with
+  `curl`: HTTP 200, `lang="de"`, `<title>Kandidu</title>`. Public (GitHub Pages);
+  all data stays in the visitor's browser.
 
 ## Clarifications recorded (2026-10-18, spec `## Clarifications`)
 
@@ -178,16 +196,17 @@ Remaining (accepted for C1, noted for C2):
 
 ## Questions for the owner
 
-Blocking for the gate: the C1 decision (approve / request changes) and the ship
-mode (see next action). Nonblocking:
+C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
 
-1. CV download shows „Trotzdem herunterladen“ whenever optional profile fields
-   used by the demo CV (Geburtsort, Staatsangehörigkeit, Website) are empty.
-   Keep (spec FR-025) or warn only for required fields?
+1. ~~CV download shows „Trotzdem herunterladen“ whenever optional profile fields
+   are empty. Keep or warn only for required fields?~~ **Answered 2026-10-19**:
+   empty optional placeholders only give a notice; the confirmation stays for
+   empty required ones (spec `## Clarifications` Session 2026-10-19, FR-025,
+   task T071).
 2. Trademark search (DPMA/EUIPO/WIPO) before any public launch (open item from the
-   brief; the 2026-10-18 web/domain check is not a clearance).
+   brief; the 2026-10-18 web/domain check is not a clearance). Nonblocking.
 
-## Review steps for the owner (≤ 3)
+## Review steps for the owner at C1 (≤ 3, done)
 
 1. Start: `pnpm install --frozen-lockfile` then
    `pnpm dev --host 127.0.0.1 --port 5173 --strictPort`, open
@@ -204,16 +223,12 @@ mode (see next action). Nonblocking:
 
 ## Worktree and next action
 
-- Worktree: the C1 slice is committed on `001-bewerbungs-mvp` in the commit that
-  contains this file (see `git log`); nothing pushed. Dev server verified at
-  `http://127.0.0.1:5173/` (HTTP 200, `lang="de"`, title „Kandidu“), loopback only;
-  it may not survive the session — restart with the command in step 1.
-- **Exact next action:** enable GitHub Pages (Settings → Pages → Build and
-  deployment → Source: GitHub Actions, or with the owner's permission
-  `gh api -X POST repos/markusrt/kandidu/pages -f build_type=workflow`), then run
-  `pnpm ship --mode auto-merge --title "feat: deliver C1 – one application lead end to end in the browser" --body-file <file outside the repo>`
-  and record PR URL, CI result, run link and live URL here with the next change.
-  Afterwards start C2 (Phase 4, T039) with `/speckit-implement` on a new branch.
+- Worktree: C1 is merged into `main` (`b8af643`) and live. C2 work happens on
+  the local branch `001-bewerbungs-mvp`, one commit per finished user story
+  (AGENTS.md "Owner working rules"); nothing pushed until the C2 gate is approved.
+- **Exact next action:** implement C2 with `/speckit-implement`, starting with
+  the C1 feedback task T071 and Phase 4 (US2, T039), through Phase 7 (US5), then
+  run the C2 GATE T057 procedure and stop for the owner's decision.
 
 ## Subsequent handoff schema
 
