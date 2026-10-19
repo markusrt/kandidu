@@ -34,12 +34,50 @@ export interface Notice {
   readonly id: number;
 }
 
-/** A failed write waiting for the person to retry it or give up (FR-040). */
+/**
+ * A failed write (FR-040). The form keeps its input; `retry` repeats the
+ * person's own action (button or form) so it runs on the current state,
+ * never on the state the failed write was built from.
+ */
 export interface WriteFailure {
   readonly text: string;
   readonly id: number;
-  retry(): void;
+  readonly retry: (() => void) | undefined;
   dismiss(): void;
+  /** Puts focus back on the control that started the write if it was lost. */
+  keepFocus(): void;
+}
+
+export interface CommitOptions {
+  /** An autosave: it retries itself on the next change, so no retry button. */
+  readonly background?: boolean;
+}
+
+/** How to repeat the action that started a write, if it can be repeated. */
+function repeatAction(trigger: Element | null): (() => void) | undefined {
+  if (trigger instanceof HTMLButtonElement) {
+    return () => {
+      trigger.focus();
+      trigger.click();
+    };
+  }
+  if (
+    trigger instanceof HTMLInputElement &&
+    trigger.form &&
+    !["file", "checkbox", "radio"].includes(trigger.type)
+  ) {
+    const form = trigger.form;
+    return () => {
+      trigger.focus();
+      form.requestSubmit();
+    };
+  }
+  return undefined;
+}
+
+function refocus(trigger: Element | null): void {
+  if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus();
+  else document.getElementById("main")?.focus();
 }
 
 interface AppContextValue {
@@ -57,17 +95,24 @@ interface AppContextValue {
    * Runs `write` against the store and, only if it succeeds, applies `update`
    * to the snapshot and announces `success`. Returns whether it succeeded;
    * failures are announced and leave the snapshot (and form input) untouched.
-   * A retryable failure keeps the promise (and the write queue) open until
-   * the person retries, which resolves with the retry's outcome, or cancels.
+   * A retryable failure opens a `WriteFailure`; the queue goes on, so the
+   * person can free space or export a backup before retrying.
    */
   commit(
-    write: (store: KandiduStore) => Promise<void>,
+    /** `snapshot` is the state after all earlier writes, when this one runs. */
+    write: (
+      store: KandiduStore,
+      snapshot: AppSnapshot | undefined,
+    ) => Promise<void>,
     update: (snapshot: AppSnapshot) => AppSnapshot,
     success?: string,
+    options?: CommitOptions,
   ): Promise<boolean>;
   announce(text: string): void;
   fail(cause: unknown): void;
   clearNotice(): void;
+  /** Closes an open write failure, e.g. when its view is left. */
+  clearFailure(): void;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -80,7 +125,14 @@ export function AppProvider({
   children: ReactNode;
 }) {
   const m = useMessages();
-  const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [state, setLoadState] = useState<LoadState>({ kind: "loading" });
+  // The state after the last finished write, ahead of React's render, so a
+  // queued write can build on it (an autosave must not undo an import).
+  const latestState = useRef<LoadState>(state);
+  const setState = useCallback((next: LoadState) => {
+    latestState.current = next;
+    setLoadState(next);
+  }, []);
   const [busy, setBusy] = useState(false);
   const [stale, setStale] = useState(false);
   const [notice, setNotice] = useState<Notice>();
@@ -108,7 +160,16 @@ export function AppProvider({
     } catch (cause) {
       setState({ kind: "failed", cause });
     }
-  }, [store]);
+  }, [store, setState]);
+
+  // Writes run one after another: a write requested while another is running
+  // waits instead of being dropped (an autosave must never vanish silently).
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const pending = useRef(0);
+  const settleBusy = useCallback(
+    () => setBusy(pending.current > 0 || locked.current),
+    [],
+  );
 
   const reset = useCallback(async () => {
     if (locked.current) return;
@@ -126,9 +187,9 @@ export function AppProvider({
       show("error", errorMessage(cause, m));
     } finally {
       locked.current = false;
-      setBusy(false);
+      settleBusy();
     }
-  }, [store, show, m]);
+  }, [store, show, m, settleBusy, setState]);
 
   const restore = useCallback(
     async (zip: Uint8Array) => {
@@ -140,27 +201,31 @@ export function AppProvider({
         const snapshot = await store.importBackup(zip);
         setState({ kind: "ready", snapshot });
         setStale(false);
+        setFailure(undefined);
+        // The current route may point at data the backup does not have.
+        navigate({ name: "home" });
         show("status", m.backup.imported);
       } finally {
         locked.current = false;
-        setBusy(false);
+        settleBusy();
       }
     },
-    [store, show, m],
+    [store, show, m, settleBusy, setState],
   );
 
-  // Writes run one after another: a write requested while another is running
-  // waits instead of being dropped (an autosave must never vanish silently).
-  const queue = useRef<Promise<unknown>>(Promise.resolve());
-  const pending = useRef(0);
-
   const commit = useCallback<AppContextValue["commit"]>(
-    (write, update, success) => {
+    (write, update, success, options = {}) => {
+      // Commits start synchronously from the handler of the person's action.
+      const trigger = options.background ? null : document.activeElement;
       pending.current += 1;
       setBusy(true);
-      const attempt = async (): Promise<boolean> => {
+      const run = async (): Promise<boolean> => {
         try {
-          await write(store);
+          const before = latestState.current;
+          await write(
+            store,
+            before.kind === "ready" ? before.snapshot : undefined,
+          );
         } catch (cause) {
           const code = errorCode(cause);
           // Another tab wrote first: only a reload helps (FR-044).
@@ -171,43 +236,53 @@ export function AppProvider({
           }
           // Nothing may look saved while the failure is open.
           setNotice(undefined);
-          return new Promise<boolean>((resolve) => {
-            counter.current += 1;
-            setFailure({
-              text: errorMessage(cause, m),
-              id: counter.current,
-              retry: () => {
-                setFailure(undefined);
-                resolve(attempt());
-              },
-              dismiss: () => {
-                setFailure(undefined);
-                resolve(false);
-              },
-            });
-          });
-        }
-        setState((current) =>
-          current.kind === "ready"
-            ? { kind: "ready", snapshot: update(current.snapshot) }
-            : current,
-        );
-        if (success) show("status", success);
-        return true;
-      };
-      const run = async () => {
-        try {
-          return await attempt();
+          counter.current += 1;
+          const repeat = repeatAction(trigger);
+          let settled = false;
+          const opened: WriteFailure = {
+            text: errorMessage(cause, m),
+            id: counter.current,
+            retry: repeat
+              ? () => {
+                  if (settled) return;
+                  settled = true;
+                  setFailure(undefined);
+                  repeat();
+                }
+              : undefined,
+            dismiss: () => {
+              settled = true;
+              setFailure(undefined);
+              refocus(trigger);
+            },
+            // A button disabled during the write loses focus to <body>.
+            keepFocus: () => {
+              const active = document.activeElement;
+              if (active === null || active === document.body) refocus(trigger);
+            },
+          };
+          // A failed autosave never hides the retry of the person's action.
+          setFailure((open) =>
+            options.background && open?.retry ? open : opened,
+          );
+          return false;
         } finally {
           pending.current -= 1;
-          if (pending.current === 0) setBusy(false);
+          settleBusy();
         }
+        const after = latestState.current;
+        if (after.kind === "ready") {
+          setState({ kind: "ready", snapshot: update(after.snapshot) });
+        }
+        if (!options.background) setFailure(undefined);
+        if (success) show("status", success);
+        return true;
       };
       const result = queue.current.then(run, run);
       queue.current = result;
       return result;
     },
-    [store, show, m],
+    [store, show, m, settleBusy, setState],
   );
 
   useEffect(() => {
@@ -231,6 +306,7 @@ export function AppProvider({
       announce,
       fail,
       clearNotice: () => setNotice(undefined),
+      clearFailure: () => setFailure(undefined),
     }),
     [
       state,

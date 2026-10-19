@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import AxeBuilder from "@axe-core/playwright";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import {
   test as base,
@@ -54,6 +55,25 @@ export const test = base.extend<{ networkGuard: string[] }>({
 });
 
 export { expect };
+
+/** axe scan (WCAG 2.1 A/AA): no critical or serious violations (SC-009). */
+export async function expectNoSeriousViolations(
+  page: Page,
+  view: string,
+): Promise<void> {
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  const serious = results.violations
+    .filter((v) => v.impact === "critical" || v.impact === "serious")
+    .map(
+      (v) =>
+        `${v.id} (${v.impact}): ${v.help} → ${v.nodes
+          .map((node) => node.target.join(" "))
+          .join(", ")}`,
+    );
+  expect(serious, `axe violations on ${view}`).toEqual([]);
+}
 
 export interface UploadFile {
   name: string;

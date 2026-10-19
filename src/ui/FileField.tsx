@@ -7,18 +7,21 @@ export function FileField({
   hint,
   accept,
   disabled,
+  storageWarning = true,
   onFile,
 }: {
   label: string;
   hint: string;
   accept: string;
   disabled?: boolean;
+  /** Warn before the upload when storage is almost full (FR-042). */
+  storageWarning?: boolean;
   onFile: (file: File) => void;
 }) {
   const id = useId();
   return (
     <div className="field file-field">
-      <StorageWarning />
+      {storageWarning && <StorageWarning />}
       <label htmlFor={id}>{label}</label>
       <input
         id={id}

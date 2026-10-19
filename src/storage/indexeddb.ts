@@ -278,6 +278,18 @@ export function createIndexedDbStore(
     }
   }
 
+  async function readFile(fileId: string): Promise<Uint8Array> {
+    const database = await connection();
+    let file: StoredFile | undefined;
+    try {
+      file = await database.get("files", fileId);
+    } catch {
+      throw new StoreError("read-failed");
+    }
+    if (!file) throw new StoreError("file-missing");
+    return new Uint8Array(file.bytes);
+  }
+
   return {
     async load() {
       loaded = false;
@@ -287,17 +299,7 @@ export function createIndexedDbStore(
       return snapshot;
     },
 
-    async readFile(fileId) {
-      const database = await connection();
-      let file: StoredFile | undefined;
-      try {
-        file = await database.get("files", fileId);
-      } catch {
-        throw new StoreError("read-failed");
-      }
-      if (!file) throw new StoreError("file-missing");
-      return new Uint8Array(file.bytes);
-    },
+    readFile,
 
     async saveProfile(profile) {
       check(profileSchema, profile);
@@ -418,12 +420,7 @@ export function createIndexedDbStore(
     async exportBackup(readme) {
       // Reads the stored state directly (no effect on conflict detection).
       const { snapshot } = await readSnapshot();
-      return buildBackup(
-        snapshot,
-        (fileId) => this.readFile(fileId),
-        readme,
-        new Date().toISOString(),
-      );
+      return buildBackup(snapshot, readFile, readme, new Date().toISOString());
     },
 
     async importBackup(zip) {

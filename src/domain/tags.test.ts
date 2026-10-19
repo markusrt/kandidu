@@ -86,6 +86,8 @@ describe("suggestTags", () => {
 
   it("returns nothing instead of throwing for over-long input", () => {
     expect(suggestTags("z".repeat(41), [])).toEqual([]);
+    // 21 × "İ" fits the 40-character field but lower-cases to 42 units.
+    expect(suggestTags("İ".repeat(21), [])).toEqual([]);
   });
 });
 

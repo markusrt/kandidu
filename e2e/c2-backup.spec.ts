@@ -3,6 +3,7 @@ import { zipFiles } from "../src/files/zip";
 import {
   captureDownload,
   expect,
+  expectNoSeriousViolations,
   PROFILE,
   pdfPageCount,
   test,
@@ -198,6 +199,7 @@ test("C2 backup: import asks before replacing, and invalid or newer backups chan
   await expect(
     page.getByText(/Sollen sie vollständig durch die Sicherung/),
   ).toContainText(backup.name);
+  await expectNoSeriousViolations(page, "backup replace confirmation");
   await page.getByRole("button", { name: "Abbrechen" }).click();
   expect(await projectTitles(page)).toEqual(["Stand B", "Stand A"]);
 

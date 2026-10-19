@@ -299,3 +299,38 @@ test("C2 evidence: deleting the CV PDF keeps the release and blocks the ZIP unti
   const [entry] = [...zipEntries(zip.bytes)];
   expect(await pdfPageCount(entry?.[1] ?? new Uint8Array())).toBe(4);
 });
+
+test("C2 evidence: a tag typed without Enter is kept on upload and on save", async ({
+  page,
+}) => {
+  await page.goto(EVIDENCE_URL);
+  await page
+    .getByLabel("PDF-Datei", { exact: true })
+    .setInputFiles(await pdfFile("Praktikum.pdf", 1));
+  const tagInput = page.getByRole("textbox", {
+    name: "Tag hinzufügen",
+    exact: true,
+  });
+  await tagInput.fill("Praktikum");
+  await expect(
+    page.getByText(
+      "Der eingegebene Text wird beim Speichern als Tag übernommen.",
+    ),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Hochladen", exact: true }).click();
+  await expectSaved(page, "Praktikum");
+  await expect(item(page, "Praktikum")).toContainText("Tags: praktikum");
+  await expect(tagInput).toHaveValue("");
+
+  await item(page, "Praktikum")
+    .getByRole("button", { name: "Bearbeiten" })
+    .click();
+  const list = page.getByRole("region", { name: "Gespeicherte Nachweise" });
+  await list
+    .getByRole("textbox", { name: "Tag hinzufügen", exact: true })
+    .fill("Sommer 2026");
+  await list.getByRole("button", { name: "Speichern", exact: true }).click();
+  await expect(item(page, "Praktikum")).toContainText(
+    "Tags: praktikum, sommer 2026",
+  );
+});

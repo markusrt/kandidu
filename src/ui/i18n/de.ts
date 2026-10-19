@@ -64,6 +64,7 @@ export const de = {
     unsavedConfirm:
       "Du hast ungespeicherte Änderungen. Seite trotzdem verlassen? Die Änderungen gehen dann verloren.",
     cancel: "Abbrechen",
+    close: "Schließen",
     confirm: "Bestätigen",
     delete: "Löschen",
     retry: "Erneut versuchen",
@@ -468,7 +469,7 @@ export const de = {
     filterAll: "Alle",
     filterEmpty: "Kein Nachweis mit diesem Tag.",
     noTags: "Keine Tags",
-    tagsLabel: "Tags",
+    tagsLine: (tags: readonly string[]) => `Tags: ${tags.join(", ")}`,
     meta: (pages: string, size: string, date: string) =>
       `${pages}, ${size}, hochgeladen am ${date}`,
     edit: "Bearbeiten",
@@ -488,6 +489,7 @@ export const de = {
     tagInputLabel: "Tag hinzufügen",
     tagInputHint:
       "Mit Enter eigenen Tag hinzufügen oder einen Vorschlag auswählen.",
+    pendingTag: "Der eingegebene Text wird beim Speichern als Tag übernommen.",
     chosenTagsLabel: "Gewählte Tags",
     removeTag: (tag: string) => `Tag entfernen: ${tag}`,
     addTag: (tag: string) => `Tag hinzufügen: ${tag}`,

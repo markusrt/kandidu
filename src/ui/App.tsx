@@ -27,10 +27,14 @@ function routeKey(route: Route): string {
 function Shell() {
   const m = useMessages();
   const route = useRoute();
-  const { state, stale, notice, failure } = useApp();
+  const { state, stale, notice, failure, clearFailure } = useApp();
   const main = useRef<HTMLElement>(null);
   const firstRoute = useRef(true);
   const key = routeKey(route);
+
+  // A write failure belongs to the view it happened in; its form is gone.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs per route
+  useEffect(() => clearFailure(), [key]);
 
   // Move focus to the new page heading on navigation (not on first load).
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs per route
@@ -118,18 +122,25 @@ function StaleBanner() {
   );
 }
 
-/** A failed write: retry it or give up; the form keeps its input (FR-040). */
+/**
+ * A failed write; the form keeps its input (FR-040). Focus stays on the
+ * control that started the write, so it can simply be activated again.
+ */
 function FailureAlert({ failure }: { failure: WriteFailure }) {
   const m = useMessages();
+  // Runs after the render that re-enabled the controls.
+  useEffect(() => failure.keepFocus(), [failure]);
   return (
     <div className="banner failure" role="alert">
       <p>{failure.text}</p>
       <div className="actions compact">
-        <button type="button" onClick={failure.retry}>
-          {m.common.retry}
-        </button>
+        {failure.retry && (
+          <button type="button" onClick={failure.retry}>
+            {m.common.retry}
+          </button>
+        )}
         <button type="button" className="secondary" onClick={failure.dismiss}>
-          {m.common.cancel}
+          {m.common.close}
         </button>
       </div>
     </div>

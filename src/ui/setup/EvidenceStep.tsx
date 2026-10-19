@@ -8,7 +8,7 @@ import { loadPdf, readPicked } from "../files";
 import { useMessages } from "../i18n";
 import { useApp, useSnapshot, useTask } from "../state";
 import { newId, nowIso } from "../time";
-import { TagInput } from "./TagInput";
+import { TagInput, withPendingTag } from "./TagInput";
 
 const validName = (name: string) =>
   name.trim().length >= 1 && name.trim().length <= DOCUMENT_NAME_MAX;
@@ -31,15 +31,25 @@ export function EvidenceStep() {
 function UploadForm() {
   const m = useMessages();
   const snapshot = useSnapshot();
-  const { commit, busy } = useApp();
+  const { commit, busy, fail } = useApp();
   const { running, run } = useTask();
   const nameId = useId();
   const [file, setFile] = useState<File>();
   const [name, setName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [pendingTag, setPendingTag] = useState("");
+  // Remounts the tag input after an upload, which clears its text.
+  const [round, setRound] = useState(0);
 
   async function submit() {
     if (!file || !validName(name)) return;
+    let allTags: string[];
+    try {
+      allTags = withPendingTag(tags, pendingTag);
+    } catch (cause) {
+      fail(cause);
+      return;
+    }
     const checked = await run(async () => {
       const bytes = await readPicked(file, MAX_PDF_BYTES);
       const { inspectPdf } = await loadPdf();
@@ -51,7 +61,7 @@ function UploadForm() {
       role: "evidence",
       name: name.trim(),
       fileName: file.name.slice(0, 200) || `${name.trim()}.pdf`,
-      tags,
+      tags: allTags,
       fileId: newId(),
       size: checked.bytes.byteLength,
       pageCount: checked.info.pageCount,
@@ -66,6 +76,8 @@ function UploadForm() {
       setFile(undefined);
       setName("");
       setTags([]);
+      setPendingTag("");
+      setRound((n) => n + 1);
     }
   }
 
@@ -106,9 +118,11 @@ function UploadForm() {
           </p>
         </div>
         <TagInput
+          key={round}
           value={tags}
           inUse={tagsInUse(snapshot.documents)}
           onChange={setTags}
+          onPendingChange={setPendingTag}
         />
         <button
           type="submit"
@@ -186,7 +200,7 @@ function EvidenceItem({ document }: { document: DocumentRecord }) {
           <p>
             {document.tags.length === 0
               ? m.evidence.noTags
-              : `${m.evidence.tagsLabel}: ${document.tags.join(", ")}`}
+              : m.evidence.tagsLine(document.tags)}
           </p>
           <p className="hint">
             {m.evidence.meta(
@@ -230,14 +244,26 @@ function EditForm({
 }) {
   const m = useMessages();
   const snapshot = useSnapshot();
-  const { commit, busy } = useApp();
+  const { commit, busy, fail } = useApp();
   const nameId = useId();
   const [name, setName] = useState(document.name);
   const [tags, setTags] = useState<string[]>([...document.tags]);
+  const [pendingTag, setPendingTag] = useState("");
 
   async function save() {
     if (!validName(name)) return;
-    const record: DocumentRecord = { ...document, name: name.trim(), tags };
+    let allTags: string[];
+    try {
+      allTags = withPendingTag(tags, pendingTag);
+    } catch (cause) {
+      fail(cause);
+      return;
+    }
+    const record: DocumentRecord = {
+      ...document,
+      name: name.trim(),
+      tags: allTags,
+    };
     const ok = await commit(
       (s) => s.saveDocument(record),
       (s) => ({
@@ -275,6 +301,7 @@ function EditForm({
         value={tags}
         inUse={tagsInUse(snapshot.documents)}
         onChange={setTags}
+        onPendingChange={setPendingTag}
       />
       <div className="actions">
         <button type="submit" disabled={busy || !validName(name)}>

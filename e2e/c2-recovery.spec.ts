@@ -1,9 +1,19 @@
 import type { Page } from "@playwright/test";
-import { expect, PROFILE, test, watchRequests } from "./fixtures";
+import {
+  captureDownload,
+  expect,
+  expectNoSeriousViolations,
+  PROFILE,
+  pdfFile,
+  readFixture,
+  test,
+  watchRequests,
+} from "./fixtures";
 import {
   addProjectLink,
   copyPrompt,
   createProject,
+  gotoProjectStep,
   openHome,
   profileLabel,
 } from "./flows";
@@ -14,8 +24,10 @@ import {
 const DRAFT = '```json\n{\n  "leads": [\n    { "company": { "name": "Halb';
 
 /**
- * Makes `IDBObjectStore.prototype.put` throw while `window.__kandiduFail` is
- * set: "quota" → QuotaExceededError, "error" → UnknownError.
+ * Makes `IDBObjectStore.prototype.put` on data stores throw while
+ * `window.__kandiduFail` is set: "quota" → QuotaExceededError, "error" →
+ * UnknownError. The small revision record in `meta` still writes, as with a
+ * real full disk, so deleting things to free space keeps working.
  */
 async function injectWriteFailures(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -26,7 +38,7 @@ async function injectWriteFailures(page: Page): Promise<void> {
       ...args: Parameters<IDBObjectStore["put"]>
     ) {
       const mode = target.__kandiduFail;
-      if (mode) {
+      if (mode && this.name !== "meta") {
         throw new DOMException(
           "injected failure",
           mode === "quota" ? "QuotaExceededError" : "UnknownError",
@@ -101,6 +113,9 @@ test("C2 recovery: a failed save keeps the input, says nothing was saved and can
   await expect(page.getByLabel(profileLabel("Vorname"))).toHaveValue(
     PROFILE.Vorname,
   );
+  // Focus stays on the save button, so Enter would simply try again.
+  await expect(page.getByRole("button", { name: "Speichern" })).toBeFocused();
+  await expectNoSeriousViolations(page, "write failure banner");
 
   // Retrying while the store still fails reports the failure again.
   await failure.getByRole("button", { name: "Erneut versuchen" }).click();
@@ -128,11 +143,14 @@ test("C2 recovery: a full storage keeps the new project title until it is saved"
     .filter({ hasText: "Nicht gespeichert" });
   await expect(failure).toContainText("Speicher dieses Browsers ist voll");
 
-  // Cancel: nothing was created, the title is still there.
-  await failure.getByRole("button", { name: "Abbrechen" }).click();
+  // Close: nothing was created, the title is still there, focus is back.
+  await failure.getByRole("button", { name: "Schließen" }).click();
   await expect(failure).toHaveCount(0);
   await expect(page.getByText("Noch keine Projekte.")).toBeVisible();
   await expect(title).toHaveValue("Projekt bei vollem Speicher");
+  await expect(
+    page.getByRole("button", { name: "Projekt anlegen" }),
+  ).toBeFocused();
 
   // Retry after space was freed: the project opens as after a normal save.
   await page.getByRole("button", { name: "Projekt anlegen" }).click();
@@ -145,6 +163,97 @@ test("C2 recovery: a full storage keeps the new project title until it is saved"
   await expect(page.getByLabel("Titel des Projekts")).toHaveValue(
     "Projekt bei vollem Speicher",
   );
+});
+
+test("C2 recovery: with full storage, backup export and deleting files still work", async ({
+  page,
+}) => {
+  await injectWriteFailures(page);
+  await page.goto("/#/einrichtung/nachweise");
+  await page
+    .getByLabel("PDF-Datei", { exact: true })
+    .setInputFiles(await pdfFile("Zeugnis.pdf", 1));
+  await page.getByRole("button", { name: "Hochladen", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("gespeichert");
+
+  await openHome(page);
+  await page.getByLabel("Titel des Projekts").fill("Nach dem Aufräumen");
+  await setFailure(page, "quota");
+  await page.getByRole("button", { name: "Projekt anlegen" }).click();
+  const failure = page
+    .getByRole("alert")
+    .filter({ hasText: "Nicht gespeichert" });
+  await expect(failure).toContainText("Speicher dieses Browsers ist voll");
+
+  // The way out the message names is open while the storage is full.
+  await page.goto("/#/daten");
+  await expect(failure).toHaveCount(0);
+  const backup = await captureDownload(page, () =>
+    page.getByRole("button", { name: "Sicherung herunterladen" }).click(),
+  );
+  expect(backup.name).toMatch(/_Kandidu_Sicherung\.zip$/);
+  await page.goto("/#/einrichtung/nachweise");
+  await page.getByRole("button", { name: "Löschen …" }).click();
+  await page.getByRole("button", { name: "Ja, löschen" }).click();
+  await expect(page.getByRole("status")).toContainText("Nachweis gelöscht.");
+
+  // Space is free again: the project can be created.
+  await setFailure(page, undefined);
+  await openHome(page);
+  await page.getByLabel("Titel des Projekts").fill("Nach dem Aufräumen");
+  await page.getByRole("button", { name: "Projekt anlegen" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Links zu Stellenausschreibungen",
+  );
+});
+
+test("C2 recovery: a retried response import keeps its response, so pasting it again asks first", async ({
+  page,
+}) => {
+  await injectWriteFailures(page);
+  await createProject(page, "Import mit Fehler");
+  await addProjectLink(page, "https://example.org/stellen/123");
+  await page.getByRole("link", { name: "Weiter zum Prompt" }).click();
+  await copyPrompt(page);
+  await page.getByRole("link", { name: "Weiter zur Antwort" }).click();
+  const answer = page.getByLabel("Antwort des Sprachmodells");
+  const text = await readFixture("valid-plain");
+  await answer.fill(text);
+  await expect(page.getByText("Entwurf gespeichert.")).toBeVisible();
+
+  await setFailure(page, "error");
+  await page.getByRole("button", { name: "Antwort einlesen" }).click();
+  const failure = page
+    .getByRole("alert")
+    .filter({ hasText: "Nicht gespeichert" });
+  await expect(failure).toBeVisible();
+
+  // An edit while the failure is open is autosaved once writes work again;
+  // the failed autosave does not hide the retry of the import.
+  await answer.fill(`${text}\n`);
+  await expect(
+    failure.getByRole("button", { name: "Erneut versuchen" }),
+  ).toBeVisible();
+  await setFailure(page, undefined);
+  await answer.press("End");
+  await answer.pressSequentially(" ");
+  await expect(page.getByText("Entwurf gespeichert.")).toBeVisible();
+
+  await failure.getByRole("button", { name: "Erneut versuchen" }).click();
+  await expect(page.getByRole("status")).toContainText("1 Lead angelegt.");
+
+  await page.reload();
+  await gotoProjectStep(page, "Antwort");
+  await expect(
+    page
+      .getByRole("region", { name: "Bisherige Antworten" })
+      .getByText(/– übernommen$/),
+  ).toHaveCount(1);
+  await answer.fill(`${text}\n `);
+  await page.getByRole("button", { name: "Antwort einlesen" }).click();
+  await expect(page.getByRole("alert")).toContainText("schon eingelesen");
+  await gotoProjectStep(page, "Leads");
+  await expect(page.locator("tbody tr")).toHaveCount(1);
 });
 
 /** Puts a project record that fails validation straight into IndexedDB. */
@@ -201,6 +310,7 @@ test("C2 recovery: damaged stored data opens the recovery view and is never over
     "Gespeicherte Daten konnten nicht gelesen werden",
   );
   await expect(page.getByText("beschädigt oder unvollständig")).toBeVisible();
+  await expectNoSeriousViolations(page, "recovery view");
   await page.getByRole("button", { name: "Erneut versuchen" }).click();
   await expect(heading).toHaveText(
     "Gespeicherte Daten konnten nicht gelesen werden",
