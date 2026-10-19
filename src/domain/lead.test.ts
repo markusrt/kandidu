@@ -7,6 +7,7 @@ import {
   LeadError,
   reviseLead,
   setCoverLetterPdf,
+  validateLeadDraft,
 } from "./lead";
 import { sampleLead } from "./testing";
 
@@ -55,6 +56,7 @@ describe("createLeadsFromDrafts", () => {
     const leads = createLeadsFromDrafts(
       [draft(), draft()],
       "p1",
+      [],
       "r1",
       () => `id${++n}`,
       NOW,
@@ -74,7 +76,89 @@ describe("createLeadsFromDrafts", () => {
   it("validates required fields", () => {
     const bad = { ...draft(), company: { name: " " } };
     expect(
-      code(() => createLeadsFromDrafts([bad], "p", "r", () => "x", NOW)),
+      code(() => createLeadsFromDrafts([bad], "p", [], "r", () => "x", NOW)),
+    ).toBe("lead-invalid");
+  });
+
+  it("uses the only project link when the LLM gave none (FR-051)", () => {
+    const create = (links: string[], extra: Partial<LeadDraft> = {}) =>
+      createLeadsFromDrafts(
+        [{ ...draft(), ...extra }],
+        "p",
+        links,
+        "r",
+        () => "x",
+        NOW,
+      )[0]?.sourceUrl;
+    const only = "https://example.org/stellen/1";
+    expect(create([only])).toBe(only);
+    expect(create([only, "https://example.org/stellen/2"])).toBeUndefined();
+    expect(create([])).toBeUndefined();
+    expect(create([only], { sourceUrl: "https://example.org/anders" })).toBe(
+      "https://example.org/anders",
+    );
+  });
+
+  it("keeps the original posting and the sources", () => {
+    const [lead] = createLeadsFromDrafts(
+      [
+        {
+          ...draft(),
+          originalPostingUrl: "https://karriere.example.org/1",
+          sources: [{ title: "Impressum", url: "https://example.org/i" }],
+        },
+      ],
+      "p",
+      [],
+      "r",
+      () => "x",
+      NOW,
+    );
+    expect(lead?.originalPostingUrl).toBe("https://karriere.example.org/1");
+    expect(lead?.sources).toEqual([
+      { title: "Impressum", url: "https://example.org/i" },
+    ]);
+  });
+});
+
+describe("validateLeadDraft links (FR-050)", () => {
+  const source = (n: number) => ({ url: `https://example.org/q/${n}` });
+  const check = (extra: Partial<LeadDraft>) =>
+    code(() => validateLeadDraft({ ...draft(), ...extra }));
+
+  it("accepts http(s) links and up to 20 unique sources", () => {
+    expect(check({ sourceUrl: "http://example.org/a" })).toBeUndefined();
+    expect(
+      check({ sources: Array.from({ length: 20 }, (_, i) => source(i)) }),
+    ).toBeUndefined();
+  });
+
+  it("rejects other links, long titles, duplicates and too many sources", () => {
+    expect(check({ sourceUrl: "example.org/a" })).toBe("lead-invalid");
+    expect(check({ originalPostingUrl: "javascript:alert(1)" })).toBe(
+      "lead-invalid",
+    );
+    expect(
+      check({
+        company: {
+          name: "Firma",
+          website: `https://e.org/${"x".repeat(2000)}`,
+        },
+      }),
+    ).toBe("lead-invalid");
+    expect(
+      check({ application: { channel: "portal", portalUrl: "ftp://e.org" } }),
+    ).toBe("lead-invalid");
+    expect(check({ sources: [{ url: "mailto:a@example.org" }] })).toBe(
+      "lead-invalid",
+    );
+    expect(check({ sources: [{ url: "" }] })).toBe("lead-invalid");
+    expect(check({ sources: [source(1), source(1)] })).toBe("lead-invalid");
+    expect(check({ sources: [{ ...source(1), title: "x".repeat(201) }] })).toBe(
+      "lead-invalid",
+    );
+    expect(
+      check({ sources: Array.from({ length: 21 }, (_, i) => source(i)) }),
     ).toBe("lead-invalid");
   });
 });

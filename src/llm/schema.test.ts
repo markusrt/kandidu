@@ -23,4 +23,14 @@ describe("responseJsonSchema", () => {
       "other",
     ]);
   });
+
+  it("offers the optional original posting and sources (FR-051)", () => {
+    const lead = JSON.parse(responseJsonSchema()).properties.leads.items;
+    expect(lead.required).not.toContain("originalPostingUrl");
+    expect(lead.required).not.toContain("sources");
+    expect(lead.properties.originalPostingUrl.type).toBe("string");
+    expect(lead.properties.sources.type).toBe("array");
+    expect(lead.properties.sources.maxItems).toBe(20);
+    expect(lead.properties.sources.items.required).toEqual(["url"]);
+  });
 });

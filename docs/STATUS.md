@@ -90,6 +90,21 @@ slice below; nothing of C3 is human-accepted.
   tests, Playwright 61 passed, 1 skipped). Observation: lead pages have no
   link back to their project's steps (only "Start"); the e2e navigates by URL.
   Candidate for US7 (overview/management), not changed here.
+- **Slice C, prompt and response (T078): implemented and verified.** Prompt
+  rules for `sourceUrl` (entered link unchanged), `originalPostingUrl` (only
+  when certain; prefer its details such as pay), researched address and
+  website (no invented address) and `sources` (≤ 20, incl. the address page).
+  Schema: two optional fields, so older answers stay valid. Parser: sources
+  never reject an entry (bare URL accepted, duplicates once, non-http or
+  missing URL → `url-dropped`, > 20 → `sources-truncated`, not a list →
+  `sources-invalid`, titles cut to 200). `createLeadsFromDrafts` takes the
+  project links and fills a missing `sourceUrl` when there is exactly one.
+  `validateLeadDraft` now requires http(s) for every link field (before:
+  length only), so the generic review error also names the links until T079
+  adds field errors. Tests: 2 new corpus files (20 in total), `parse.test.ts`
+  (+3), `schema.test.ts` (+1), `prompt.test.ts` (+2, incl. project Stelle not
+  in the prompt), `lead.test.ts` (+4). `KANDIDU_E2E_PORT=4174 pnpm verify`:
+  exit 0 (Vitest 275 tests, Playwright 61 passed, 1 skipped).
 
 | Feedback | Timing | Spec | Tasks |
 | --- | --- | --- | --- |

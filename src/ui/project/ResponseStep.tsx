@@ -53,6 +53,7 @@ export function ResponseStep({ project }: { project: Project }) {
   const [text, setText] = useState(project.responseDraft);
   const [draftNote, setDraftNote] = useState("");
   const [result, setResult] = useState<ParseResult>();
+  const projectLinks = project.links.map((link) => link.url);
   const [created, setCreated] = useState<readonly Lead[]>([]);
   const [responseId, setResponseId] = useState<string>();
   const areaId = useId();
@@ -128,7 +129,14 @@ export function ResponseStep({ project }: { project: Project }) {
     const now = nowIso();
     const responseId = newId();
     const leads = parsed.ok
-      ? createLeadsFromDrafts(parsed.leads, project.id, responseId, newId, now)
+      ? createLeadsFromDrafts(
+          parsed.leads,
+          project.id,
+          projectLinks,
+          responseId,
+          newId,
+          now,
+        )
       : [];
     const response: StoredResponse = {
       id: responseId,
@@ -168,6 +176,7 @@ export function ResponseStep({ project }: { project: Project }) {
     const leads = createLeadsFromDrafts(
       result.validLeads,
       project.id,
+      projectLinks,
       responseId,
       newId,
       now,

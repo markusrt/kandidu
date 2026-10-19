@@ -1,0 +1,39 @@
+Hier ist die Recherche zur Anzeige:
+
+```json
+{
+  "leads": [
+    {
+      "sourceUrl": "https://jobs.example.net/viewjob?jk=abc123",
+      "originalPostingUrl": "https://karriere.example.org/stellen/industriekaufmann-2027",
+      "sources": [
+        { "title": "Original-Ausschreibung", "url": "https://karriere.example.org/stellen/industriekaufmann-2027" },
+        { "title": "Impressum", "url": "https://example.org/impressum" },
+        "https://example.org/ueber-uns",
+        { "title": "Doppelt", "url": "https://example.org/impressum" },
+        { "title": "Kein Web-Link", "url": "ftp://example.org/datei" },
+        { "title": "Ohne Link" }
+      ],
+      "position": {
+        "title": "Ausbildung zum Industriekaufmann (m/w/d)",
+        "referenceNumber": "IK-2027"
+      },
+      "company": {
+        "name": "Beispiel GmbH",
+        "website": "https://example.org",
+        "address": {
+          "street": "Hauptstraße 5",
+          "postalCode": "54321",
+          "city": "Beispielstadt"
+        }
+      },
+      "application": {
+        "channel": "portal",
+        "portalUrl": "https://karriere.example.org/bewerben/industriekaufmann-2027"
+      },
+      "research": "Die Beispiel GmbH ist ein erfundenes Unternehmen für Tests. Laut Original-Ausschreibung beträgt die Ausbildungsvergütung 1 100 € im ersten Jahr ([Quelle](https://karriere.example.org/stellen/industriekaufmann-2027)). Die Anschrift stammt aus dem [Impressum](https://example.org/impressum).",
+      "motivation": "Ihre Ausbildung verbindet Einkauf und Vertrieb.\n\nDas passt zu meinem Interesse an Zahlen und Organisation."
+    }
+  ]
+}
+```

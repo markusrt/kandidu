@@ -26,7 +26,9 @@ export interface EntryIssue {
 export type ParseWarningKind =
   | "motivation-too-long"
   | "url-dropped"
-  | "channel-unknown";
+  | "channel-unknown"
+  | "sources-truncated"
+  | "sources-invalid";
 
 export interface ParseWarning {
   readonly entry: number;
