@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import type { Lead } from "./lead";
 import {
   buildCoverLetterData,
   buildCvData,
   type LetterFormatter,
   letterAddress,
+  letterPosition,
   missingValues,
   salutationKind,
 } from "./letterData";
@@ -54,6 +56,7 @@ describe("buildCoverLetterData", () => {
   it("combines profile and lead data with motivation paragraphs", () => {
     const data = buildCoverLetterData(
       sampleProfile(),
+      undefined,
       sampleLead(),
       "2026-10-18",
       fmt,
@@ -81,10 +84,42 @@ describe("buildCoverLetterData", () => {
         },
       },
     });
-    const data = buildCoverLetterData(sampleProfile(), lead, "2026-10-18", fmt);
+    const data = buildCoverLetterData(
+      sampleProfile(),
+      undefined,
+      lead,
+      "2026-10-18",
+      fmt,
+    );
     expect(data.Briefanrede).toBe("Liebes Team,");
     expect(data.FirmaStrasse).toBe("Postfach 1");
     expect(letterAddress(sampleLead()).city).toBe("Beispielstadt");
+  });
+
+  it("fills {Stelle} from the lead, else the project, else the ad (FR-049)", () => {
+    const stelle = (lead: Lead, position?: string) =>
+      buildCoverLetterData(
+        sampleProfile(),
+        position === undefined ? {} : { position },
+        lead,
+        "2026-10-18",
+        fmt,
+      ).Stelle;
+    const plain = sampleLead();
+    const own = sampleLead({ letterPosition: "Kaufmann für Büromanagement" });
+    expect(stelle(own, "Industriekaufmann")).toBe(
+      "Kaufmann für Büromanagement",
+    );
+    expect(stelle(plain, "Industriekaufmann")).toBe("Industriekaufmann");
+    expect(stelle(plain)).toBe("Ausbildung zum Industriekaufmann (m/w/d)");
+    expect(letterPosition(plain, undefined)).toBe(
+      "Ausbildung zum Industriekaufmann (m/w/d)",
+    );
+    // Blank values fall through instead of producing an empty {Stelle}.
+    expect(stelle(sampleLead({ letterPosition: "  " }), " ")).toBe(
+      "Ausbildung zum Industriekaufmann (m/w/d)",
+    );
+    expect(stelle(sampleLead({ letterPosition: " Eigene " }))).toBe("Eigene");
   });
 });
 
@@ -92,7 +127,13 @@ describe("missingValues", () => {
   it("lists used placeholders that would stay empty", () => {
     const { contact: _dropped, ...rest } = sampleLead();
     const lead = { ...rest, motivation: " " };
-    const data = buildCoverLetterData(sampleProfile(), lead, "2026-10-18", fmt);
+    const data = buildCoverLetterData(
+      sampleProfile(),
+      undefined,
+      lead,
+      "2026-10-18",
+      fmt,
+    );
     expect(
       missingValues(
         ["Vorname", "AnsprechpartnerNachname", "Motivation", "Absatz", "Foo"],

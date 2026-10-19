@@ -328,7 +328,10 @@ export const de = {
       Staatsangehoerigkeit: ["Staatsangehörigkeit", "deutsch"],
       Website: ["Website oder Profil-Link", "https://example.org/erika"],
       Datum: ["Heutiges Datum", "18. Oktober 2026"],
-      Stelle: ["Stellenbezeichnung", "Ausbildung zum Industriekaufmann"],
+      Stelle: [
+        "Stelle im Anschreiben: der Wert des Leads, sonst die Stelle des Projekts, sonst die Stellenbezeichnung aus der Anzeige",
+        "Industriekaufmann",
+      ],
       Referenznummer: ["Kennziffer der Anzeige", "IK-2027"],
       Firma: ["Name des Unternehmens", "Beispiel GmbH"],
       FirmaStrasse: ["Straße des Unternehmens", "Hauptstraße 5"],
@@ -507,6 +510,11 @@ export const de = {
     },
     titleLabel: "Titel des Projekts",
     rename: "Titel speichern",
+    positionHeading: "Stelle im Anschreiben (optional)",
+    positionLabel: "Stelle ({Stelle})",
+    positionHint:
+      "So, wie sie im Anschreiben stehen soll, z. B. „Industriekaufmann“ für „Bewerbung um einen Ausbildungsplatz zum {Stelle}“. Gilt für alle Leads dieses Projekts; im Lead kannst du sie ändern. Ohne Angabe steht im Anschreiben die Stellenbezeichnung aus der Anzeige. Geht nicht in den Prompt.",
+    positionSave: "Stelle speichern",
     linksHeading: "Links zu Stellenausschreibungen",
     linksIntro:
       "Füge einen oder mehrere Links zu Stellenanzeigen ein. Nur diese Links, der Titel und dein optionaler Kontext gehen in den Prompt.",
@@ -703,6 +711,9 @@ export const de = {
     startDate: "Beginn",
     employmentType: "Art der Anstellung",
     sourceUrl: "Link zur Anzeige",
+    letterPosition: "Stelle im Anschreiben ({Stelle})",
+    letterPositionHint: (inherited: string) =>
+      `Nur ausfüllen, wenn es für diesen Lead anders heißen soll. Leer gelassen steht im Anschreiben: „${inherited}“.`,
     companyHeading: "Unternehmen",
     companyName: "Firmenname",
     website: "Website",
@@ -898,6 +909,7 @@ export const de = {
     "context-too-long": "Der Zusatztext darf höchstens 2 000 Zeichen haben.",
     "draft-too-large": "Die Antwort ist zu lang (höchstens 500 000 Zeichen).",
     "link-not-found": "Dieser Link existiert nicht mehr.",
+    "position-too-long": "Die Stelle darf höchstens 200 Zeichen haben.",
     "not-in-review":
       "Dieser Lead ist freigegeben und kann nicht mehr bearbeitet werden.",
     "gate-incomplete": "Für die Freigabe fehlt noch etwas.",

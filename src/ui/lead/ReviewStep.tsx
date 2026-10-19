@@ -7,14 +7,14 @@ import {
   LeadError,
   reviseLead,
 } from "../../domain/lead";
-import { suggestedSalutation } from "../../domain/letterData";
+import { letterPosition, suggestedSalutation } from "../../domain/letterData";
 import {
   exceedsMotivationLimit,
   splitParagraphs,
 } from "../../domain/motivation";
 import { letterFormatter, useMessages } from "../i18n";
 import { LazyMarkdown } from "../LazyMarkdown";
-import { useApp } from "../state";
+import { useApp, useSnapshot } from "../state";
 import { nowIso } from "../time";
 import { useUnsavedGuard } from "../unsaved";
 import { draftFromForm, formFromLead, type LeadForm } from "./leadForm";
@@ -26,6 +26,7 @@ type TextKey = {
 export function ReviewStep({ lead }: { lead: Lead }) {
   const m = useMessages();
   const { commit, busy } = useApp();
+  const project = useSnapshot().projects.find((p) => p.id === lead.projectId);
   const [form, setForm] = useState<LeadForm>(() => formFromLead(lead));
   const [invalid, setInvalid] = useState(false);
   const [preview, setPreview] = useState({ process: false, research: false });
@@ -46,9 +47,14 @@ export function ReviewStep({ lead }: { lead: Lead }) {
     max: number,
     type: "text" | "url" | "email" | "tel" = "text",
     required = false,
+    hint?: string,
   ) {
     const id = `${idBase}-${key}`;
     const flagged = required && invalid && !form[key].trim();
+    const describedBy =
+      [hint ? `${id}-hint` : "", flagged ? invalidId : ""]
+        .filter(Boolean)
+        .join(" ") || undefined;
     return (
       <div className="field" key={key}>
         <label htmlFor={id}>
@@ -62,9 +68,14 @@ export function ReviewStep({ lead }: { lead: Lead }) {
           maxLength={max}
           aria-required={required ? true : undefined}
           aria-invalid={flagged ? true : undefined}
-          aria-describedby={flagged ? invalidId : undefined}
+          aria-describedby={describedBy}
           onChange={(event) => set(key, event.target.value)}
         />
+        {hint && (
+          <p id={`${id}-hint`} className="hint">
+            {hint}
+          </p>
+        )}
       </div>
     );
   }
@@ -115,7 +126,10 @@ export function ReviewStep({ lead }: { lead: Lead }) {
       next = reviseLead(
         lead,
         draftFromForm(form),
-        form.salutationOverride,
+        {
+          salutationOverride: form.salutationOverride,
+          letterPosition: form.letterPosition,
+        },
         nowIso(),
       );
     } catch (cause) {
@@ -142,6 +156,12 @@ export function ReviewStep({ lead }: { lead: Lead }) {
   const suggestion = suggestedSalutation(
     draftFromForm(form),
     letterFormatter(m),
+  );
+  // What `{Stelle}` becomes while the lead's own field is empty (FR-049).
+  const { letterPosition: _own, ...withoutOwn } = lead;
+  const inherited = letterPosition(
+    { ...withoutOwn, ...draftFromForm(form) },
+    project,
   );
 
   return (
@@ -176,6 +196,14 @@ export function ReviewStep({ lead }: { lead: Lead }) {
               LEAD_LIMITS.shortText,
             )}
             {field("sourceUrl", m.review.sourceUrl, LEAD_LIMITS.url, "url")}
+            {field(
+              "letterPosition",
+              m.review.letterPosition,
+              LEAD_LIMITS.letterPosition,
+              "text",
+              false,
+              m.review.letterPositionHint(inherited),
+            )}
           </fieldset>
 
           <fieldset>

@@ -17,6 +17,15 @@ export function CoverLetterStep({ lead }: { lead: Lead }) {
   const { running, run } = useTask();
   const [missing, setMissing] = useState<readonly string[]>([]);
   const { profile } = snapshot;
+  const project = snapshot.projects.find((p) => p.id === lead.projectId);
+  const letterData = () =>
+    buildCoverLetterData(
+      profile,
+      project,
+      lead,
+      todayIso(),
+      letterFormatter(m),
+    );
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: recompute when the template, lead or profile changes
   useEffect(() => {
@@ -29,16 +38,13 @@ export function CoverLetterStep({ lead }: { lead: Lead }) {
         m,
       );
       const tags = await activeTemplateTags("coverLetter", bytes);
-      const found = missingValues(
-        tags,
-        buildCoverLetterData(profile, lead, todayIso(), letterFormatter(m)),
-      );
+      const found = missingValues(tags, letterData());
       if (!cancelled) setMissing(found);
     });
     return () => {
       cancelled = true;
     };
-  }, [profile, lead, snapshot.templates.coverLetter, store, m]);
+  }, [profile, project, lead, snapshot.templates.coverLetter, store, m]);
 
   async function download() {
     const done = await run(async () => {
@@ -49,10 +55,7 @@ export function CoverLetterStep({ lead }: { lead: Lead }) {
         m,
       );
       const { renderTemplate } = await loadDocx();
-      const out = renderTemplate(
-        bytes,
-        buildCoverLetterData(profile, lead, todayIso(), letterFormatter(m)),
-      );
+      const out = renderTemplate(bytes, letterData());
       downloadBytes(
         out,
         datedName(

@@ -76,6 +76,20 @@ slice below; nothing of C3 is human-accepted.
   dependency-cruiser 111 modules / 389 dependencies, Vitest 26 files / 259
   tests, Playwright 59 passed, 1 skipped). Browser proof of a seeded v1
   database follows in T080.
+- **Slice B, "Stelle" (T076, T077): implemented and verified.** Domain:
+  `setProjectPosition` (`position-too-long`), `reviseLead(lead, draft,
+  { salutationOverride, letterPosition }, now)`, `letterPosition(lead,
+  project)` used by `buildCoverLetterData(profile, project, lead, …)`; blank
+  values fall through. UI: card "Stelle im Anschreiben (optional)" on the
+  links step (unsaved guard), field "Stelle im Anschreiben ({Stelle})" in the
+  lead review with the inherited value in its description, help text for
+  `{Stelle}`. Tests: `project.test.ts`, `lead.test.ts`, `letterData.test.ts`
+  (all fallbacks, blanks, 200/201 chars, locked after release); e2e
+  `C3 feedback: Stelle from the project, overridden per lead (R4)` (both
+  DOCX, reload). `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0 (Vitest 263
+  tests, Playwright 61 passed, 1 skipped). Observation: lead pages have no
+  link back to their project's steps (only "Start"); the e2e navigates by URL.
+  Candidate for US7 (overview/management), not changed here.
 
 | Feedback | Timing | Spec | Tasks |
 | --- | --- | --- | --- |

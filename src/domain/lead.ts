@@ -274,19 +274,36 @@ function assertReview(lead: Lead): void {
   if (lead.status !== "review") throw new LeadError("not-in-review");
 }
 
+/** Lead-only review values; empty or whitespace means "not set". */
+export interface LeadOverrides {
+  /** Replaces the suggested Briefanrede (FR-023). */
+  readonly salutationOverride?: string | undefined;
+  /** Replaces the project's "Stelle" for `{Stelle}` (FR-049). */
+  readonly letterPosition?: string | undefined;
+}
+
 /** Replaces the reviewable content of a lead (FR-022); only in review. */
 export function reviseLead(
   lead: Lead,
   draft: LeadDraft,
-  salutationOverride: string | undefined,
+  overrides: LeadOverrides,
   now: string,
 ): Lead {
   assertReview(lead);
   validateLeadDraft(draft);
-  const override = salutationOverride?.trim();
+  const override = overrides.salutationOverride?.trim();
   if (override && override.length > LEAD_LIMITS.salutation) invalid();
-  const { salutationOverride: _old, ...rest } = lead;
+  const letterPosition = overrides.letterPosition?.trim();
+  if (letterPosition && letterPosition.length > LEAD_LIMITS.letterPosition) {
+    invalid();
+  }
+  const {
+    salutationOverride: _old,
+    letterPosition: _oldPosition,
+    ...rest
+  } = lead;
   return {
+    ...(letterPosition ? { letterPosition } : {}),
     ...rest,
     sourceUrl: draft.sourceUrl,
     position: draft.position,

@@ -2,6 +2,7 @@ import type { Address, Contact, Lead } from "./lead";
 import { splitParagraphs } from "./motivation";
 import { MOTIVATION_BLOCK, MOTIVATION_ITEM } from "./placeholders";
 import type { Profile } from "./profile";
+import type { Project } from "./project";
 
 export type SalutationKind = "female" | "male" | "neutral";
 
@@ -77,8 +78,28 @@ export function buildCvData(
   };
 }
 
+/**
+ * `{Stelle}`: the lead's own value, else the project's "Stelle (im
+ * Anschreiben)", else the position title from the advertisement (FR-049).
+ */
+export function letterPosition(
+  lead: Lead,
+  project: Pick<Project, "position"> | undefined,
+): string {
+  for (const candidate of [
+    lead.letterPosition,
+    project?.position,
+    lead.position.title,
+  ]) {
+    const text = candidate?.trim();
+    if (text) return text;
+  }
+  return "";
+}
+
 export function buildCoverLetterData(
   profile: Profile | undefined,
+  project: Pick<Project, "position"> | undefined,
   lead: Lead,
   today: string,
   fmt: LetterFormatter,
@@ -89,7 +110,7 @@ export function buildCoverLetterData(
   return {
     ...buildCvData(profile, fmt),
     Datum: fmt.longDate(today),
-    Stelle: value(lead.position.title),
+    Stelle: letterPosition(lead, project),
     Referenznummer: value(lead.position.referenceNumber),
     Firma: value(lead.company.name),
     FirmaStrasse: value(address.street),
