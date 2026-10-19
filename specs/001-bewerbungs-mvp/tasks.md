@@ -26,6 +26,12 @@ in `docs/STATUS.md`.
   delegated to `speckit-implementer` (AGENTS.md, Model routing). Everything shaping
   domain rules, schemas, boundaries, privacy, the core risks, or cross-cutting
   structure is untagged, as is every GATE task.
+- **Covers**: from C2 on, every task ends with the spec IDs it implements or proves
+  (`Covers: FR-…, SC-…`), so gaps between spec and tasks are visible (added
+  2026-10-19 after FR-012 link editing and FR-028 CV deletion had no task). C1
+  tasks list their IDs in the phase goal.
+- New tasks get the next free ID (T071 …) and are placed in the phase they belong
+  to; existing IDs are never renumbered.
 
 ## Path Conventions
 
@@ -125,15 +131,22 @@ in `docs/STATUS.md`.
 
 ## Phase 4: User Story 2 - Nachweise mit Namen und Tags verwalten (Priority: P2) C2 Useful and recoverable
 
-**Goal**: Evidence PDFs with names and tags, usable in packages (FR-009–FR-011).
+**Goal**: Evidence PDFs with names and tags, usable in packages (FR-009–FR-011); deleting the global CV PDF (FR-028); before that, the C1 feedback on the CV download (FR-025, T071).
 
 **Independent Test**: upload three synthetic PDFs, tag (predefined + own), filter, rename, delete; reload keeps state.
 
-- [ ] T039 [P] [US2] [ROUTINE] Tags in src/domain/tags.ts: `PREDEFINED_TAGS = ["zeugnis", "zertifikat", "arbeitszeugnis", "schulzeugnis", "referenz"]`, `normalizeTag` ("lower-cased, trimmed, unique, 1–40 chars each"), `suggestTags(input, inUse)` (predefined ∪ in use, prefix then substring match); tests in src/domain/tags.test.ts.
-- [ ] T040 [US2] Store: implement `deleteDocument(id, affectedLeads)` in src/storage/indexeddb.ts (removes record, file bytes and package items referencing it in one transaction); tests in src/storage/indexeddb.test.ts.
-- [ ] T041 [US2] [ROUTINE] Evidence step src/ui/setup/EvidenceStep.tsx at `#/einrichtung/nachweise` (add to setup stepper): upload PDF with name (1–120) and tags (combobox with suggestions from `suggestTags`, Enter creates own tag), list with name, tags, pages, size, date; filter by tag; rename/retag; delete with confirmation listing packages that use it.
-- [ ] T042 [US2] Package step: allow adding evidence documents to a package in src/ui/lead/PackageStep.tsx (picker filtered by tag).
-- [ ] T043 [US2] [ROUTINE] Playwright journey e2e/c2-evidence.spec.ts (`C2 evidence …`): upload, tag, suggest, filter, rename, reload, use in package, delete with confirmation.
+### C1 feedback (owner, 2026-10-19)
+
+- [ ] T071 [US1] CV download notice vs. confirmation (spec Clarifications 2026-10-19): mark the optional profile placeholders (`Geburtsdatum`, `Geburtsort`, `Staatsangehoerigkeit`, `Website`) in src/domain/placeholders.ts and add `splitMissing(names)` → `{ required, optional }`; src/ui/setup/CvStep.tsx shows empty optional placeholders as an informational notice (no "Trotzdem herunterladen", normal download button) and keeps the warning plus "Trotzdem herunterladen" only when required placeholders are empty; the cover letter step is unchanged; unit tests in src/domain/placeholders.test.ts and an e2e check in e2e/c1-lead-journey.spec.ts (profile without optional fields → notice, normal button). Covers: FR-024, FR-025.
+
+### User Story 2 tasks
+
+- [ ] T039 [P] [US2] [ROUTINE] Tags in src/domain/tags.ts: `PREDEFINED_TAGS = ["zeugnis", "zertifikat", "arbeitszeugnis", "schulzeugnis", "referenz"]`, `normalizeTag` ("lower-cased, trimmed, unique, 1–40 chars each"), `suggestTags(input, inUse)` (predefined ∪ in use, prefix then substring match); tests in src/domain/tags.test.ts. Covers: FR-010.
+- [ ] T040 [US2] Store: `deleteDocument(id, affectedLeads)` in src/storage/indexeddb.ts (already present from C1 but untested) removes the record, its file bytes and writes the given leads (with package items referencing it removed) in one transaction; tests in src/storage/indexeddb.test.ts: evidence deletion with affected leads, CV deletion leaves `cv` package items intact, failed write leaves everything unchanged, no orphaned `files` entry. Covers: FR-009, FR-028, FR-038.
+- [ ] T073 [US2] Delete the global CV PDF in src/ui/setup/CvStep.tsx: "Lebenslauf-PDF löschen" with a confirmation explaining that released leads stay released and packages containing the CV can only be built after a new upload (spec Edge Cases); uses `deleteDocument(cv.id, [])`; afterwards the gate step shows the CV as missing (link to upload) and the package step reports `file-missing` with a link to the CV step; e2e in e2e/c2-evidence.spec.ts (cancel keeps the PDF, confirm removes it, package download then points to the CV step, re-upload restores it). Covers: FR-028, FR-029.
+- [ ] T041 [US2] [ROUTINE] Evidence step src/ui/setup/EvidenceStep.tsx at `#/einrichtung/nachweise` (add to setup stepper): upload PDF with name (1–120) and tags (combobox with suggestions from `suggestTags`, Enter creates own tag), list with name, tags, pages, size, date; filter by tag; rename/retag; delete with confirmation listing packages that use it. Covers: FR-009, FR-010, FR-011, FR-038, FR-042.
+- [ ] T042 [US2] Package step: allow adding evidence documents to a package in src/ui/lead/PackageStep.tsx (picker filtered by tag). Covers: FR-030, FR-011.
+- [ ] T043 [US2] [ROUTINE] Playwright journey e2e/c2-evidence.spec.ts (`C2 evidence …`): upload, tag, suggest, filter, rename, reload, use in package, delete with confirmation. Covers: FR-009, FR-010, FR-011, FR-030, FR-038.
 
 ---
 
@@ -143,10 +156,11 @@ in `docs/STATUS.md`.
 
 **Independent Test**: project with three links → response with three leads; one lead with two packages; ZIP contains both.
 
-- [ ] T044 [US3] Prompt context: textarea in src/ui/project/LinksStep.tsx ("optional, standardmäßig leer, ≤ 2 000 Zeichen") with the notice that it is sent to the external LLM; prompt includes it only when non-empty (extend src/ui/prompt.test.ts); "Prompt geändert, bitte erneut kopieren" notice when links/title/context change after copying.
-- [ ] T045 [US3] Partial import: on `schema-invalid` with `validLeads`, ResponseStep offers "Nur gültige Einträge übernehmen (n von m)"; re-importing a response that already created leads asks first (FR-021); tests in src/domain/lead.test.ts for the duplicate guard and e2e below.
-- [ ] T046 [US3] Multiple packages in src/ui/lead/PackageStep.tsx and src/domain/packages.ts: add/remove packages, name suggestions from FR-031 (`…_Bewerbung.pdf`, `…_Anschreiben_Lebenslauf.pdf`, `…_Zeugnisse.pdf`), `uniqueFileNames` in the ZIP, persisted via `saveLeads` (FR-033); tests in src/domain/packages.test.ts.
-- [ ] T047 [US3] [ROUTINE] Playwright journey e2e/c2-multi.spec.ts (`C2 multi …`): three links, three leads from one response, partial import of a response with one invalid entry, two packages in one ZIP with chosen names, reload restores the package definitions.
+- [ ] T072 [US3] Edit links in src/ui/project/LinksStep.tsx: each link gets "Bearbeiten" → inline URL field with "Speichern"/"Abbrechen" using `updateLink` from src/domain/project.ts; `link-invalid`/`link-duplicate` shown at the field with `aria-describedby`, input kept on error; Escape cancels, focus returns to the link's edit button; the prompt reflects the edited link (US3 scenario 1); domain tests for `updateLink` in src/domain/project.test.ts (valid edit, invalid URL, duplicate, unknown id) and e2e in e2e/c2-multi.spec.ts. Covers: FR-012, FR-013.
+- [ ] T044 [US3] Prompt context: textarea in src/ui/project/LinksStep.tsx ("optional, standardmäßig leer, ≤ 2 000 Zeichen") with the notice that it is sent to the external LLM; prompt includes it only when non-empty (extend src/ui/prompt.test.ts); "Prompt geändert, bitte erneut kopieren" notice when links/title/context change after copying. Covers: FR-013, FR-014, FR-015.
+- [ ] T045 [US3] Partial import: on `schema-invalid` with `validLeads`, ResponseStep offers "Nur gültige Einträge übernehmen (n von m)"; re-importing a response that already created leads asks first (FR-021); tests in src/domain/lead.test.ts for the duplicate guard and e2e below. Covers: FR-019, FR-020, FR-021.
+- [ ] T046 [US3] Multiple packages in src/ui/lead/PackageStep.tsx and src/domain/packages.ts: add/remove packages, name suggestions from FR-031 (`…_Bewerbung.pdf`, `…_Anschreiben_Lebenslauf.pdf`, `…_Zeugnisse.pdf`), `uniqueFileNames` in the ZIP, persisted via `saveLeads` (FR-033); tests in src/domain/packages.test.ts. Covers: FR-030, FR-031, FR-032, FR-033.
+- [ ] T047 [US3] [ROUTINE] Playwright journey e2e/c2-multi.spec.ts (`C2 multi …`): three links (one edited, one removed and re-added), three leads from one response, partial import of a response with one invalid entry, two packages in one ZIP with chosen names, reload restores the package definitions. Covers: FR-012, FR-013, FR-021, FR-030, FR-031, FR-033.
 
 ---
 
@@ -156,12 +170,12 @@ in `docs/STATUS.md`.
 
 **Independent Test**: copy prompt, close, reopen → paste step; simulated write failure keeps input; keyboard-only US1; 360 px overview.
 
-- [ ] T048 [US4] Resume: opening a project routes by `promptState`; Home shows "Antwort ausstehend" badges; response draft survives browser restart (e2e with a new context on the same storage state).
-- [ ] T049 [US4] Write-failure handling: every save surfaces `save-failed`/`quota-exceeded` with "Erneut versuchen" and keeps form input; e2e in e2e/c2-recovery.spec.ts injects failures via `page.addInitScript` patching `IDBObjectStore.prototype.put`; corrupt stored data → recovery view (retry, import backup, confirmed reset), never auto-overwrites.
-- [ ] T050 [US4] Quota and persistence: storage usage and persistence state on `#/daten` (src/ui/data/DataView.tsx), warning before uploads at ≥ 80 % of `storageEstimate().quota`, "Speicher dauerhaft anfordern" button with explanation and denial notice, and the "Daten liegen nur in diesem Browser" notice with backup recommendation (FR-045); unit tests for the threshold helper.
-- [ ] T051 [US4] Multi-tab conflicts: `meta.revision` check in src/storage/indexeddb.ts writes (`conflict`), `BroadcastChannel("kandidu:changes")` + `onExternalChange`; UI banner "In einem anderen Tab geändert – neu laden"; adapter tests for conflict and e2e with two pages.
-- [ ] T052 [US4] Keyboard and accessibility proof: `pnpm add -D @axe-core/playwright@4.14.0`; e2e/c2-a11y.spec.ts runs a keyboard-only US1 journey and axe scans of Home, setup steps, project steps and lead steps with zero critical/serious violations (SC-009); fix findings.
-- [ ] T053 [US4] Mobile: e2e/c2-mobile.spec.ts at 360 px width asserts no horizontal scrolling on Home, lead list, lead status and comments views (SC-010); CSS fixes in src/ui/style.css.
+- [ ] T048 [US4] Resume: opening a project routes by `promptState`; Home shows "Antwort ausstehend" badges; response draft survives browser restart (e2e with a new context on the same storage state). Covers: FR-017, FR-046, SC-006.
+- [ ] T049 [US4] Write-failure handling: every save surfaces `save-failed`/`quota-exceeded` with "Erneut versuchen" and keeps form input; e2e in e2e/c2-recovery.spec.ts injects failures via `page.addInitScript` patching `IDBObjectStore.prototype.put`; corrupt stored data → recovery view (retry, import backup, confirmed reset), never auto-overwrites. Covers: FR-040, FR-041, SC-006.
+- [ ] T050 [US4] Quota and persistence: storage usage and persistence state on `#/daten` (src/ui/data/DataView.tsx), warning before uploads at ≥ 80 % of `storageEstimate().quota`, "Speicher dauerhaft anfordern" button with explanation and denial notice, and the "Daten liegen nur in diesem Browser" notice with backup recommendation (FR-045); unit tests for the threshold helper. Covers: FR-042, FR-045.
+- [ ] T051 [US4] Multi-tab conflicts: `meta.revision` check in src/storage/indexeddb.ts writes (`conflict`), `BroadcastChannel("kandidu:changes")` + `onExternalChange`; UI banner "In einem anderen Tab geändert – neu laden"; adapter tests for conflict and e2e with two pages. Covers: FR-044.
+- [ ] T052 [US4] Keyboard and accessibility proof: `pnpm add -D @axe-core/playwright@4.14.0`; e2e/c2-a11y.spec.ts runs a keyboard-only US1 journey and axe scans of Home, setup steps, project steps and lead steps with zero critical/serious violations (SC-009); fix findings. Covers: FR-046, FR-047, SC-009.
+- [ ] T053 [US4] Mobile: e2e/c2-mobile.spec.ts at 360 px width asserts no horizontal scrolling on Home, lead list, lead status and comments views (SC-010); CSS fixes in src/ui/style.css. Covers: SC-010 (views that exist in C2; lifecycle/comment views follow in C3).
 
 ---
 
@@ -171,13 +185,13 @@ in `docs/STATUS.md`.
 
 **Independent Test**: export complete US1 state, import into a fresh context, all data and files identical.
 
-- [ ] T054 [US5] Backup in src/storage/backup.ts and adapter methods `exportBackup`/`importBackup`: manifest, SHA-256 per file (Web Crypto), `LIESMICH.txt` text passed in from the catalog, validation before any write, single replacing transaction; tests in src/storage/backup.test.ts (round trip bit-identical, missing file, hash mismatch, newer version, corrupt JSON leave data untouched).
-- [ ] T055 [US5] Backup UI on `#/daten`: export button (`JJJJ-MM-TT_Kandidu_Sicherung.zip`, "enthält persönliche Daten" notice), import with confirmation when data exists, clear errors; recovery view links to import.
-- [ ] T056 [US5] [ROUTINE] Playwright journey e2e/c2-backup.spec.ts (`C2 backup …`): export after the C1 journey, import into a fresh browser context, compare lead data and downloaded package page counts.
+- [ ] T054 [US5] Backup in src/storage/backup.ts and adapter methods `exportBackup`/`importBackup`: manifest, SHA-256 per file (Web Crypto), `LIESMICH.txt` text passed in from the catalog, validation before any write, single replacing transaction; tests in src/storage/backup.test.ts (round trip bit-identical, missing file, hash mismatch, newer version, corrupt JSON leave data untouched). Covers: FR-043, SC-007.
+- [ ] T055 [US5] Backup UI on `#/daten`: export button (`JJJJ-MM-TT_Kandidu_Sicherung.zip`, "enthält persönliche Daten" notice), import with confirmation when data exists, clear errors; recovery view links to import. Covers: FR-041, FR-043, FR-045.
+- [ ] T056 [US5] [ROUTINE] Playwright journey e2e/c2-backup.spec.ts (`C2 backup …`): export after the C1 journey, import into a fresh browser context, compare lead data and downloaded package page counts. Covers: FR-043, SC-007.
 
 ### C2 GATE
 
-- [ ] T057 [GATE] C2 checkpoint: same procedure as T038 for US1–US5; **STOP** for an explicit human decision.
+- [ ] T057 [GATE] C2 checkpoint: same procedure as T038 for US1–US5 (plus T071–T073); **STOP** for an explicit human decision. Covers: C2 (constitution).
 
 ---
 
@@ -187,10 +201,10 @@ in `docs/STATUS.md`.
 
 **Independent Test**: move a lead through all main states with dates, undo once, add two comments.
 
-- [ ] T058 [US6] Lifecycle in src/domain/lifecycle.ts: `allowedTransitions(status)` and `applyTransition` exactly per data-model.md "StatusEntry and lifecycle" (incl. terminal states, `failed` only from ready/sent, interview → interview, undo of the latest non-undone entry, initial review not undoable); tests in src/domain/lifecycle.test.ts for every allowed and a sample of forbidden transitions.
-- [ ] T059 [US6] Comments in src/domain/lead.ts (`addComment`, `editComment`, `deleteComment`; text 1–2 000, date `YYYY-MM-DD`); tests.
-- [ ] T060 [US6] [ROUTINE] History view src/ui/lead/HistoryView.tsx at `…/verlauf`: current status, buttons/forms only for allowed transitions (sent date; interview date-time, onsite location or online link), undo with confirmation, chronological history incl. undone marks, comments CRUD; dates via `Intl.DateTimeFormat("de-DE")`.
-- [ ] T061 [US6] [ROUTINE] Playwright journey e2e/c3-lifecycle.spec.ts (`C3 lifecycle …`): ready → sent → interview ×2 → accepted, undo, withdrawn path, comments, mobile project.
+- [ ] T058 [US6] Lifecycle in src/domain/lifecycle.ts: `allowedTransitions(status)` and `applyTransition` exactly per data-model.md "StatusEntry and lifecycle" (incl. terminal states, `failed` only from ready/sent, interview → interview, undo of the latest non-undone entry, initial review not undoable); tests in src/domain/lifecycle.test.ts for every allowed and a sample of forbidden transitions. Covers: FR-034.
+- [ ] T059 [US6] Comments in src/domain/lead.ts (`addComment`, `editComment`, `deleteComment`; text 1–2 000, date `YYYY-MM-DD`); tests. Covers: FR-035.
+- [ ] T060 [US6] [ROUTINE] History view src/ui/lead/HistoryView.tsx at `…/verlauf`: current status, buttons/forms only for allowed transitions (sent date; interview date-time, onsite location or online link), undo with confirmation, chronological history incl. undone marks, comments CRUD; dates via `Intl.DateTimeFormat("de-DE")`. Covers: FR-029, FR-034, FR-035, FR-048.
+- [ ] T061 [US6] [ROUTINE] Playwright journey e2e/c3-lifecycle.spec.ts (`C3 lifecycle …`): ready → sent → interview ×2 → accepted, undo, withdrawn path, comments, mobile project. Covers: FR-034, FR-035, SC-010.
 
 ---
 
@@ -200,10 +214,10 @@ in `docs/STATUS.md`.
 
 **Independent Test**: two projects with leads; filter; delete one lead and one project; IndexedDB holds no related records or files.
 
-- [ ] T062 [US7] Store cascades: `deleteLead` and `deleteProject` in src/storage/indexeddb.ts remove leads, responses, cover letter PDFs and their file bytes in one transaction; template deletion falls back to demo; tests assert no orphaned `files` entries.
-- [ ] T063 [US7] Overview: Home shows per project title, lead counts per status, pending response, next interview; LeadList adds status filter and sort by last activity/next date (src/ui/Home.tsx, src/ui/project/LeadList.tsx).
-- [ ] T064 [US7] Delete UI: confirmation dialogs naming what will be removed for lead, project, template and evidence (with usage list), focus returns sensibly after deletion.
-- [ ] T065 [US7] [ROUTINE] Playwright journey e2e/c3-manage.spec.ts (`C3 manage …`): filter/sort, cancel vs confirm deletion, then inspect IndexedDB via `page.evaluate` for leftover records/files (SC-011).
+- [ ] T062 [US7] Store cascades: `deleteLead` and `deleteProject` in src/storage/indexeddb.ts remove leads, responses, cover letter PDFs and their file bytes in one transaction; template deletion falls back to demo; tests assert no orphaned `files` entries. Covers: FR-037, FR-038, SC-011.
+- [ ] T063 [US7] Overview: Home shows per project title, lead counts per status, pending response, next interview; LeadList adds status filter and sort by last activity/next date (src/ui/Home.tsx, src/ui/project/LeadList.tsx). Covers: FR-036.
+- [ ] T064 [US7] Delete UI: confirmation dialogs naming what will be removed for lead, project, template and evidence (with usage list), focus returns sensibly after deletion. Covers: FR-037, FR-038.
+- [ ] T065 [US7] [ROUTINE] Playwright journey e2e/c3-manage.spec.ts (`C3 manage …`): filter/sort, cancel vs confirm deletion, then inspect IndexedDB via `page.evaluate` for leftover records/files (SC-011). Covers: FR-036, FR-037, SC-011.
 
 ---
 
@@ -211,11 +225,11 @@ in `docs/STATUS.md`.
 
 **Purpose**: Demonstrate agreed acceptance criteria and hand off
 
-- [ ] T066 [P] Accessibility pass: keyboard-only journey, focus, labels, status/error announcements
-- [ ] T067 [P] [ROUTINE] Localization pass: no user-facing strings outside src/ui/i18n/, `Intl` formatting, layouts tolerate longer text at mobile width
-- [ ] T068 Run quickstart.md validation
-- [ ] T069 Document known limits and exact restart/resume steps in docs/STATUS.md and README.md
-- [ ] T070 [GATE] C3 checkpoint: same procedure as T038; request explicit acceptance. **STOP**; never mark accepted without a recorded human decision.
+- [ ] T066 [P] Accessibility pass: keyboard-only journey, focus, labels, status/error announcements. Covers: FR-047, SC-009.
+- [ ] T067 [P] [ROUTINE] Localization pass: no user-facing strings outside src/ui/i18n/, `Intl` formatting, layouts tolerate longer text at mobile width. Covers: FR-048.
+- [ ] T068 Run quickstart.md validation. Covers: SC-001.
+- [ ] T069 Document known limits and exact restart/resume steps in docs/STATUS.md and README.md. Covers: FR-045.
+- [ ] T070 [GATE] C3 checkpoint: same procedure as T038; request explicit acceptance. **STOP**; never mark accepted without a recorded human decision. Covers: C3 (constitution).
 
 ---
 
@@ -237,6 +251,13 @@ in `docs/STATUS.md`.
 - T024, T025 → T026 → T027 → T029
 - T028 needs T024; T031–T034 need T028; T030 before T031; T034 needs T018 + T019
 - T035–T037 after the UI tasks; T038 last
+
+### Within C2
+
+- T071 first (C1 feedback); then US2: T039 → T041 → T042; T040 → T073 and T041; T043 last
+- US3: T072 and T044 (both LinksStep) before T047; T045, T046 before T047
+- US4 after US3; T049 recovery view links to import once T055 exists
+- US5: T054 → T055 → T056; T057 last
 
 ### Parallel Opportunities
 

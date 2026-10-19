@@ -64,7 +64,7 @@ of files at most (browser quota bound); ~16 routes.
 | VII. Protect people and credentials | Pass | No PII in prompt by default, synthetic fixtures, no network, CSP, delete cascades remove files. |
 | VIII. Tests mandatory | Pass | Every story phase has unit + e2e tasks; failure paths enumerated in contracts. |
 | IX. One truth | Pass | Single spec with stable IDs; STATUS updated at each gate. |
-| X. Complete slices | Pass | Commits per checkpoint slice. |
+| X. Complete slices | Pass | C1: one checkpoint slice commit. From C2: one commit per finished user story plus the gate commit (AGENTS.md "Owner working rules"). |
 | XI. Human control | Pass | C1–C3 GATE tasks; ship mode asked at first approved gate; branch local only. |
 | XII. Language | Pass | Spec de-DE; technical docs English; all UI/prompt/document wording in `src/ui/i18n/de.ts`. |
 
