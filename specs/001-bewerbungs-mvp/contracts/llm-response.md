@@ -13,23 +13,35 @@ Contents, in order:
 3. Numbered list of links (exactly the project links).
 4. Optional user context, only if non-empty, introduced as "Zusätzlicher Kontext
    der bewerbenden Person".
-5. Output rules: answer **only** with one JSON object matching the schema; one
+5. Research rules (C3, FR-051, FR-052): return the entered link of each entry
+   unchanged in `sourceUrl`; look for the company's own original advertisement
+   (e.g. its career site) and prefer its details (e.g. pay) over job portals; put
+   it in `originalPostingUrl` only when it is certainly the same position, else
+   omit it; when the advertisement names only company and city, research the
+   company's postal address and website (e.g. imprint, contact page); list every
+   page used in `sources` (title and URL), including where the address was found.
+6. Output rules: answer **only** with one JSON object matching the schema; one
    entry in `leads` per advertisement; German language; research as Markdown with
    source links; motivation as at most two paragraphs separated by one blank line,
    tailored to the company, no invented facts about the applicant; use empty string
-   or omit fields that are unknown, never guess contact persons.
-6. The JSON Schema.
+   or omit fields that are unknown, never guess contact persons or addresses.
+7. The JSON Schema.
 
 The prompt never includes profile data (FR-014). The UI shows the exact string that
 the copy button copies.
 
-## Response schema (version 1)
+## Response schema (version 1, plus optional C3 fields)
+
+The C3 fields `originalPostingUrl` and `sources` are optional, so answers to
+earlier prompts stay valid.
 
 ```jsonc
 {
   "leads": [
     {
-      "sourceUrl": "https://…",                 // optional
+      "sourceUrl": "https://…",                 // optional: the entered link, unchanged
+      "originalPostingUrl": "https://…",        // optional (C3): company's own advertisement
+      "sources": [{ "title": "Impressum", "url": "https://…" }], // optional (C3), ≤ 20
       "position": {
         "title": "Ausbildung zum Industriekaufmann (m/w/d)", // required
         "referenceNumber": "…", "location": "…", "startDate": "…", "employmentType": "…"
@@ -65,7 +77,13 @@ Tolerance rules:
 - `channel` matching is case-insensitive; synonyms `e-mail`, `mail` → `email`,
   `online`, `website` → `portal`, `postal`, `brief` → `post`; else → `other`
   with the original value appended to `notes`.
-- URLs that are not http(s) are dropped with a warning, not an error.
+- URLs that are not http(s) are dropped with a warning, not an error; a `sources`
+  entry without a usable URL is dropped the same way; duplicate source URLs are
+  kept once; more than 20 sources → the first 20 are kept with warning
+  `sources-truncated`. A `sources` value that is not an array is dropped with
+  warning `sources-invalid`, never an error.
+- Lead creation (not the parser): if `sourceUrl` is absent and the project has
+  exactly one link, the lead gets that link (FR-051).
 
 ## ParseResult
 
@@ -78,7 +96,8 @@ type ParseResult =
       validLeads: LeadDraft[] };              // C2: "nur gültige übernehmen"
 
 type EntryIssue = { entry: number; path: string[]; kind: "missing" | "wrong-type" | "invalid" };
-type ParseWarning = { entry: number; kind: "motivation-too-long" | "url-dropped" | "channel-unknown"; path?: string[] };
+type ParseWarning = { entry: number; kind: "motivation-too-long" | "url-dropped" | "channel-unknown"
+  | "sources-truncated" | "sources-invalid"; path?: string[] };       // last two: C3
 ```
 
 `entry` is 1-based for display. The UI maps `path` to German field labels.

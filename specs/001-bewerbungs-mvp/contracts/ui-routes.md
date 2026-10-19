@@ -11,11 +11,11 @@ in the address bar; they are stable identifiers, not catalog text.
 | `#/einrichtung/lebenslauf` | Step 3 Lebenslauf-PDF: filled CV DOCX download, CV PDF upload | C1 |
 | `#/einrichtung/nachweise` | Step 4 Nachweise with tags | C2 |
 | `#/platzhalter` | Placeholder explanation and full list | C1 |
-| `#/projekte/:projectId/links` | Project step 1 title, links (C2: many, context) | C1 |
+| `#/projekte/:projectId/links` | Project step 1 title, links (C2: many, context; C3: "Stelle (im Anschreiben)") | C1 |
 | `#/projekte/:projectId/prompt` | Project step 2 full prompt, copy | C1 |
 | `#/projekte/:projectId/antwort` | Project step 3 paste, parse result, response history | C1 |
 | `#/projekte/:projectId/leads` | Project step 4 lead list (C3: filter/sort/delete) | C1 |
-| `#/projekte/:projectId/leads/:leadId/pruefen` | Lead step 1 review/edit | C1 |
+| `#/projekte/:projectId/leads/:leadId/pruefen` | Lead step 1 review/edit (C3: "Links" block on top, "Stelle im Anschreiben") | C1 |
 | `#/projekte/:projectId/leads/:leadId/anschreiben` | Lead step 2 cover letter DOCX + missing-value check | C1 |
 | `#/projekte/:projectId/leads/:leadId/freigabe` | Lead step 3 PDF upload + explicit confirm | C1 |
 | `#/projekte/:projectId/leads/:leadId/paket` | Lead step 4 compose + ZIP | C1 (one), C2 (many) |

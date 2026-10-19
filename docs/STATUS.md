@@ -15,7 +15,8 @@
   T038 done. **C2 – Useful and recoverable: approved by the owner on
   2026-10-19 with follow-ups** (`specs/001-bewerbungs-mvp/feedback/C2.md`;
   on `main` as `16b34bb`) and **shipped** (see "C2 ship result"). GATE task
-  T057 done. C3 – Agreed acceptance: in preparation (follow-ups R1–R4).
+  T057 done. C3 – Agreed acceptance: planned (C3 Phase A for R1–R4, then
+  US6, US7, Polish; see "C3 scope"), implementation not started.
 - Approval state: C1 approved without change requests. C2 approved with
   follow-ups R1–R6, no defects found; the owner tried review steps 1–2. R1–R4
   are due at the next checkpoint (C3), R5–R6 go to the backlog.
@@ -48,6 +49,36 @@
   delegated tasks of all C3 sessions here by hand (`pnpm models:check` sees
   only the current session). At the C3 gate also write the review steps to
   `specs/001-bewerbungs-mvp/review/C3.md` (German, ≤ 30 lines).
+
+## C3 scope: C2 follow-ups (feedback ID → FR / task)
+
+Source: `specs/001-bewerbungs-mvp/feedback/C2.md`. Clarified with the owner on
+2026-10-19 via `/speckit-clarify` (4 questions, all answered with the
+recommended option; spec `## Clarifications` Session 2026-10-19). State:
+**planned**, nothing implemented yet.
+
+| Feedback | Timing | Spec | Tasks |
+| --- | --- | --- | --- |
+| R1 links on top of "Lead prüfen", clickable and editable | next checkpoint (C3) | FR-050 (FR-022, FR-029), US1 scenario 14 | T079, T080 |
+| R2 prompt finds the original advertisement; all links stored | C3 | FR-051, FR-013, US1 scenarios 15–16; contracts/llm-response.md | T078, T080 |
+| R3 prompt researches address and website | C3 | FR-052, FR-013, US1 scenario 15 | T078, T080 |
+| R4 `{Stelle}` on project level (open question answered: default per project, overridable per lead) | C3 | FR-049 (FR-006, FR-022), US1 scenario 17; contracts/placeholders.md | T076, T077 |
+| Migration of stored data (owner question, from R1/R2/R4) | C3 | FR-053, US1 scenario 18; data-model.md "Migrations" | T074 |
+| Backup format (owner question) | C3 | FR-054, US1 scenario 18; contracts/backup-format.md | T075 |
+| R5 cover letter template per project | later | spec "Backlog" | none |
+| R6 date in the PDF stays fixed (spike) | later | spec "Backlog" | none |
+
+Assumption (no question, low impact): R3's researched address and website use
+the existing editable fields; the links block tells the person to check
+LLM-found data before sending (FR-050, FR-052). The project "Stelle" is not
+put into the prompt (FR-014 unchanged).
+
+### C3 model routing (merged by hand across sessions)
+
+`pnpm models:check` only sees the current session's transcripts, so every C3
+session appends its table and delegated task IDs here.
+
+- Session 1 (2026-10-19, C2 ship + C3 preparation): no delegation yet.
 
 ## C2 ship result (2026-10-19)
 
@@ -515,13 +546,12 @@ it is gone: `pnpm install --frozen-lockfile`, then the same command.
 
 - Worktree: C1 and C2 are merged into `main` (head `c3cc9b0`, PR #2) and
   live. C3 work is on the local branch `001-bewerbungs-mvp-c3` (from
-  `c3cc9b0`): first the commit recording the C2 ship result (this change).
-  Nothing pushed. No stash, no `refs/backup/*`.
-- **Exact next action:** fold the C2 follow-ups R1–R4 into spec and tasks
-  for C3 via `/speckit-clarify` (questions to the owner batched, each with a
-  recommendation, incl. migration of stored data and the backup format),
-  R5–R6 into the spec backlog, record feedback ID → FR/task here, then
-  `/speckit-implement` up to GATE T070.
+  `c3cc9b0`): `36e4b0a` (C2 ship result), then the C3 planning commit (spec,
+  plan, data-model, contracts, tasks and this file). Nothing pushed. No stash,
+  no `refs/backup/*`.
+- **Exact next action:** `/speckit-implement` from T074 (C3 Phase A slice A,
+  storage v2), one slice/story at a time, each green and committed, up to GATE
+  T070; before the first task the routing probe (AGENTS.md).
 
 ## Subsequent handoff schema
 

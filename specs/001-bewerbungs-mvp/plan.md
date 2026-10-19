@@ -26,8 +26,18 @@ assumptions), C2 adds breadth and recovery, C3 lifecycle and management.
 `remark-gfm` 4.0.1; new dev: `fake-indexeddb` 6.2.6, `@axe-core/playwright` 4.14.0
 (C2). Rationale in [research.md](research.md), recorded in ADR 009.
 
-**Storage**: IndexedDB `kandidu:data` v1 via `idb` (ADR 008, supersedes ADR 002 for
-product data); layout in [data-model.md](data-model.md).
+**Storage**: IndexedDB `kandidu:data` via `idb` (ADR 008, supersedes ADR 002 for
+product data); layout in [data-model.md](data-model.md). Version 1 in C1/C2;
+version 2 in C3 for the C2 follow-ups (new optional fields, automatic upgrade
+without record rewrite, v1 backups stay importable; data-model.md "Migrations").
+This is the explicit, tested `onupgradeneeded` step ADR 008 anticipates, so no new
+ADR is needed.
+
+**C3 additions from the C2 feedback (2026-10-19)**: R1 "Links" block in the lead
+review (FR-050), R2/R3 prompt rules and two optional response fields
+(`originalPostingUrl`, `sources`; FR-051, FR-052; contracts/llm-response.md), R4
+project-level "Stelle" with lead override (FR-049; contracts/placeholders.md),
+migration and backup compatibility (FR-053, FR-054). No new dependency.
 
 **Testing**: Vitest 4 (Node; `fake-indexeddb` for the adapter; DOCX/PDF/ZIP
 fixtures generated in tests), Playwright (Desktop Chrome + Pixel 7) for journeys,

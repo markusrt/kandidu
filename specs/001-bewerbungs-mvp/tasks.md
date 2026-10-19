@@ -195,6 +195,24 @@ in `docs/STATUS.md`.
 
 ---
 
+## C3 Phase A: C2 feedback R1–R4 (owner, 2026-10-19) C3 Agreed acceptance
+
+**Goal**: Fold the C2 follow-ups into the product before US6/US7 (spec Clarifications 2026-10-19, FR-049–FR-054; `feedback/C2.md`). R5/R6 are in the spec Backlog, not here.
+
+**Independent Test**: seed a v1 database and open the app (data intact); project with "Stelle" and one lead override → both cover letters fill `{Stelle}` correctly; paste a response with original posting and sources → "Links" block on top of the review, clickable, editable, saved.
+
+**Slices** (each finished, green and committed before the next, owner rule "one story at a time"): A storage v2 (T074, T075) → B Stelle (T076, T077) → C prompt and response (T078) → D links block (T079, T080).
+
+- [ ] T074 [US5] Storage v2 in src/storage/schema.ts and src/storage/indexeddb.ts: `SCHEMA_VERSION = 2`; schemas accept the new optional fields (`Project.position` ≤ 200, `Lead.letterPosition` ≤ 200, `Lead.originalPostingUrl` http(s) ≤ 2 000, `Lead.sources` ≤ 20 `{ title? ≤ 200, url ≤ 2 000 }`); `openKandiduDb` upgrade per data-model.md "Migrations" (`oldVersion < 1` creates stores, `oldVersion < 2` sets `meta.schemaVersion = 2` and increments `revision` if meta exists, no record rewrite) and a `kandidu:changes` post after an upgrade; tests in src/storage/indexeddb.test.ts with a raw v1 database (synthetic records written with plain `fake-indexeddb` at version 1): opens with every record unchanged and `schemaVersion` 2, empty v1 database, damaged v1 record → `data-invalid` and nothing rewritten, failing upgrade (injected `put` error) leaves version 1 and its data, broadcast after upgrade, newer version 3 → `unsupported-version`. Covers: FR-053, FR-041, FR-044.
+- [ ] T075 [US5] Backup compatibility in src/storage/backup.ts: `parseBackup` accepts `schemaVersion` 1 and 2, exports write 2 (`formatVersion` stays 1), import writes `schemaVersion` 2; synthetic v1 fixture src/storage/fixtures/backup-v1.json (records only; files generated in the test); tests in src/storage/backup.test.ts: v1 backup imports and round-trips, a v2 backup with the new fields round-trips bit-identically, `schemaVersion` 3 → `unsupported-version` with data untouched. Covers: FR-054, FR-043, SC-007.
+- [ ] T076 [US1] "Stelle" domain: `Project.position` with `setProjectPosition(project, value, now)` in src/domain/project.ts (trimmed, empty → absent, > 200 → `ProjectError("position-too-long")`); `Lead.letterPosition` editable in `reviseLead` (src/domain/lead.ts, same rules → `lead-invalid`); `{Stelle}` resolution lead → project → `position.title` in src/domain/letterData.ts (`buildCoverLetterData` gets the project); tests in src/domain/project.test.ts, src/domain/lead.test.ts, src/domain/letterData.test.ts (all three fallbacks, whitespace-only values, released lead unchanged). Covers: FR-049, FR-006.
+- [ ] T077 [US1] "Stelle" UI: field "Stelle (im Anschreiben)" with hint and example in src/ui/project/LinksStep.tsx (saved with the project, unsaved-changes guard as for the title); field "Stelle im Anschreiben" in src/ui/lead/ReviewStep.tsx showing the inherited value as hint ("leer = Stelle aus dem Projekt …"); the cover letter step's missing-value check and download use the resolved value; placeholder help text for `{Stelle}` in src/ui/i18n/de.ts; e2e `C3 feedback: Stelle …` in e2e/c3-feedback.spec.ts (project value, one lead override, both DOCX contents, reload keeps both). Covers: FR-049, FR-022, FR-024.
+- [ ] T078 [US3] Response fields and prompt rules: `originalPostingUrl` and `sources` in src/llm/schema.ts and `LeadDraft` (src/domain/lead.ts, `validateLeadDraft`: http(s), limits, ≤ 20 unique sources); tolerant normalization in src/llm/parse.ts per contracts/llm-response.md (non-http or missing URL dropped with `url-dropped`, duplicates once, > 20 → `sources-truncated`, non-array → `sources-invalid`), warnings mapped to German text in src/ui/i18n/de.ts; `createLeadsFromDrafts` sets `sourceUrl` to the only project link when absent; prompt research rules (item 5 of the contract) in `prompt.build`; new corpus fixtures in src/llm/fixtures/ (original posting + sources; bad sources) with tests in src/llm/parse.test.ts and src/llm/schema.test.ts; src/ui/prompt.test.ts checks the new rules and still no profile data; src/domain/lead.test.ts for the `sourceUrl` default. Covers: FR-013, FR-051, FR-052, FR-014, SC-004.
+- [ ] T079 [US1] "Links" block at the top of src/ui/lead/ReviewStep.tsx (component src/ui/lead/LeadLinks.tsx): rows for entered link, original posting, application portal, company website (moved out of their current form groups) and a sources list (title + URL; add, edit, remove; ≤ 20); every valid http(s) link also rendered as a link opening in a new tab with `rel="noopener noreferrer"`; field errors with `aria-describedby`, input kept; notice to check LLM-found links and data before sending; saved with the lead via `reviseLead` and the existing unsaved-changes guard; after release the block stays clickable and read-only; axe scan and 360 px check of the review step with a long URL in e2e/c2-a11y.spec.ts and e2e/c2-mobile.spec.ts. Covers: FR-050, FR-022, FR-029, FR-047, SC-009, SC-010.
+- [ ] T080 [US1] [ROUTINE] Playwright journey e2e/c3-feedback.spec.ts (`C3 feedback …`): the prompt contains the original-posting and address research rules; pasting the new corpus fixture fills the links block (entered link, original posting, portal, website, sources); each link has `target="_blank"` and `rel` containing `noopener`; edit one link, add and remove a source, save, reload keeps it; an invalid URL is reported at the field and nothing is saved; released lead: links clickable, no inputs; a seeded v1 database (`page.addInitScript` writing version 1 records) opens with all data visible. Covers: FR-050, FR-051, FR-052, FR-053.
+
+---
+
 ## Phase 8: User Story 6 - Lebenszyklus mit Daten und Kommentaren (Priority: P3) C3 Agreed acceptance
 
 **Goal**: Full lifecycle with undo, repeated interviews, comments (FR-034, FR-035).
@@ -229,7 +247,7 @@ in `docs/STATUS.md`.
 - [ ] T067 [P] [ROUTINE] Localization pass: no user-facing strings outside src/ui/i18n/, `Intl` formatting, layouts tolerate longer text at mobile width. Covers: FR-048.
 - [ ] T068 Run quickstart.md validation. Covers: SC-001.
 - [ ] T069 Document known limits and exact restart/resume steps in docs/STATUS.md and README.md. Covers: FR-045.
-- [ ] T070 [GATE] C3 checkpoint: same procedure as T038; request explicit acceptance. **STOP**; never mark accepted without a recorded human decision. Covers: C3 (constitution).
+- [ ] T070 [GATE] C3 checkpoint: same procedure as T038 for C3 Phase A, US6, US7 and Polish; also write the owner's review steps to specs/001-bewerbungs-mvp/review/C3.md (German, ≤ 30 lines: what is new, URL, ≤ 3 steps, decisions to take) and merge the delegated tasks of all C3 sessions into docs/STATUS.md by hand; request explicit acceptance. **STOP**; never mark accepted without a recorded human decision. Covers: C3 (constitution).
 
 ---
 
@@ -259,6 +277,12 @@ in `docs/STATUS.md`.
 - US4 after US3; T049 recovery view links to import once T055 exists
 - US5: T054 → T055 → T056; T057 last
 
+### Within C3
+
+- C3 Phase A first, in slice order: T074 → T075 (storage v2 before any new field
+  is written) → T076 → T077 → T078 → T079 → T080; T079 needs T078's fields
+- Then US6 (T058–T061), US7 (T062–T065), Polish (T066–T069); T070 last
+
 ### Parallel Opportunities
 
 - T010, T019, T020 (different files) alongside T013–T018
@@ -281,7 +305,7 @@ Batch B (speckit-implementer, ROUTINE): T019, T021 (after T011), T024
 1. Complete Setup + Foundational
 2. Complete User Story 1 → C1 GATE: running app, evidence, **STOP**
 3. After approval (or requested changes folded into spec.md/tasks.md): US2–US5 → C2 GATE, **STOP**
-4. After approval: US6, US7, Polish & Acceptance → C3 GATE, **STOP**
+4. After approval: C2 feedback R1–R4 (C3 Phase A), US6, US7, Polish & Acceptance → C3 GATE, **STOP**
 
 Human feedback at a gate updates spec.md (via `/speckit-clarify` or a direct
 edit with stable IDs), then `/speckit-tasks` or `/speckit-converge` refreshes
