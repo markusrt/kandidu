@@ -287,6 +287,24 @@ export function markResponseImported(
 }
 
 /**
+ * Whether a schema-invalid result may be imported partially (FR-021, C2):
+ * some entries are valid and every issue names its entry. Returns the counts
+ * for "n von m", or undefined when only a full fix helps.
+ */
+export function partialImport(
+  result: ParseResult,
+): { valid: number; total: number } | undefined {
+  if (result.ok || result.error !== "schema-invalid") return undefined;
+  if (result.validLeads.length === 0) return undefined;
+  if (result.issues.some((issue) => issue.entry < 1)) return undefined;
+  const invalid = new Set(result.issues.map((issue) => issue.entry)).size;
+  return {
+    valid: result.validLeads.length,
+    total: result.validLeads.length + invalid,
+  };
+}
+
+/**
  * An earlier response with the same text that already created leads, so the
  * UI can ask before importing it again (FR-021).
  */

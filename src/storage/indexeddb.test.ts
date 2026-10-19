@@ -59,6 +59,13 @@ function cvDocument(id: string, fileId: string): DocumentRecord {
   };
 }
 
+async function storedFileIds(): Promise<string[]> {
+  const db = await openDB(DB_NAME);
+  const keys = await db.getAllKeys("files" as never);
+  db.close();
+  return keys.map(String).sort();
+}
+
 async function rawPut(storeName: string, value: unknown, key?: string) {
   const db = await openDB(DB_NAME);
   await db.put(storeName as never, value as never, key as never);
@@ -149,6 +156,70 @@ describe("IndexedDB store", () => {
     expect(snapshot.projects).toEqual([]);
     expect(snapshot.leads.map((lead) => lead.id)).toEqual(["other"]);
     await expectCode(s.readFile("c1"), "file-missing");
+  });
+
+  it("deletes an evidence document with its file and writes the affected leads", async () => {
+    const s = store();
+    await s.load();
+    const evidence: DocumentRecord = {
+      ...cvDocument("d1", "f1"),
+      role: "evidence",
+      name: "Zeugnis",
+      tags: ["zeugnis"],
+    };
+    await s.saveDocument(evidence, bytes(1));
+    await s.saveDocument(cvDocument("cv", "f2"), bytes(2));
+    const withDoc = sampleLead({
+      status: "ready",
+      packages: [
+        {
+          id: "pk1",
+          fileName: "a.pdf",
+          items: [{ kind: "cv" }, { kind: "document", documentId: "d1" }],
+        },
+      ],
+    });
+    await s.saveLeads([withDoc]);
+    const cleaned = sampleLead({
+      status: "ready",
+      packages: [{ id: "pk1", fileName: "a.pdf", items: [{ kind: "cv" }] }],
+    });
+    await s.deleteDocument("d1", [cleaned]);
+    const snapshot = await s.load();
+    expect(snapshot.documents.map((d) => d.id)).toEqual(["cv"]);
+    expect(snapshot.leads[0]?.packages[0]?.items).toEqual([{ kind: "cv" }]);
+    await expectCode(s.readFile("f1"), "file-missing");
+    expect(await storedFileIds()).toEqual(["f2"]);
+  });
+
+  it("deletes the CV PDF and keeps cv package items for a later upload", async () => {
+    const s = store();
+    await s.load();
+    await s.saveDocument(cvDocument("cv", "f2"), bytes(2));
+    await s.saveLeads([
+      sampleLead({
+        status: "ready",
+        packages: [{ id: "pk1", fileName: "a.pdf", items: [{ kind: "cv" }] }],
+      }),
+    ]);
+    await s.deleteDocument("cv", []);
+    const snapshot = await s.load();
+    expect(snapshot.documents).toEqual([]);
+    expect(snapshot.leads[0]?.status).toBe("ready");
+    expect(snapshot.leads[0]?.packages[0]?.items).toEqual([{ kind: "cv" }]);
+    expect(await storedFileIds()).toEqual([]);
+  });
+
+  it("leaves everything unchanged when a document delete is refused", async () => {
+    const s = store();
+    await s.load();
+    await s.saveDocument(cvDocument("cv", "f2"), bytes(2));
+    await expectCode(
+      s.deleteDocument("cv", [sampleLead({ company: { name: "" } })]),
+      "record-invalid",
+    );
+    expect((await s.load()).documents.map((d) => d.id)).toEqual(["cv"]);
+    expect(await s.readFile("f2")).toEqual(bytes(2));
   });
 
   it("blocks writes before a successful load", async () => {

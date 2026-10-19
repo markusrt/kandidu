@@ -149,6 +149,12 @@ Standing rules from the product owner; they apply to every agent and session.
   STATUS handoff. Do not leave a whole checkpoint uncommitted until its gate.
   Why: in C1 the entire slice was uncommitted when the machine crashed. Commits
   stay local until the ship mode authorizes pushing (after an approved gate).
+- **One story at a time** (2026-10-19). Finish the current story (tasks ticked,
+  checks green, commit) before touching the next one. Delegate only tasks of
+  the current story, and while a delegated task runs its checks, do not edit
+  files those checks build or test. Why: parallel work on US2, US3 and US5
+  produced overlapping files that could not be committed per story, and a
+  delegated e2e run built a half-edited tree.
 
 ## Commands and architecture
 

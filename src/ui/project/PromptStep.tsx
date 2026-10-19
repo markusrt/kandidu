@@ -60,6 +60,9 @@ export function PromptStep({ project }: { project: Project }) {
     <>
       <h1>{m.prompt.heading}</h1>
       <p>{m.prompt.intro}</p>
+      {project.promptContext.trim() !== "" && (
+        <p className="warning">{m.prompt.contextIncluded}</p>
+      )}
       {isPromptChangedSinceCopy(project) && (
         <p className="warning">{m.prompt.changedSinceCopy}</p>
       )}

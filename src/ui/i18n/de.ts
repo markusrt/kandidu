@@ -132,6 +132,7 @@ export const de = {
       profile: "Persönliche Daten",
       templates: "Vorlagen",
       cv: "Lebenslauf-PDF",
+      evidence: "Nachweise",
     },
   },
 
@@ -374,6 +375,59 @@ export const de = {
       "Das neue PDF gilt für alle künftig erzeugten Pakete, auch für bereits versendete Bewerbungen.",
     uploaded: "Lebenslauf-PDF gespeichert.",
     defaultName: "Lebenslauf",
+    deleteStart: "Lebenslauf-PDF löschen …",
+    deletePrompt: (released: number) =>
+      `Lebenslauf-PDF wirklich löschen? ${
+        released > 0
+          ? `${plural(released, "freigegebener Lead bleibt", "freigegebene Leads bleiben")} freigegeben, aber `
+          : ""
+      }Pakete mit Lebenslauf kannst du erst wieder erstellen, wenn du ein neues Lebenslauf-PDF hochlädst.`,
+    deleteConfirm: "Ja, Lebenslauf-PDF löschen",
+    deleted: "Lebenslauf-PDF gelöscht.",
+  },
+
+  evidence: {
+    heading: "Nachweise",
+    intro:
+      "Zeugnisse, Zertifikate und andere Nachweise als PDF. Du kannst sie später pro Bewerbung ins Paket aufnehmen. Mit Tags behältst du den Überblick.",
+    uploadHeading: "Nachweis hochladen",
+    nameLabel: "Name des Nachweises",
+    nameHint: (max: number) => `Höchstens ${max} Zeichen.`,
+    fileLabel: "PDF-Datei",
+    upload: "Hochladen",
+    picked: (fileName: string) => `Gewählte Datei: ${fileName}`,
+    uploaded: "Nachweis gespeichert.",
+    listHeading: "Gespeicherte Nachweise",
+    none: "Noch keine Nachweise hochgeladen.",
+    filterLabel: "Nach Tag filtern",
+    filterAll: "Alle",
+    filterEmpty: "Kein Nachweis mit diesem Tag.",
+    noTags: "Keine Tags",
+    tagsLabel: "Tags",
+    meta: (pages: string, size: string, date: string) =>
+      `${pages}, ${size}, hochgeladen am ${date}`,
+    edit: "Bearbeiten",
+    editHeading: (name: string) => `Nachweis bearbeiten: ${name}`,
+    save: "Speichern",
+    saved: "Nachweis aktualisiert.",
+    cancel: "Abbrechen",
+    delete: "Löschen …",
+    deleteHeading: (name: string) => `Nachweis „${name}“ löschen?`,
+    usedIn: "Wird verwendet in:",
+    usageItem: (company: string, files: string) => `${company} – ${files}`,
+    notUsed: "Wird in keinem Paket verwendet.",
+    deleteWarning:
+      "Der Nachweis wird auch aus diesen Paketen entfernt. Das lässt sich nicht rückgängig machen.",
+    confirmDelete: "Ja, löschen",
+    deleted: "Nachweis gelöscht.",
+    tagInputLabel: "Tag hinzufügen",
+    tagInputHint:
+      "Mit Enter eigenen Tag hinzufügen oder einen Vorschlag auswählen.",
+    chosenTagsLabel: "Gewählte Tags",
+    removeTag: (tag: string) => `Tag entfernen: ${tag}`,
+    addTag: (tag: string) => `Tag hinzufügen: ${tag}`,
+    suggestionsLabel: "Vorschläge",
+    suggestionCount: (n: number) => plural(n, "Vorschlag", "Vorschläge"),
   },
 
   project: {
@@ -388,19 +442,33 @@ export const de = {
     rename: "Titel speichern",
     linksHeading: "Links zu Stellenausschreibungen",
     linksIntro:
-      "Füge einen oder mehrere Links zu Stellenanzeigen ein. Nur diese Links und der Titel gehen in den Prompt.",
+      "Füge einen oder mehrere Links zu Stellenanzeigen ein. Nur diese Links, der Titel und dein optionaler Kontext gehen in den Prompt.",
     linkLabel: "Link zur Stellenanzeige",
     linkListLabel: (n: number) => `Link ${n}`,
     addLink: "Link hinzufügen",
     removeLink: (url: string) => `Link entfernen: ${url}`,
+    edit: "Bearbeiten",
+    editLink: (url: string) => `Link bearbeiten: ${url}`,
+    editLinkLabel: (n: number) => `Link ${n} bearbeiten`,
+    linkUpdated: "Link geändert.",
+    linkRemoved: "Link entfernt.",
     noLinks: "Noch keine Links.",
     toPrompt: "Weiter zum Prompt",
+    contextHeading: "Zusätzlicher Kontext (optional)",
+    contextIntro:
+      "Standardmäßig leer. Wenn du möchtest, beschreibe hier kurz, was das Sprachmodell über dich wissen soll, zum Beispiel deine Qualifikationen oder Interessen. Kandidu übernimmt nie automatisch deine persönlichen Daten.",
+    contextNotice:
+      "Dieser Text wird mit dem Prompt an das externe Sprachmodell übermittelt. Schreibe nichts hinein, was du dort nicht teilen möchtest.",
+    contextLabel: "Kontext für den Prompt",
+    contextCount: (used: number, max: number) =>
+      `${numberFormat.format(used)} von ${numberFormat.format(max)} Zeichen`,
+    contextSave: "Kontext speichern",
   },
 
   prompt: {
     heading: "Prompt für das Sprachmodell",
     intro:
-      "Kopiere diesen Text vollständig in ein Sprachmodell deiner Wahl (mit Internetzugang). Er enthält keine persönlichen Daten – nur den Projekttitel und die Links.",
+      "Kopiere diesen Text vollständig in ein Sprachmodell deiner Wahl (mit Internetzugang). Er enthält keine persönlichen Daten – nur den Projekttitel, die Links und, falls du ihn ausgefüllt hast, deinen zusätzlichen Kontext.",
     label: "Vollständiger Prompt",
     copy: "Prompt kopieren",
     copyFailed:
@@ -408,7 +476,9 @@ export const de = {
     copiedManually: "Ich habe den Prompt kopiert",
     noLinks: "Füge zuerst mindestens einen Link hinzu.",
     changedSinceCopy:
-      "Du hast Titel oder Links seit dem letzten Kopieren geändert. Kopiere den Prompt erneut.",
+      "Prompt geändert: Du hast Titel, Links oder Kontext seit dem letzten Kopieren geändert. Bitte kopiere den Prompt erneut.",
+    contextIncluded:
+      "Der Prompt enthält deinen zusätzlichen Kontext. Dieser Text wird an das externe Sprachmodell übermittelt.",
     toResponse: "Weiter zur Antwort",
     afterCopy:
       "Du kannst Kandidu jetzt schließen. Dein Stand bleibt gespeichert, bis du die Antwort einfügst.",
@@ -518,6 +588,8 @@ export const de = {
     duplicatePrompt: (date: string, leads: number) =>
       `Diese Antwort hast du am ${date} schon eingelesen (${plural(leads, "Lead", "Leads")}). Noch einmal einlesen legt die Leads doppelt an.`,
     duplicateConfirm: "Trotzdem erneut einlesen",
+    importValid: (valid: number, total: number) =>
+      `Nur gültige Einträge übernehmen (${valid} von ${total})`,
   },
 
   leads: {
@@ -677,6 +749,35 @@ export const de = {
     },
     moveUp: (item: string) => `${item} nach oben`,
     moveDown: (item: string) => `${item} nach unten`,
+    removeItem: (item: string) => `${item} aus dem Paket entfernen`,
+    lastItemHint: "Ein Paket braucht mindestens ein PDF.",
+    addHeading: "PDF hinzufügen",
+    tagFilter: "Nachweise nach Tag filtern",
+    tagFilterAll: "Alle Tags",
+    addLabel: "PDF auswählen",
+    addButton: "Hinzufügen",
+    nothingToAdd: "Alle vorhandenen PDFs sind schon in diesem Paket.",
+    noEvidence: "Noch keine Nachweise hochgeladen.",
+    toEvidence: "Nachweise verwalten",
+    documentMissing: (name: string) =>
+      `„${name}“ gibt es nicht mehr. Entferne es aus dem Paket.`,
+    added: (item: string) => `${item} hinzugefügt.`,
+    packageHeading: (n: number) => `Paket-PDF ${n}`,
+    removePackage: (n: number) => `Paket-PDF ${n} entfernen`,
+    packageAdded: (n: number) => `Paket-PDF ${n} hinzugefügt.`,
+    packageRemoved: (n: number) => `Paket-PDF ${n} entfernt.`,
+    addPackageHeading: "Weiteres Paket-PDF",
+    addPackageHint:
+      "Jedes Paket-PDF landet als eigene Datei in derselben ZIP-Datei, zum Beispiel „Anschreiben und Lebenslauf“ und „Zeugnisse“ getrennt.",
+    presetLabel: "Vorlage für das neue Paket-PDF",
+    presets: {
+      coverLetterAndCv: "Anschreiben und Lebenslauf",
+      evidence: "Alle Nachweise (Zeugnisse)",
+      all: "Alles in einem PDF",
+    },
+    addPackage: "Paket-PDF hinzufügen",
+    builtMany: (n: number, pages: string) =>
+      `ZIP mit ${n} PDFs erstellt (zusammen ${pages}).`,
     saveDefinition: "Zusammenstellung speichern",
     download: "ZIP herunterladen",
     building: "Paket wird erstellt …",
@@ -706,6 +807,8 @@ export const de = {
     "store-blocked":
       "Speichern ist gesperrt, solange die gespeicherten Daten nicht gelesen werden konnten.",
     "record-invalid": "Die Daten sind ungültig und wurden nicht gespeichert.",
+    "backup-invalid":
+      "Die Sicherung ist unvollständig, beschädigt oder keine Kandidu-Sicherung. Es wurde nichts geändert.",
     "file-too-large":
       "Die Datei ist zu groß. Erlaubt sind höchstens 20 MB je PDF und 10 MB je Word-Vorlage.",
     "docx-invalid":
@@ -720,6 +823,7 @@ export const de = {
     "title-invalid": "Bitte gib einen Titel mit höchstens 120 Zeichen ein.",
     "link-invalid":
       "Bitte gib einen vollständigen Link ein, der mit https:// oder http:// beginnt.",
+    "tag-invalid": "Ein Tag darf höchstens 40 Zeichen haben.",
     "link-duplicate": "Diesen Link gibt es in diesem Projekt schon.",
     "too-many-links": "Ein Projekt kann höchstens 20 Links haben.",
     "no-links": "Füge zuerst mindestens einen Link hinzu.",

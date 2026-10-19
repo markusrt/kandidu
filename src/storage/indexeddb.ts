@@ -15,6 +15,7 @@ import type {
 import type { Lead } from "../domain/lead";
 import type { Profile } from "../domain/profile";
 import type { Project } from "../domain/project";
+import { buildBackup, parseBackup } from "./backup";
 import {
   type AppSnapshot,
   type KandiduStore,
@@ -227,56 +228,61 @@ export function createIndexedDbStore(
     await store.delete(id);
   }
 
+  /** Reads and validates everything; no effect on the write state. */
+  async function readSnapshot(): Promise<{
+    snapshot: AppSnapshot;
+    revision: number;
+  }> {
+    const database = await connection();
+    try {
+      const tx = database.transaction(
+        ["meta", "profile", "templates", "documents", "projects", "leads"],
+        "readonly",
+      );
+      const [meta, profile, templates, documents, projects, leads] =
+        await Promise.all([
+          tx.objectStore("meta").get(META_KEY),
+          tx.objectStore("profile").get(PROFILE_KEY),
+          tx.objectStore("templates").getAll(),
+          tx.objectStore("documents").getAll(),
+          tx.objectStore("projects").getAll(),
+          tx.objectStore("leads").getAll(),
+        ]);
+      await tx.done;
+      if (meta !== undefined) {
+        const parsed = metaSchema.safeParse(meta);
+        if (!parsed.success) throw new StoreError("data-invalid");
+        if (parsed.data.schemaVersion > SCHEMA_VERSION) {
+          throw new StoreError("unsupported-version");
+        }
+      }
+      const templateRecords = parseAll<TemplateRecord>(
+        templateSchema,
+        templates,
+      );
+      const snapshot: AppSnapshot = {
+        profile:
+          profile === undefined
+            ? undefined
+            : parseAll<Profile>(profileSchema, [profile])[0],
+        templates: Object.fromEntries(
+          templateRecords.map((record) => [record.kind, record]),
+        ),
+        documents: parseAll<DocumentRecord>(documentSchema, documents),
+        projects: parseAll<Project>(projectSchema, projects),
+        leads: parseAll<Lead>(leadSchema, leads),
+      };
+      return { snapshot, revision: meta?.revision ?? 0 };
+    } catch (cause) {
+      throw cause instanceof StoreError ? cause : new StoreError("read-failed");
+    }
+  }
+
   return {
     async load() {
       loaded = false;
-      const database = await connection();
-      let snapshot: AppSnapshot;
-      try {
-        const tx = database.transaction(
-          ["meta", "profile", "templates", "documents", "projects", "leads"],
-          "readonly",
-        );
-        const [meta, profile, templates, documents, projects, leads] =
-          await Promise.all([
-            tx.objectStore("meta").get(META_KEY),
-            tx.objectStore("profile").get(PROFILE_KEY),
-            tx.objectStore("templates").getAll(),
-            tx.objectStore("documents").getAll(),
-            tx.objectStore("projects").getAll(),
-            tx.objectStore("leads").getAll(),
-          ]);
-        await tx.done;
-        if (meta !== undefined) {
-          const parsed = metaSchema.safeParse(meta);
-          if (!parsed.success) throw new StoreError("data-invalid");
-          if (parsed.data.schemaVersion > SCHEMA_VERSION) {
-            throw new StoreError("unsupported-version");
-          }
-        }
-        const templateRecords = parseAll<TemplateRecord>(
-          templateSchema,
-          templates,
-        );
-        snapshot = {
-          profile:
-            profile === undefined
-              ? undefined
-              : parseAll<Profile>(profileSchema, [profile])[0],
-          templates: Object.fromEntries(
-            templateRecords.map((record) => [record.kind, record]),
-          ),
-          documents: parseAll<DocumentRecord>(documentSchema, documents),
-          projects: parseAll<Project>(projectSchema, projects),
-          leads: parseAll<Lead>(leadSchema, leads),
-        };
-        knownRevision = meta?.revision ?? 0;
-      } catch (cause) {
-        loaded = false;
-        throw cause instanceof StoreError
-          ? cause
-          : new StoreError("read-failed");
-      }
+      const { snapshot, revision } = await readSnapshot();
+      knownRevision = revision;
       loaded = true;
       return snapshot;
     },
@@ -409,14 +415,97 @@ export function createIndexedDbStore(
       );
     },
 
-    async exportBackup() {
-      // Implemented with US5 (T054).
-      throw new StoreError("save-failed");
+    async exportBackup(readme) {
+      // Reads the stored state directly (no effect on conflict detection).
+      const { snapshot } = await readSnapshot();
+      return buildBackup(
+        snapshot,
+        (fileId) => this.readFile(fileId),
+        readme,
+        new Date().toISOString(),
+      );
     },
 
-    async importBackup() {
-      // Implemented with US5 (T054).
-      throw new StoreError("save-failed");
+    async importBackup(zip) {
+      // Everything is validated before the first write (contract rule 3).
+      const { snapshot, files } = await parseBackup(zip);
+      const database = await connection().catch((cause) => {
+        throw writeError(cause, "save-failed");
+      });
+      let revision = 0;
+      try {
+        const tx = database.transaction(
+          [
+            "meta",
+            "profile",
+            "templates",
+            "documents",
+            "projects",
+            "leads",
+            "files",
+          ],
+          "readwrite",
+        );
+        const done = tx.done;
+        done.catch(() => undefined);
+        try {
+          // A confirmed full replace: works from the recovery view too, so
+          // the old meta is only used to keep the revision increasing.
+          const old = metaSchema.safeParse(
+            await tx.objectStore("meta").get(META_KEY),
+          );
+          revision = (old.success ? old.data.revision : knownRevision) + 1;
+          for (const store of [
+            "profile",
+            "templates",
+            "documents",
+            "projects",
+            "leads",
+            "files",
+          ] as const) {
+            await tx.objectStore(store).clear();
+          }
+          if (snapshot.profile) {
+            await tx.objectStore("profile").put(snapshot.profile, PROFILE_KEY);
+          }
+          for (const record of Object.values(snapshot.templates)) {
+            if (record)
+              await tx.objectStore("templates").put(record, record.kind);
+          }
+          for (const record of snapshot.documents) {
+            await tx.objectStore("documents").put(record);
+          }
+          for (const record of snapshot.projects) {
+            await tx.objectStore("projects").put(record);
+          }
+          for (const record of snapshot.leads) {
+            await tx.objectStore("leads").put(record);
+          }
+          for (const [id, bytes] of files) {
+            await tx
+              .objectStore("files")
+              .put({ id, bytes: toArrayBuffer(bytes) });
+          }
+          await tx
+            .objectStore("meta")
+            .put({ schemaVersion: SCHEMA_VERSION, revision }, META_KEY);
+        } catch (cause) {
+          try {
+            tx.abort();
+          } catch {
+            // Already finished or aborted.
+          }
+          await done.catch(() => undefined);
+          throw cause;
+        }
+        await done;
+      } catch (cause) {
+        throw writeError(cause, "save-failed");
+      }
+      knownRevision = revision;
+      loaded = true;
+      channel?.postMessage({ revision: knownRevision });
+      return snapshot;
     },
 
     async resetAll() {
@@ -448,6 +537,15 @@ export function createIndexedDbStore(
         return (await storage.persist()) ? "granted" : "denied";
       } catch {
         return "denied";
+      }
+    },
+
+    async persistenceState() {
+      if (!storage?.persisted) return "unsupported";
+      try {
+        return (await storage.persisted()) ? "granted" : "denied";
+      } catch {
+        return "unsupported";
       }
     },
 

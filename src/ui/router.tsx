@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useState } from "react";
 
 // Hash routes (contracts/ui-routes.md). Route words are stable identifiers.
 
-export type SetupStep = "profil" | "vorlagen" | "lebenslauf";
+export type SetupStep = "profil" | "vorlagen" | "lebenslauf" | "nachweise";
 export type ProjectStep = "links" | "prompt" | "antwort" | "leads";
 export type LeadStep = "pruefen" | "anschreiben" | "freigabe" | "paket";
 
@@ -23,7 +23,12 @@ export type Route =
     }
   | { readonly name: "notFound" };
 
-const SETUP_STEPS: readonly SetupStep[] = ["profil", "vorlagen", "lebenslauf"];
+const SETUP_STEPS: readonly SetupStep[] = [
+  "profil",
+  "vorlagen",
+  "lebenslauf",
+  "nachweise",
+];
 const PROJECT_STEPS: readonly ProjectStep[] = [
   "links",
   "prompt",

@@ -289,6 +289,21 @@ ol.item-list {
   list-style: none;
   padding: 0;
 }
+.document-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.document-list > li {
+  border-top: 1px solid var(--line);
+  padding-block: 0.75rem;
+}
+.document-list > li:first-child {
+  border-top: 0;
+}
+.document-list h3 {
+  margin: 0;
+}
 .tag-list code {
   background: var(--accent-soft);
   padding: 0.1rem 0.4rem;
