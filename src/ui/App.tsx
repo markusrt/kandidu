@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { KandiduStore } from "../storage/port";
 import { BackupImport } from "./data/BackupImport";
 import { DataPage } from "./data/DataView";
+import { focusOnMount, useReturnFocus } from "./focus";
 import { Home } from "./Home";
 import { errorMessage, useMessages } from "./i18n";
 import { LeadView } from "./lead/LeadView";
@@ -151,6 +152,7 @@ function Recovery({ cause }: { cause: unknown }) {
   const m = useMessages();
   const { reload, reset, busy } = useApp();
   const [confirming, setConfirming] = useState(false);
+  const resetFocus = useReturnFocus(confirming);
   return (
     <section className="card" aria-labelledby="recovery-heading">
       <h1 id="recovery-heading">{m.recovery.heading}</h1>
@@ -165,6 +167,7 @@ function Recovery({ cause }: { cause: unknown }) {
             type="button"
             className="secondary"
             disabled={busy}
+            ref={resetFocus.opener}
             onClick={() => setConfirming(true)}
           >
             {m.recovery.resetStart}
@@ -191,7 +194,11 @@ function Recovery({ cause }: { cause: unknown }) {
               type="button"
               className="secondary"
               disabled={busy}
-              onClick={() => setConfirming(false)}
+              ref={focusOnMount}
+              onClick={() => {
+                resetFocus.returnFocus();
+                setConfirming(false);
+              }}
             >
               {m.common.cancel}
             </button>

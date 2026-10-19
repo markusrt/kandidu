@@ -20,6 +20,7 @@ import {
   undoLast,
 } from "../../domain/lifecycle";
 import { isHttpUrl } from "../../domain/profile";
+import { focusOnMount } from "../focus";
 import { errorMessage, type Messages, useMessages } from "../i18n";
 import { Link } from "../router";
 import { useApp } from "../state";
@@ -114,6 +115,23 @@ export function HistoryView({ lead }: { lead: Lead }) {
       focusAfterEdit.current = undefined;
     }
   }, [editing]);
+
+  // Cancelling a confirmation returns focus to the button that opened it,
+  // once that button is rendered again.
+  const undoButton = useRef<HTMLButtonElement>(null);
+  const returnToUndo = useRef(false);
+  useEffect(() => {
+    if (askUndo || !returnToUndo.current) return;
+    returnToUndo.current = false;
+    undoButton.current?.focus();
+  }, [askUndo]);
+  const deleteButtons = useRef(new Map<string, HTMLButtonElement>());
+  const returnToDelete = useRef<string>(undefined);
+  useEffect(() => {
+    if (deleting !== undefined || !returnToDelete.current) return;
+    deleteButtons.current.get(returnToDelete.current)?.focus();
+    returnToDelete.current = undefined;
+  }, [deleting]);
 
   function save(next: Lead, success: string) {
     return commit(
@@ -454,7 +472,11 @@ export function HistoryView({ lead }: { lead: Lead }) {
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() => setAskUndo(false)}
+                  ref={focusOnMount}
+                  onClick={() => {
+                    returnToUndo.current = true;
+                    setAskUndo(false);
+                  }}
                 >
                   {m.common.cancel}
                 </button>
@@ -465,6 +487,7 @@ export function HistoryView({ lead }: { lead: Lead }) {
               type="button"
               className="secondary"
               disabled={busy}
+              ref={undoButton}
               onClick={() => setAskUndo(true)}
             >
               {m.history.undo}
@@ -596,7 +619,11 @@ export function HistoryView({ lead }: { lead: Lead }) {
                         <button
                           type="button"
                           className="secondary"
-                          onClick={() => setDeleting(undefined)}
+                          ref={focusOnMount}
+                          onClick={() => {
+                            returnToDelete.current = comment.id;
+                            setDeleting(undefined);
+                          }}
                         >
                           {m.common.cancel}
                         </button>
@@ -625,6 +652,13 @@ export function HistoryView({ lead }: { lead: Lead }) {
                         className="secondary small"
                         disabled={busy || editing !== undefined}
                         aria-label={m.history.deleteLabel(n)}
+                        ref={(element) => {
+                          if (element) {
+                            deleteButtons.current.set(comment.id, element);
+                          } else {
+                            deleteButtons.current.delete(comment.id);
+                          }
+                        }}
                         onClick={() => setDeleting(comment.id)}
                       >
                         {m.common.delete}

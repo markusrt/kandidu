@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { findCvDocument } from "../../domain/documents";
 import { datedName, withExtension } from "../../domain/fileNames";
 import type { Lead, PackageDef, PackageItem } from "../../domain/lead";
@@ -42,6 +42,7 @@ export function PackageStep({ lead }: { lead: Lead }) {
     ),
   );
   const [definitions, setDefinitions] = useState(initial);
+  const addHeading = useRef<HTMLHeadingElement>(null);
   const [preset, setPreset] = useState<PackagePreset>("coverLetterAndCv");
   // Added, removed or renamed packages only persist on save or download.
   const dirty =
@@ -179,6 +180,8 @@ export function PackageStep({ lead }: { lead: Lead }) {
     const index = definitions.findIndex((d) => d.id === id);
     setDefinitions(definitions.filter((d) => d.id !== id));
     announce(m.package.packageRemoved(index + 1));
+    // The removed package's section is gone; the add section stays.
+    addHeading.current?.focus();
   }
 
   const update = (next: PackageDef) =>
@@ -234,7 +237,9 @@ export function PackageStep({ lead }: { lead: Lead }) {
         </section>
       ))}
       <section className="card" aria-labelledby="package-add">
-        <h2 id="package-add">{m.package.addPackageHeading}</h2>
+        <h2 id="package-add" ref={addHeading} tabIndex={-1}>
+          {m.package.addPackageHeading}
+        </h2>
         <p className="hint">{m.package.addPackageHint}</p>
         <div className="inline-form">
           <div className="field">

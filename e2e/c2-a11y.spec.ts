@@ -244,3 +244,129 @@ test("C3 a11y: the links block of the lead review, also with errors", async ({
   await expect(page.getByRole("alert")).toBeVisible();
   await expectNoSeriousViolations(page, "links block with errors");
 });
+
+/** Focus is on a real element, never left on <body> (T066). */
+async function expectFocusKept(page: Page, where: string) {
+  const tag = await page.evaluate(() => document.activeElement?.tagName);
+  expect(tag, `focus after ${where}`).not.toBe("BODY");
+}
+
+test("C3 keyboard: Verlauf, comments and every removal keep the focus", async ({
+  page,
+}) => {
+  await setupReleasedLead(page, { cvPages: 1, coverPages: 1 });
+  const leadUrl = page.url();
+
+  // Lifecycle and comments with the keyboard only.
+  await page
+    .getByRole("navigation", { name: "Schritte des Leads" })
+    .getByRole("link", { name: "Verlauf" })
+    .click();
+  await activate(page, page.getByRole("button", { name: "Versendet" }));
+  await expect(status(page)).toContainText("Status geändert: Versendet.");
+  await tabTo(page, page.getByLabel("Kommentar", { exact: true }));
+  await page.keyboard.type("Per Tastatur notiert");
+  await activate(
+    page,
+    page.getByRole("button", { name: "Kommentar hinzufügen" }),
+  );
+  await expect(status(page)).toContainText("Kommentar hinzugefügt.");
+
+  const deleteComment = page.getByRole("button", {
+    name: "Kommentar 1 löschen",
+  });
+  await activate(page, deleteComment);
+  await expect(page.getByRole("button", { name: "Abbrechen" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(deleteComment).toBeFocused();
+
+  const undo = page.getByRole("button", {
+    name: "Letzten Statuswechsel rückgängig machen",
+  });
+  await activate(page, undo);
+  await expect(page.getByRole("button", { name: "Abbrechen" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(undo).toBeFocused();
+  await page.keyboard.press("Enter");
+  await activate(
+    page,
+    page.getByRole("button", { name: "Ja, rückgängig machen" }),
+  );
+  await expect(status(page)).toContainText("Statuswechsel rückgängig gemacht.");
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Verlauf", exact: true }),
+  ).toBeFocused();
+  await expectNoSeriousViolations(page, "Verlauf after keyboard use");
+
+  // "Zurück in den Review": cancel returns to the opener.
+  await page.goto(leadUrl.replace(/\/[a-z]+$/, "/freigabe"));
+  const back = page.getByRole("button", { name: "Zurück in den Review …" });
+  await back.click();
+  await expect(page.getByRole("button", { name: "Abbrechen" })).toBeFocused();
+  await page.getByRole("button", { name: "Abbrechen" }).click();
+  await expect(back).toBeFocused();
+
+  // Package: removing an item and a whole package.
+  await page.goto(leadUrl.replace(/\/[a-z]+$/, "/paket"));
+  await page
+    .getByRole("button", { name: "Lebenslauf-PDF aus dem Paket entfernen" })
+    .click();
+  await expect(page.getByLabel("PDF auswählen")).toBeFocused();
+  await page.getByRole("button", { name: "Paket-PDF hinzufügen" }).click();
+  await page.getByRole("button", { name: "Paket-PDF 2 entfernen" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Weiteres Paket-PDF" }),
+  ).toBeFocused();
+
+  // Links: removing a link.
+  await page.goto(leadUrl.replace(/\/leads\/.*$/, "/links"));
+  await page
+    .getByLabel("Link zur Stellenanzeige")
+    .fill("https://example.org/stellen/zweite");
+  await page.getByRole("button", { name: "Link hinzufügen" }).click();
+  await page
+    .getByRole("button", {
+      name: "Link entfernen: https://example.org/stellen/zweite",
+    })
+    .click();
+  await expect(status(page)).toContainText("Link entfernt.");
+  await expect(page.getByLabel("Link zur Stellenanzeige")).toBeFocused();
+
+  // Evidence upload form: removing a chosen tag.
+  await page.goto("/#/einrichtung/nachweise");
+  const tagInput = page.getByRole("textbox", {
+    name: "Tag hinzufügen",
+    exact: true,
+  });
+  await tagInput.fill("zeugnis");
+  await tagInput.press("Enter");
+  await page.getByRole("button", { name: "Tag entfernen: zeugnis" }).click();
+  await expect(tagInput).toBeFocused();
+
+  // Data page: reset and backup import confirmations.
+  await page.goto("/#/daten");
+  const reset = page.getByRole("button", {
+    name: "Kandidu-Daten zurücksetzen …",
+  });
+  await reset.click();
+  await expect(page.getByRole("button", { name: "Abbrechen" })).toBeFocused();
+  await page.getByRole("button", { name: "Abbrechen" }).click();
+  await expect(reset).toBeFocused();
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "Sicherung herunterladen" }).click(),
+  ]);
+  const picker = page.getByLabel("Sicherungs-ZIP auswählen");
+  await picker.setInputFiles({
+    name: "sicherung.zip",
+    mimeType: "application/zip",
+    buffer: Buffer.from(await downloadBytes(download)),
+  });
+  await expect(
+    page.getByRole("button", { name: "Ja, aktuellen Stand ersetzen" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Abbrechen" }).click();
+  await expect(picker).toBeFocused();
+  await expectFocusKept(page, "backup cancel");
+});

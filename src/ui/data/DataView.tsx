@@ -3,6 +3,7 @@ import { datedName } from "../../domain/fileNames";
 import { ZIP_MIME } from "../../files/mime";
 import type { PersistenceResult } from "../../storage/port";
 import { downloadBytes } from "../download";
+import { focusOnMount, useReturnFocus } from "../focus";
 import { useMessages } from "../i18n";
 import { useStorageLevel } from "../StorageWarning";
 import { useApp, useSnapshot, useTask } from "../state";
@@ -29,6 +30,7 @@ export function DataPage() {
   const [requested, setRequested] = useState<PersistenceResult>();
   const [requesting, setRequesting] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const resetFocus = useReturnFocus(confirmingReset);
 
   useEffect(() => {
     let active = true;
@@ -159,7 +161,11 @@ export function DataPage() {
                 type="button"
                 className="secondary"
                 disabled={busy}
-                onClick={() => setConfirmingReset(false)}
+                ref={focusOnMount}
+                onClick={() => {
+                  resetFocus.returnFocus();
+                  setConfirmingReset(false);
+                }}
               >
                 {m.common.cancel}
               </button>
@@ -171,6 +177,7 @@ export function DataPage() {
               type="button"
               className="secondary"
               disabled={busy}
+              ref={resetFocus.opener}
               onClick={() => setConfirmingReset(true)}
             >
               {m.recovery.resetStart}

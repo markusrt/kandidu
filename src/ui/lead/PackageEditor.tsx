@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { DocumentRecord } from "../../domain/documents";
 import type { PackageDef, PackageItem } from "../../domain/lead";
 import { addItem, itemKey, moveItem, removeItem } from "../../domain/packages";
@@ -38,6 +38,17 @@ export function PackageEditor({
   const addId = useId();
   const [tag, setTag] = useState("");
   const [choice, setChoice] = useState("");
+  // A removed item's button is gone; focus moves to where it can be added
+  // back (or to the add group when the filter hides it).
+  const focusAfterRemove = useRef(false);
+  const addSelect = useRef<HTMLSelectElement>(null);
+  const addGroup = useRef<HTMLFieldSetElement>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs after a removal re-rendered the items
+  useEffect(() => {
+    if (!focusAfterRemove.current) return;
+    focusAfterRemove.current = false;
+    (addSelect.current ?? addGroup.current)?.focus();
+  }, [definition.items]);
 
   const evidence = documents.filter((d) => d.role === "evidence");
   const present = new Set(definition.items.map(itemKey));
@@ -115,7 +126,10 @@ export function PackageEditor({
                   className="secondary small"
                   aria-label={m.package.removeItem(text)}
                   disabled={disabled || definition.items.length <= 1}
-                  onClick={() => onChange(removeItem(definition, index))}
+                  onClick={() => {
+                    focusAfterRemove.current = true;
+                    onChange(removeItem(definition, index));
+                  }}
                 >
                   ✕
                 </button>
@@ -127,7 +141,7 @@ export function PackageEditor({
       {definition.items.length <= 1 && (
         <p className="hint">{m.package.lastItemHint}</p>
       )}
-      <fieldset className="field-group">
+      <fieldset className="field-group" ref={addGroup} tabIndex={-1}>
         <legend className="group-label">{m.package.addHeading}</legend>
         {evidence.length === 0 ? (
           <p className="hint">
@@ -164,6 +178,7 @@ export function PackageEditor({
               <label htmlFor={addId}>{m.package.addLabel}</label>
               <select
                 id={addId}
+                ref={addSelect}
                 value={selected ? itemKey(selected) : ""}
                 onChange={(event) => setChoice(event.target.value)}
               >

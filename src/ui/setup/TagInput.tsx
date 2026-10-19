@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
   normalizeTag,
   normalizeTags,
@@ -36,6 +36,7 @@ export function TagInput({
 }) {
   const m = useMessages();
   const id = useId();
+  const input = useRef<HTMLInputElement>(null);
   const [text, setTextState] = useState("");
   const [error, setError] = useState<string>();
   const suggestions = suggestTags(text, inUse, value);
@@ -74,7 +75,11 @@ export function TagInput({
                 className="secondary"
                 disabled={disabled}
                 aria-label={m.evidence.removeTag(tag)}
-                onClick={() => onChange(value.filter((t) => t !== tag))}
+                onClick={() => {
+                  onChange(value.filter((t) => t !== tag));
+                  // The button is gone with its tag; stay in the field.
+                  input.current?.focus();
+                }}
               >
                 ×
               </button>
@@ -85,6 +90,7 @@ export function TagInput({
       <label htmlFor={id}>{m.evidence.tagInputLabel}</label>
       <input
         id={id}
+        ref={input}
         value={text}
         maxLength={TAG_MAX}
         disabled={disabled}

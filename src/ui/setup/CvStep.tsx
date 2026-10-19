@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type DocumentRecord, findCvDocument } from "../../domain/documents";
 import { datedName } from "../../domain/fileNames";
 import { buildCvData, missingValues } from "../../domain/letterData";
@@ -14,6 +14,7 @@ import {
   loadPdf,
   readPicked,
 } from "../files";
+import { focusOnMount, useReturnFocus } from "../focus";
 import { letterFormatter, useMessages } from "../i18n";
 import { Link } from "../router";
 import { useApp, useSnapshot, useTask } from "../state";
@@ -26,6 +27,8 @@ export function CvStep() {
   const { running, run } = useTask();
   const [missing, setMissing] = useState<readonly string[]>([]);
   const [askDelete, setAskDelete] = useState(false);
+  const deleteFocus = useReturnFocus(askDelete);
+  const uploadInput = useRef<HTMLInputElement>(null);
   const cv = findCvDocument(snapshot.documents);
   const { profile } = snapshot;
 
@@ -107,7 +110,11 @@ export function CvStep() {
       (s) => ({ ...s, documents: s.documents.filter((d) => d.id !== id) }),
       m.cv.deleted,
     );
-    if (done) setAskDelete(false);
+    if (done) {
+      setAskDelete(false);
+      // Nothing to delete any more; the next step is a new upload.
+      uploadInput.current?.focus();
+    }
   }
 
   // Only empty required data needs a deliberate "anyway" (FR-025).
@@ -192,7 +199,11 @@ export function CvStep() {
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() => setAskDelete(false)}
+                  ref={focusOnMount}
+                  onClick={() => {
+                    deleteFocus.returnFocus();
+                    setAskDelete(false);
+                  }}
                 >
                   {m.common.cancel}
                 </button>
@@ -204,6 +215,7 @@ export function CvStep() {
                 type="button"
                 className="secondary"
                 disabled={busy || running}
+                ref={deleteFocus.opener}
                 onClick={() => setAskDelete(true)}
               >
                 {m.cv.deleteStart}
@@ -216,6 +228,7 @@ export function CvStep() {
           hint={m.fileLimits.pdf}
           accept=".pdf,application/pdf"
           disabled={busy || running}
+          inputRef={uploadInput}
           onFile={(file) => void upload(file)}
         />
       </section>

@@ -5,6 +5,7 @@ import { backToReview, confirmGate, gateMissing } from "../../domain/lifecycle";
 import { MAX_PDF_BYTES } from "../../files/errors";
 import { FileField } from "../FileField";
 import { loadPdf, readPicked } from "../files";
+import { focusOnMount, useReturnFocus } from "../focus";
 import { errorMessage, useMessages } from "../i18n";
 import { Link } from "../router";
 import { useApp, useSnapshot, useTask } from "../state";
@@ -24,6 +25,7 @@ export function GateStep({ lead }: { lead: Lead }) {
   const [missing, setMissing] = useState<readonly string[]>([]);
   const errorId = useId();
   const [askBack, setAskBack] = useState(false);
+  const backFocus = useReturnFocus(askBack);
   const checkId = useId();
   const cv = findCvDocument(snapshot.documents);
   const toPackage = {
@@ -139,7 +141,11 @@ export function GateStep({ lead }: { lead: Lead }) {
                   <button
                     type="button"
                     className="secondary"
-                    onClick={() => setAskBack(false)}
+                    ref={focusOnMount}
+                    onClick={() => {
+                      backFocus.returnFocus();
+                      setAskBack(false);
+                    }}
                   >
                     {m.common.cancel}
                   </button>
@@ -150,6 +156,7 @@ export function GateStep({ lead }: { lead: Lead }) {
                 type="button"
                 className="secondary"
                 disabled={busy}
+                ref={backFocus.opener}
                 onClick={() => setAskBack(true)}
               >
                 {m.gate.backToReview}

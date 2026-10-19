@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { type Ref, useId } from "react";
 import { StorageWarning } from "./StorageWarning";
 
 /** Labeled file picker; resets after each pick so the same file can be chosen again. */
@@ -8,8 +8,11 @@ export function FileField({
   accept,
   disabled,
   storageWarning = true,
+  inputRef,
   onFile,
 }: {
+  /** Lets the caller return focus to the picker, e.g. after a cancel. */
+  inputRef?: Ref<HTMLInputElement>;
   label: string;
   hint: string;
   accept: string;
@@ -25,6 +28,7 @@ export function FileField({
       <label htmlFor={id}>{label}</label>
       <input
         id={id}
+        ref={inputRef}
         type="file"
         accept={accept}
         disabled={disabled}

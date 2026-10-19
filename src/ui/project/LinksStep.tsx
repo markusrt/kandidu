@@ -38,6 +38,7 @@ export function LinksStep({ project }: { project: Project }) {
   const editId = useId();
   const contextId = useId();
   const editInput = useRef<HTMLInputElement>(null);
+  const urlInput = useRef<HTMLInputElement>(null);
   const editButtons = useRef(new Map<string, HTMLButtonElement>());
   const focusAfterEdit = useRef<string>(undefined);
 
@@ -299,12 +300,14 @@ export function LinksStep({ project }: { project: Project }) {
                       className="secondary small"
                       disabled={busy || editing !== undefined}
                       aria-label={m.project.removeLink(link.url)}
-                      onClick={() =>
-                        void save(
+                      onClick={async () => {
+                        const ok = await save(
                           removeLink(project, link.id, nowIso()),
                           m.project.linkRemoved,
-                        )
-                      }
+                        );
+                        // The removed link's buttons are gone.
+                        if (ok) urlInput.current?.focus();
+                      }}
                     >
                       {m.project.remove}
                     </button>
@@ -325,6 +328,7 @@ export function LinksStep({ project }: { project: Project }) {
             <label htmlFor={urlId}>{m.project.linkLabel}</label>
             <input
               id={urlId}
+              ref={urlInput}
               type="url"
               inputMode="url"
               value={url}
