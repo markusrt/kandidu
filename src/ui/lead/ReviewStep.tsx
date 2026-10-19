@@ -19,7 +19,12 @@ import { useApp, useSnapshot } from "../state";
 import { nowIso } from "../time";
 import { useUnsavedGuard } from "../unsaved";
 import { LeadLinks } from "./LeadLinks";
-import { draftFromForm, formFromLead, type LeadForm } from "./leadForm";
+import {
+  draftFromForm,
+  formFromLead,
+  formSignature,
+  type LeadForm,
+} from "./leadForm";
 
 type TextKey = {
   [K in keyof LeadForm]: LeadForm[K] extends string ? K : never;
@@ -36,7 +41,7 @@ export function ReviewStep({ lead }: { lead: Lead }) {
   const locked = lead.status !== "review";
   const invalidId = `${idBase}-invalid`;
   const dirty =
-    !locked && JSON.stringify(form) !== JSON.stringify(formFromLead(lead));
+    !locked && formSignature(form) !== formSignature(formFromLead(lead));
   useUnsavedGuard(dirty, m.common.unsavedConfirm);
 
   function set<K extends keyof LeadForm>(key: K, value: LeadForm[K]) {
@@ -141,7 +146,7 @@ export function ReviewStep({ lead }: { lead: Lead }) {
       }
       throw cause;
     }
-    await commit(
+    const ok = await commit(
       (store) => store.saveLeads([next]),
       (s) => ({
         ...s,
@@ -149,6 +154,8 @@ export function ReviewStep({ lead }: { lead: Lead }) {
       }),
       m.common.saved,
     );
+    // Show what was stored: empty source rows disappear, values are trimmed.
+    if (ok) setForm(formFromLead(next));
   }
 
   const paragraphs = splitParagraphs(form.motivation).length;

@@ -25,11 +25,15 @@ export async function uploadCvPdf(page: Page, file: UploadFile): Promise<void> {
   );
 }
 
+/** The entered link of the `valid-original-sources` fixture (a job portal). */
+export const PORTAL_LINK = "https://jobs.example.net/viewjob?jk=abc123";
+
 /** Creates a project with one link, copies the prompt, pastes a fixture answer. */
 export async function createProjectWithLeads(
   page: Page,
   fixture: string,
   title = "Ausbildung zum Industriekaufmann",
+  link = "https://example.org/stellen/123",
 ): Promise<void> {
   await openHome(page);
   await page.getByLabel("Titel des Projekts").fill(title);
@@ -37,9 +41,7 @@ export async function createProjectWithLeads(
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Links zu Stellenausschreibungen",
   );
-  await page
-    .getByLabel("Link zur Stellenanzeige")
-    .fill("https://example.org/stellen/123");
+  await page.getByLabel("Link zur Stellenanzeige").fill(link);
   await page.getByRole("button", { name: "Link hinzufügen" }).click();
   await page.getByRole("link", { name: "Weiter zum Prompt" }).click();
   await copyPrompt(page);

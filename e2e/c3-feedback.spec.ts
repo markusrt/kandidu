@@ -15,6 +15,7 @@ import {
   gotoLeadStep,
   gotoProjectStep,
   openLead,
+  PORTAL_LINK,
   releaseLead,
   uploadCvPdf,
 } from "./flows";
@@ -106,10 +107,30 @@ const INVALID_URL_MESSAGE =
   "Bitte gib einen vollständigen Link ein, der mit https:// oder http:// beginnt.";
 
 async function openSourcesLead(page: Page): Promise<void> {
-  await createProjectWithLeads(page, "valid-original-sources");
+  await createProjectWithLeads(
+    page,
+    "valid-original-sources",
+    undefined,
+    PORTAL_LINK,
+  );
   await openLead(page, "Beispiel GmbH");
   await gotoLeadStep(page, "Prüfen");
 }
+
+test("C3 feedback: the project's only link is the entered link; the LLM's other link stays a source (FR-051)", async ({
+  page,
+}) => {
+  // The project link differs from the one the LLM answered with.
+  await createProjectWithLeads(page, "valid-original-sources");
+  await openLead(page, "Beispiel GmbH");
+  const links = page.getByRole("group", { name: "Links", exact: true });
+  await expect(
+    links.getByLabel("Eingegebener Link zur Anzeige", { exact: true }),
+  ).toHaveValue("https://example.org/stellen/123");
+  await expect(
+    links.getByLabel("Link der Quelle 4", { exact: true }),
+  ).toHaveValue(PORTAL_LINK);
+});
 
 test("C3 feedback: the prompt carries the original-posting and source rules (R2, R3)", async ({
   page,
@@ -208,9 +229,12 @@ test("C3 feedback: links can be edited, extended and removed, and survive a relo
   await expect(
     links.getByLabel("Link der Quelle 4", { exact: true }),
   ).toHaveCount(0);
+  await expect(page.getByText("Ungespeicherte Änderungen")).toBeVisible();
 
   await page.getByRole("button", { name: "Lead speichern" }).click();
   await expect(page.getByRole("status")).toContainText("Gespeichert.");
+  // After saving nothing is pending, also with added and removed rows.
+  await expect(page.getByText("Ungespeicherte Änderungen")).toHaveCount(0);
 
   await page.reload();
   await gotoLeadStep(page, "Prüfen");
@@ -266,7 +290,12 @@ test("C3 feedback: a released lead shows its links read-only (R1)", async ({
 }) => {
   await fillProfile(page, PROFILE);
   await uploadCvPdf(page, await pdfFile("Lebenslauf.pdf", 1, { width: 600 }));
-  await createProjectWithLeads(page, "valid-original-sources");
+  await createProjectWithLeads(
+    page,
+    "valid-original-sources",
+    undefined,
+    PORTAL_LINK,
+  );
   await openLead(page, "Beispiel GmbH");
   await releaseLead(page, await pdfFile("Anschreiben.pdf", 1, { width: 500 }));
   await gotoLeadStep(page, "Prüfen");

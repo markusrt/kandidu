@@ -43,14 +43,16 @@ function InterviewDetail({
       {interview.mode === "onsite"
         ? m.history.interviewDetail.onsite(interview.location ?? "")
         : m.history.interviewDetail.online}
-      {interview.mode === "online" && interview.link && (
-        <>
-          {" "}
-          <a href={interview.link} target="_blank" rel="noopener noreferrer">
-            {m.history.interviewDetail.openLink}
-          </a>
-        </>
-      )}
+      {interview.mode === "online" &&
+        interview.link &&
+        isHttpUrl(interview.link) && (
+          <>
+            {" "}
+            <a href={interview.link} target="_blank" rel="noopener noreferrer">
+              {m.history.interviewDetail.openLink}
+            </a>
+          </>
+        )}
     </>
   );
 }
@@ -88,6 +90,7 @@ export function HistoryView({ lead }: { lead: Lead }) {
   // Undo
   const [askUndo, setAskUndo] = useState(false);
   const listHeading = useRef<HTMLHeadingElement>(null);
+  const currentHeading = useRef<HTMLHeadingElement>(null);
 
   // Comments
   const [newDate, setNewDate] = useState(todayIso());
@@ -163,7 +166,10 @@ export function HistoryView({ lead }: { lead: Lead }) {
       setDateError(errorMessage(cause, m));
       return;
     }
-    await save(next, m.history.changed(status(target)));
+    // The clicked button may no longer be offered in the new status.
+    if (await save(next, m.history.changed(status(target)))) {
+      currentHeading.current?.focus();
+    }
   }
 
   async function addInterview() {
@@ -199,6 +205,7 @@ export function HistoryView({ lead }: { lead: Lead }) {
       return;
     }
     if (await save(next, m.history.changed(status("interview")))) {
+      currentHeading.current?.focus();
       setDateTime("");
       setLocation("");
       setLink("");
@@ -299,7 +306,9 @@ export function HistoryView({ lead }: { lead: Lead }) {
       <h1>{m.history.heading}</h1>
 
       <section className="card" aria-labelledby="history-current">
-        <h2 id="history-current">{m.history.currentHeading}</h2>
+        <h2 id="history-current" ref={currentHeading} tabIndex={-1}>
+          {m.history.currentHeading}
+        </h2>
         <p>{m.history.current(status(lead.status))}</p>
         {upcoming && (
           <p>
@@ -451,7 +460,7 @@ export function HistoryView({ lead }: { lead: Lead }) {
         )}
         {undoEntry &&
           (askUndo ? (
-            <div className="confirm">
+            <div className="confirm" role="alert">
               <p>
                 {(undoEntry.status === "ready"
                   ? m.history.undoPromptReady
@@ -605,7 +614,7 @@ export function HistoryView({ lead }: { lead: Lead }) {
                   </p>
                   <p className="comment-text">{comment.text}</p>
                   {deleting === comment.id ? (
-                    <div className="confirm">
+                    <div className="confirm" role="alert">
                       <p>{m.history.deletePrompt}</p>
                       <div className="actions">
                         <button

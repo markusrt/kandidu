@@ -84,8 +84,8 @@ describe("createLeadsFromDrafts", () => {
     ).toBe("lead-invalid");
   });
 
-  it("uses the only project link when the LLM gave none (FR-051)", () => {
-    const create = (links: string[], extra: Partial<LeadDraft> = {}) =>
+  it("uses the only project link as the entered link (FR-051)", () => {
+    const lead = (links: string[], extra: Partial<LeadDraft> = {}) =>
       createLeadsFromDrafts(
         [{ ...draft(), ...extra }],
         "p",
@@ -93,13 +93,40 @@ describe("createLeadsFromDrafts", () => {
         "r",
         () => "x",
         NOW,
-      )[0]?.sourceUrl;
+      )[0];
     const only = "https://example.org/stellen/1";
-    expect(create([only])).toBe(only);
-    expect(create([only, "https://example.org/stellen/2"])).toBeUndefined();
-    expect(create([])).toBeUndefined();
-    expect(create([only], { sourceUrl: "https://example.org/anders" })).toBe(
-      "https://example.org/anders",
+    const other = "https://example.org/anders";
+    expect(lead([only])?.sourceUrl).toBe(only);
+    expect(lead([only])?.sources).toBeUndefined();
+    expect(lead([only], { sourceUrl: only })?.sources).toBeUndefined();
+    // Several links: Kandidu cannot tell, so the LLM's value stays.
+    expect(
+      lead([only, "https://example.org/stellen/2"])?.sourceUrl,
+    ).toBeUndefined();
+    expect(
+      lead([only, "https://example.org/stellen/2"], { sourceUrl: other })
+        ?.sourceUrl,
+    ).toBe(other);
+    expect(lead([])?.sourceUrl).toBeUndefined();
+    // One link and a different LLM value: the entered link wins, the other
+    // link is kept as a source (every link is stored, R2).
+    const replaced = lead([only], {
+      sourceUrl: other,
+      sources: [{ title: "Impressum", url: "https://example.org/i" }],
+    });
+    expect(replaced?.sourceUrl).toBe(only);
+    expect(replaced?.sources).toEqual([
+      { title: "Impressum", url: "https://example.org/i" },
+      { url: other },
+    ]);
+    expect(
+      lead([only], { sourceUrl: other, sources: [{ url: other }] })?.sources,
+    ).toEqual([{ url: other }]);
+    const full = Array.from({ length: 20 }, (_, i) => ({
+      url: `https://example.org/q/${i}`,
+    }));
+    expect(lead([only], { sourceUrl: other, sources: full })?.sources).toEqual(
+      full,
     );
   });
 

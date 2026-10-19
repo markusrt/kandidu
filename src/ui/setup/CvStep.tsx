@@ -185,7 +185,7 @@ export function CvStep() {
         </p>
         {cv &&
           (askDelete ? (
-            <div className="confirm">
+            <div className="confirm" role="alert">
               <p>{m.cv.deletePrompt(released)}</p>
               <div className="actions">
                 <button

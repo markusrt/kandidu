@@ -102,6 +102,19 @@ export function formFromLead(lead: Lead): LeadForm {
   };
 }
 
+/**
+ * What would be saved: the draft plus the lead-only values, normalized.
+ * Comparing this (not the raw form with its row keys and empty rows) tells
+ * whether there are unsaved changes.
+ */
+export function formSignature(form: LeadForm): string {
+  return JSON.stringify({
+    draft: draftFromForm(form),
+    salutationOverride: form.salutationOverride.trim(),
+    letterPosition: form.letterPosition.trim(),
+  });
+}
+
 /** Adds `key` only when the trimmed value is not empty (exactOptionalPropertyTypes). */
 function present<K extends string>(key: K, value: string) {
   const text = value.trim();
