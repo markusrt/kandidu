@@ -13,7 +13,9 @@ import {
 // specs/001-bewerbungs-mvp/data-model.md; parsed values are cast to domain
 // types only after validation succeeded.
 
-export const SCHEMA_VERSION = 1;
+// 2 since C3: optional `Project.position`, `Lead.letterPosition`,
+// `Lead.originalPostingUrl` and `Lead.sources` (data-model.md "Migrations").
+export const SCHEMA_VERSION = 2;
 
 const id = z.string().min(1).max(100);
 const timestamp = z.string().min(1).max(40);
@@ -80,8 +82,23 @@ const address = z.strictObject({
   country: optionalShort,
 });
 
+const leadSource = z.strictObject({
+  title: z.string().max(LEAD_LIMITS.sourceTitle).optional(),
+  url,
+});
+
+const position = z.string().min(1).max(LEAD_LIMITS.letterPosition);
+
 const leadDraftShape = {
   sourceUrl: url.optional(),
+  originalPostingUrl: url.optional(),
+  sources: z
+    .array(leadSource)
+    .max(LEAD_LIMITS.sources)
+    .refine(
+      (items) => new Set(items.map((item) => item.url)).size === items.length,
+    )
+    .optional(),
   position: z.strictObject({
     title: z.string().min(1).max(LEAD_LIMITS.positionTitle),
     referenceNumber: optionalShort,
@@ -168,6 +185,7 @@ export const leadSchema = z.strictObject({
   responseId: id,
   responseIndex: z.number().int().nonnegative(),
   salutationOverride: z.string().max(LEAD_LIMITS.salutation).optional(),
+  letterPosition: position.optional(),
   coverLetterPdf: fileRef.optional(),
   status,
   history: z.array(statusEntry).min(1).refine(uniqueIds),
@@ -197,6 +215,7 @@ export const projectSchema = z.strictObject({
   title: z.string().min(1).max(PROJECT_TITLE_MAX),
   links: z.array(z.strictObject({ id, url })).max(LINKS_MAX).refine(uniqueIds),
   promptContext: z.string().max(PROMPT_CONTEXT_MAX),
+  position: position.optional(),
   promptState: z.enum(["draft", "copied", "answered"]),
   promptCopiedAt: timestamp.optional(),
   promptCopiedFingerprint: z.string().max(200).optional(),

@@ -435,3 +435,182 @@ describe("IndexedDB store", () => {
     expect(asked).toBe(0);
   });
 });
+
+// FR-053: data stored by C1/C2 (database and schema version 1).
+describe("IndexedDB migration 1 → 2", () => {
+  const v1Records = {
+    meta: { schemaVersion: 1, revision: 7 },
+    profile: sampleProfile(),
+    project: sampleProject(),
+    lead: sampleLead(),
+    document: cvDocument("cv", "f-cv"),
+  };
+
+  /** Creates the version 1 layout exactly as the C1/C2 code did. */
+  async function seedV1(records: Partial<typeof v1Records> = v1Records) {
+    const db = await openDB(DB_NAME, 1, {
+      upgrade(raw) {
+        raw.createObjectStore("meta");
+        raw.createObjectStore("profile");
+        raw.createObjectStore("templates");
+        raw.createObjectStore("documents", { keyPath: "id" });
+        raw.createObjectStore("projects", { keyPath: "id" });
+        const leads = raw.createObjectStore("leads", { keyPath: "id" });
+        leads.createIndex("projectId", "projectId");
+        raw.createObjectStore("files", { keyPath: "id" });
+      },
+    });
+    const put = (name: string, value: unknown, key?: string) =>
+      db.put(name as never, value as never, key as never);
+    if (records.meta) await put("meta", records.meta, "meta");
+    if (records.profile) await put("profile", records.profile, "profile");
+    if (records.project) await put("projects", records.project);
+    if (records.lead) await put("leads", records.lead);
+    if (records.document) {
+      await put("documents", records.document);
+      await put("files", { id: "f-cv", bytes: bytes(1, 2, 3).buffer });
+    }
+    db.close();
+  }
+
+  async function rawState() {
+    const db = await openDB(DB_NAME);
+    const state = {
+      version: db.version,
+      meta: await db.get("meta" as never, "meta" as never),
+      leads: await db.getAll("leads" as never),
+      projects: await db.getAll("projects" as never),
+    };
+    db.close();
+    return state;
+  }
+
+  it("opens v1 data unchanged and records schema version 2", async () => {
+    await seedV1();
+    const snapshot = await store().load();
+    expect(snapshot.profile).toEqual(v1Records.profile);
+    expect(snapshot.projects).toEqual([v1Records.project]);
+    expect(snapshot.leads).toEqual([v1Records.lead]);
+    expect(snapshot.documents).toEqual([v1Records.document]);
+    const raw = await rawState();
+    expect(raw.version).toBe(2);
+    expect(raw.meta).toEqual({ schemaVersion: 2, revision: 8 });
+    expect(raw.projects).toEqual([v1Records.project]);
+    expect(raw.leads).toEqual([v1Records.lead]);
+  });
+
+  it("keeps working after the upgrade, with the new fields", async () => {
+    await seedV1();
+    const s = store();
+    await s.load();
+    await s.saveProject({
+      ...v1Records.project,
+      position: "Industriekaufmann",
+    });
+    await s.saveLeads([
+      {
+        ...v1Records.lead,
+        letterPosition: "Kaufmann für Büromanagement",
+        originalPostingUrl: "https://karriere.example.org/stelle/1",
+        sources: [{ title: "Impressum", url: "https://example.org/impressum" }],
+      },
+    ]);
+    const again = await store().load();
+    expect(again.projects[0]?.position).toBe("Industriekaufmann");
+    expect(again.leads[0]?.sources).toHaveLength(1);
+    expect((await rawState()).meta).toEqual({ schemaVersion: 2, revision: 10 });
+  });
+
+  it("upgrades an empty v1 database", async () => {
+    await seedV1({});
+    expect((await store().load()).projects).toEqual([]);
+    const raw = await rawState();
+    expect(raw.version).toBe(2);
+    expect(raw.meta).toBeUndefined();
+  });
+
+  it("reports a damaged v1 record and rewrites no record", async () => {
+    const broken = { id: "broken", title: 42 };
+    await seedV1({ ...v1Records, project: broken as never });
+    const s = store();
+    await expectCode(s.load(), "data-invalid");
+    await expectCode(s.saveProfile(sampleProfile()), "store-blocked");
+    expect((await rawState()).projects).toEqual([broken]);
+  });
+
+  it("leaves version 1 untouched when the upgrade fails", async () => {
+    await seedV1();
+    const proto = globalThis.IDBObjectStore.prototype;
+    const original = proto.put;
+    proto.put = () => {
+      throw new DOMException("full", "QuotaExceededError");
+    };
+    try {
+      await expectCode(store().load(), "read-failed");
+    } finally {
+      proto.put = original;
+    }
+    const raw = await rawState();
+    expect(raw.version).toBe(1);
+    expect(raw.meta).toEqual(v1Records.meta);
+    // The next start migrates normally.
+    expect((await store().load()).leads).toEqual([v1Records.lead]);
+    expect((await rawState()).version).toBe(2);
+  });
+
+  it("tells a tab of the old version to reload after the upgrade", async () => {
+    await seedV1();
+    const oldTab = new BroadcastChannel("kandidu-test-migration");
+    const newTab = new BroadcastChannel("kandidu-test-migration");
+    try {
+      const heard = new Promise<unknown>((resolve) => {
+        oldTab.addEventListener("message", (event) => resolve(event.data), {
+          once: true,
+        });
+      });
+      await createIndexedDbStore({ channel: () => newTab }).load();
+      expect(await heard).toEqual({ migrated: 2 });
+    } finally {
+      oldTab.close();
+      newTab.close();
+    }
+  });
+
+  it("does not announce opening a database that needs no upgrade", async () => {
+    await store().load();
+    const listener = new BroadcastChannel("kandidu-test-no-migration");
+    const sender = new BroadcastChannel("kandidu-test-no-migration");
+    try {
+      let seen = 0;
+      listener.addEventListener("message", () => {
+        seen += 1;
+      });
+      await createIndexedDbStore({ channel: () => sender }).load();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      expect(seen).toBe(0);
+    } finally {
+      listener.close();
+      sender.close();
+    }
+  });
+
+  it("refuses a database upgraded by a newer Kandidu version", async () => {
+    const future = await openDB(DB_NAME, 3, {
+      upgrade(raw) {
+        raw.createObjectStore("meta");
+      },
+    });
+    future.close();
+    await expectCode(store().load(), "unsupported-version");
+  });
+
+  it("opens the current layout through openKandiduDb without migrating", async () => {
+    let migratedFrom: number | undefined;
+    const db = await openKandiduDb(DB_NAME, (from) => {
+      migratedFrom = from;
+    });
+    expect(db.version).toBe(2);
+    db.close();
+    expect(migratedFrom).toBeUndefined();
+  });
+});

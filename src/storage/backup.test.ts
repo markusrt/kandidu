@@ -1,11 +1,12 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
+import { openDB } from "idb";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { DocumentRecord, TemplateRecord } from "../domain/documents";
 import { sampleLead, sampleProfile, sampleProject } from "../domain/testing";
 import { unzipFiles, zipFiles } from "../files/zip";
 import { BACKUP_JSON, BACKUP_README, parseBackup } from "./backup";
-import { createIndexedDbStore } from "./indexeddb";
+import { createIndexedDbStore, DB_NAME } from "./indexeddb";
 import { StoreError, type StoreErrorCode } from "./port";
 
 const README = "Diese Datei enthält persönliche Daten.";
@@ -259,5 +260,101 @@ describe("backup", () => {
     // tabB is stale; exporting must not hide that.
     await tabB.exportBackup(README);
     await expectCode(tabB.saveProject(sampleProject()), "conflict");
+  });
+});
+
+// FR-054: backups written by C1/C2 (schema version 1) stay importable.
+describe("backup versions", () => {
+  const v1Json = Object.values(
+    import.meta.glob("./fixtures/backup-v1.json", {
+      query: "?raw",
+      import: "default",
+      eager: true,
+    }) as Record<string, string>,
+  )[0];
+  if (v1Json === undefined) throw new Error("missing fixture backup-v1.json");
+  const v1 = JSON.parse(v1Json);
+
+  /** The synthetic v1 backup as the C2 code exported it. */
+  const v1Zip = () =>
+    zipFiles([
+      {
+        name: BACKUP_JSON,
+        bytes: new TextEncoder().encode(v1Json),
+        compress: true,
+      },
+      {
+        name: BACKUP_README,
+        bytes: new TextEncoder().encode(README),
+        compress: true,
+      },
+      { name: "files/f-cv", bytes: bytes(1, 2, 3), compress: false },
+    ]);
+
+  const manifestOf = (zip: Uint8Array) =>
+    JSON.parse(new TextDecoder().decode(unzipFiles(zip).get(BACKUP_JSON)));
+
+  it("imports a v1 backup and stores it as the current version", async () => {
+    const target = store();
+    await target.load();
+    const imported = await target.importBackup(v1Zip());
+    expect(imported.projects).toEqual(v1.data.projects);
+    expect(imported.leads).toEqual(v1.data.leads);
+    expect(imported.profile).toEqual(v1.data.profile);
+    expect(await target.readFile("f-cv")).toEqual(bytes(1, 2, 3));
+    const raw = await openDB(DB_NAME);
+    expect(await raw.get("meta" as never, "meta" as never)).toMatchObject({
+      schemaVersion: 2,
+    });
+    raw.close();
+    // A new export of the imported data carries the current version.
+    const again = await target.exportBackup(README);
+    expect(manifestOf(again)).toMatchObject({
+      formatVersion: 1,
+      schemaVersion: 2,
+    });
+    expect(manifestOf(again).data.leads).toEqual(v1.data.leads);
+    await target.saveProject({ ...v1.data.projects[0], position: "Kaufmann" });
+  });
+
+  it("round-trips the v2 fields bit-identically", async () => {
+    const source = store();
+    await source.load();
+    await source.saveProject(sampleProject({ position: "Industriekaufmann" }));
+    await source.saveLeads([
+      sampleLead({
+        letterPosition: "Kaufmann für Büromanagement",
+        originalPostingUrl: "https://karriere.example.org/stelle/1",
+        sources: [
+          { title: "Impressum", url: "https://example.org/impressum" },
+          { url: "https://example.org/karriere" },
+        ],
+      }),
+    ]);
+    const before = await source.load();
+    const zip = await source.exportBackup(README);
+    expect(manifestOf(zip).schemaVersion).toBe(2);
+
+    globalThis.indexedDB = new IDBFactory();
+    const target = store();
+    await target.load();
+    await target.importBackup(zip);
+    expect(await target.load()).toEqual(before);
+  });
+
+  it("refuses a backup of a newer data version and changes nothing", async () => {
+    const newer = patchJson(v1Zip(), (json) => (json.schemaVersion = 3));
+    const current = store();
+    await current.load();
+    await current.saveProject(sampleProject({ id: "keep" }));
+    await expectCode(current.importBackup(newer), "unsupported-version");
+    expect((await current.load()).projects.map((p) => p.id)).toEqual(["keep"]);
+  });
+
+  it("rejects v2 fields that break the limits, also in a v1 backup", async () => {
+    const broken = patchJson(v1Zip(), (json) => {
+      Object.assign(json.data.projects[0] ?? {}, { position: "" });
+    });
+    await expectCode(parseBackup(broken), "backup-invalid");
   });
 });

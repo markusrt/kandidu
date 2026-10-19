@@ -83,6 +83,38 @@ describe("persisted schemas", () => {
       false,
     );
   });
+
+  it("accept the optional v2 fields and enforce their limits", () => {
+    const source = (n: number) => ({ url: `https://example.org/q/${n}` });
+    const lead = (patch: object) =>
+      leadSchema.safeParse({ ...sampleLead(), ...patch }).success;
+    const project = (patch: object) =>
+      projectSchema.safeParse({ ...sampleProject(), ...patch }).success;
+
+    expect(
+      lead({
+        letterPosition: "Industriekaufmann",
+        originalPostingUrl: "https://karriere.example.org/1",
+        sources: [{ title: "Impressum", ...source(1) }, source(2)],
+      }),
+    ).toBe(true);
+    expect(lead({ sources: [] })).toBe(true);
+    expect(project({ position: "Industriekaufmann" })).toBe(true);
+
+    expect(lead({ letterPosition: "" })).toBe(false);
+    expect(lead({ letterPosition: "x".repeat(201) })).toBe(false);
+    expect(project({ position: "" })).toBe(false);
+    expect(project({ position: "x".repeat(201) })).toBe(false);
+    expect(
+      lead({ sources: Array.from({ length: 21 }, (_, i) => source(i)) }),
+    ).toBe(false);
+    expect(lead({ sources: [source(1), source(1)] })).toBe(false);
+    expect(lead({ sources: [{ ...source(1), title: "x".repeat(201) }] })).toBe(
+      false,
+    );
+    expect(lead({ sources: [{ ...source(1), extra: 1 }] })).toBe(false);
+    expect(lead({ originalPostingUrl: "x".repeat(2001) })).toBe(false);
+  });
 });
 
 function comment(id: string) {

@@ -159,6 +159,9 @@ export async function parseBackup(zip: Uint8Array): Promise<BackupContents> {
   }
   const version = versionSchema.safeParse(raw);
   if (!version.success) throw invalid();
+  // Older data versions are accepted (FR-054). 1 → 2 only added optional
+  // fields, so v1 records validate unchanged; the import writes the current
+  // version. A later step that changes records must migrate them here.
   if (
     version.data.formatVersion > BACKUP_FORMAT_VERSION ||
     version.data.schemaVersion > SCHEMA_VERSION
