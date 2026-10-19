@@ -1,5 +1,11 @@
 import type { z } from "zod";
-import type { Address, ApplicationChannel, LeadDraft } from "../domain/lead";
+import {
+  type Address,
+  type ApplicationChannel,
+  LEAD_LIMITS,
+  type LeadDraft,
+  type LeadSource,
+} from "../domain/lead";
 import { exceedsMotivationLimit } from "../domain/motivation";
 import { isHttpUrl } from "../domain/profile";
 import {
@@ -60,6 +66,53 @@ function isRecord(value: Json): value is Record<string, Json> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/**
+ * Research sources are never a reason to reject an entry: unusable items are
+ * dropped with a warning, duplicates kept once, long titles shortened, and
+ * more than the limit cut off (contracts/llm-response.md, FR-051).
+ */
+function prepareSources(
+  value: Json,
+  entry: number,
+  warnings: ParseWarning[],
+): LeadSource[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) {
+    warnings.push({ entry, kind: "sources-invalid", path: ["sources"] });
+    return undefined;
+  }
+  const seen = new Set<string>();
+  const sources: LeadSource[] = [];
+  value.forEach((item, index) => {
+    const url =
+      typeof item === "string"
+        ? item
+        : isRecord(item) && typeof item.url === "string"
+          ? item.url
+          : undefined;
+    if (!url || url.length > LEAD_LIMITS.url || !isHttpUrl(url)) {
+      warnings.push({
+        entry,
+        kind: "url-dropped",
+        path: ["sources", String(index)],
+      });
+      return;
+    }
+    if (seen.has(url)) return;
+    seen.add(url);
+    const title =
+      isRecord(item) && typeof item.title === "string"
+        ? item.title.slice(0, LEAD_LIMITS.sourceTitle).trim()
+        : "";
+    sources.push(title ? { title, url } : { url });
+  });
+  if (sources.length > LEAD_LIMITS.sources) {
+    warnings.push({ entry, kind: "sources-truncated", path: ["sources"] });
+    return sources.slice(0, LEAD_LIMITS.sources);
+  }
+  return sources.length > 0 ? sources : undefined;
+}
+
 /** Field-specific tolerance before validation; records warnings. */
 function prepareEntry(
   raw: Json,
@@ -85,6 +138,11 @@ function prepareEntry(
         .join(" – ");
       lead.application = { ...application, channel: "other", notes };
     }
+  }
+  if ("sources" in lead) {
+    const sources = prepareSources(lead.sources, entry, warnings);
+    if (sources) lead.sources = sources;
+    else delete lead.sources;
   }
   const contact = lead.contact;
   if (isRecord(contact) && contact.salutation !== undefined) {
@@ -148,6 +206,12 @@ function toDraft(
   warnings: ParseWarning[],
 ): LeadDraft {
   const sourceUrl = cleanUrl(lead.sourceUrl, entry, ["sourceUrl"], warnings);
+  const originalPostingUrl = cleanUrl(
+    lead.originalPostingUrl,
+    entry,
+    ["originalPostingUrl"],
+    warnings,
+  );
   const website = cleanUrl(
     lead.company.website,
     entry,
@@ -168,6 +232,9 @@ function toDraft(
   const postalAddress = cleanAddress(lead.application.postalAddress);
   return compact({
     sourceUrl,
+    originalPostingUrl,
+    // Already cleaned by prepareSources.
+    sources: lead.sources?.map((source) => compact(source)),
     position: compact(lead.position),
     company: compact({
       name: lead.company.name,

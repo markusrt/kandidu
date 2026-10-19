@@ -32,6 +32,25 @@ describe("buildPrompt (FR-013, FR-014)", () => {
     expect(withContext).toContain("Ich mag Zahlen.");
   });
 
+  it("asks for the original posting, the address and the sources (FR-051, FR-052)", () => {
+    const prompt = buildPrompt(project, de);
+    expect(prompt).toContain('"sourceUrl": der Link der Stellenanzeige');
+    expect(prompt).toContain("Original-Ausschreibung");
+    expect(prompt).toContain("Karriereseite");
+    expect(prompt).toContain("Vergütung");
+    expect(prompt).toContain("nur an, wenn du sicher bist");
+    expect(prompt).toContain("recherchiere Anschrift und Website");
+    expect(prompt).toContain("Erfinde keine Anschrift");
+    expect(prompt).toContain('"sources"');
+    expect(prompt).toContain('"originalPostingUrl"');
+  });
+
+  it("does not put the project's Stelle into the prompt (FR-014)", () => {
+    expect(
+      buildPrompt({ ...project, position: "Geheimtipp-Stelle" }, de),
+    ).not.toContain("Geheimtipp-Stelle");
+  });
+
   it("never contains profile values", () => {
     const prompt = buildPrompt(project, de);
     const profile = sampleProfile();

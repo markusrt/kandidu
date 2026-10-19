@@ -38,6 +38,8 @@ describe("LLM response corpus (SC-004)", () => {
     ["valid-two-blocks", 1],
     ["valid-warnings", 1],
     ["valid-three-leads", 3],
+    ["valid-original-sources", 1],
+    ["valid-sources-messy", 2],
   ])("%s yields %i lead(s)", (name, count) => {
     const result = parseResponse(fixture(name));
     expect(leads(result)).toHaveLength(count);
@@ -93,6 +95,62 @@ describe("parseResponse details", () => {
       notes: expect.stringContaining("persönlich abgeben"),
     });
     expect(result.leads[0]?.sourceUrl).toBeUndefined();
+  });
+
+  it("keeps the original posting and cleaned sources (FR-051)", () => {
+    const result = parseResponse(fixture("valid-original-sources"));
+    if (!result.ok) throw new Error("expected ok");
+    const [lead] = result.leads;
+    expect(lead?.sourceUrl).toBe("https://jobs.example.net/viewjob?jk=abc123");
+    expect(lead?.originalPostingUrl).toBe(
+      "https://karriere.example.org/stellen/industriekaufmann-2027",
+    );
+    // A bare URL becomes an entry, the duplicate is kept once, the ftp link
+    // and the entry without a URL are dropped with a warning each.
+    expect(lead?.sources).toEqual([
+      {
+        title: "Original-Ausschreibung",
+        url: "https://karriere.example.org/stellen/industriekaufmann-2027",
+      },
+      { title: "Impressum", url: "https://example.org/impressum" },
+      { url: "https://example.org/ueber-uns" },
+    ]);
+    expect(result.warnings).toEqual([
+      { entry: 1, kind: "url-dropped", path: ["sources", "4"] },
+      { entry: 1, kind: "url-dropped", path: ["sources", "5"] },
+    ]);
+  });
+
+  it("never rejects an entry because of its sources", () => {
+    const result = parseResponse(fixture("valid-sources-messy"));
+    if (!result.ok) throw new Error("expected ok");
+    const [notAList, tooMany] = result.leads;
+    expect(notAList?.sources).toBeUndefined();
+    expect(tooMany?.sources).toHaveLength(20);
+    expect(tooMany?.sources?.[19]?.url).toBe("https://example.org/q/20");
+    expect(tooMany?.originalPostingUrl).toBeUndefined();
+    expect(result.warnings).toEqual([
+      { entry: 1, kind: "sources-invalid", path: ["sources"] },
+      { entry: 2, kind: "sources-truncated", path: ["sources"] },
+      { entry: 2, kind: "url-dropped", path: ["originalPostingUrl"] },
+    ]);
+  });
+
+  it("shortens over-long source titles instead of failing", () => {
+    const text = JSON.stringify({
+      leads: [
+        {
+          sources: [{ title: "T".repeat(300), url: "https://example.org/a" }],
+          position: { title: "Stelle" },
+          company: { name: "Firma" },
+          application: { channel: "email" },
+          research: "r",
+          motivation: "m",
+        },
+      ],
+    });
+    const [lead] = leads(parseResponse(text));
+    expect(lead?.sources?.[0]?.title).toHaveLength(200);
   });
 
   it("names the field that is missing", () => {

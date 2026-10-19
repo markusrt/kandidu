@@ -19,6 +19,17 @@ export const CHANNELS = ["portal", "email", "post", "other"] as const;
 
 export const leadEntrySchema = z.object({
   sourceUrl: optional(LEAD_LIMITS.url),
+  // C3 (FR-051): optional, so answers to earlier prompts stay valid.
+  originalPostingUrl: optional(LEAD_LIMITS.url),
+  sources: z
+    .array(
+      z.object({
+        title: optional(LEAD_LIMITS.sourceTitle),
+        url: text(LEAD_LIMITS.url),
+      }),
+    )
+    .max(LEAD_LIMITS.sources)
+    .optional(),
   position: z.object({
     title: text(LEAD_LIMITS.positionTitle),
     referenceNumber: optional(),

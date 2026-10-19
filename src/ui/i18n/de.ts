@@ -583,11 +583,14 @@ export const de = {
         "- Antworte ausschließlich mit einem einzigen JSON-Objekt, das dem Schema unten entspricht. Kein Text davor oder danach.",
         '- Lege in "leads" für jede Stellenanzeige genau einen Eintrag an.',
         "- Schreibe auf Deutsch.",
+        '- "sourceUrl": der Link der Stellenanzeige aus der Liste oben, genau so, wie er dort steht.',
+        '- "originalPostingUrl": Suche möglichst die Original-Ausschreibung auf der Website des Unternehmens, zum Beispiel auf dessen Karriereseite. Dort stehen oft mehr und genauere Angaben als auf Jobportalen, etwa zur Vergütung; nutze dann diese Angaben. Gib den Link nur an, wenn du sicher bist, dass es dieselbe Stelle ist; sonst lass das Feld weg.',
         '- "position": Stellenbezeichnung und, falls angegeben, Kennziffer, Ort, Beginn und Art der Anstellung.',
-        '- "company" und "contact": Name und Anschrift des Unternehmens und die Ansprechperson laut Anzeige. Erfinde keine Ansprechperson; lass Felder weg, die du nicht sicher weißt.',
+        '- "company" und "contact": Name, Anschrift und Website des Unternehmens und die Ansprechperson laut Anzeige. Nennt die Anzeige nur Firmenname und Ort, recherchiere Anschrift und Website, zum Beispiel im Impressum oder auf der Kontaktseite des Unternehmens. Erfinde keine Anschrift und keine Ansprechperson; lass Felder weg, die du nicht sicher weißt.',
         '- "application": der Bewerbungsweg ("portal", "email", "post" oder "other") mit Portal-Link, E-Mail-Adresse oder Postanschrift, Frist und Hinweisen.',
         '- "process": Infos zum Bewerbungsprozess (Markdown).',
         '- "research": Unternehmensrecherche passend zur Stelle als Markdown, mit Quellenlinks im Format [Titel](https://…).',
+        '- "sources": alle Seiten, die du genutzt hast, als Liste mit "title" und "url" (höchstens 20), auch die Original-Ausschreibung und die Seite, auf der du die Anschrift gefunden hast.',
         '- "motivation": ein Vorschlag für den Motivationsteil eines Anschreibens, höchstens zwei Absätze, getrennt durch eine Leerzeile, zugeschnitten auf das Unternehmen. Erfinde nichts über mich.',
         "",
         "JSON-Schema:",
@@ -638,6 +641,10 @@ export const de = {
         `Eintrag ${entry}: Ein Link ohne http(s) wurde weggelassen.`,
       "channel-unknown": (entry: number) =>
         `Eintrag ${entry}: Unbekannter Bewerbungsweg – als „Sonstiges“ übernommen.`,
+      "sources-truncated": (entry: number) =>
+        `Eintrag ${entry}: Mehr als 20 Quellen – nur die ersten 20 wurden übernommen.`,
+      "sources-invalid": (entry: number) =>
+        `Eintrag ${entry}: Die Quellenliste war keine Liste und wurde weggelassen.`,
     },
     fields: {
       leads: "Die Liste „leads“",
@@ -648,6 +655,8 @@ export const de = {
       "company.name": "Firmenname",
       "company.website": "Website des Unternehmens",
       "company.address": "Firmenanschrift",
+      originalPostingUrl: "Original-Ausschreibung",
+      sources: "Quellen",
       contact: "Ansprechperson",
       application: "Bewerbungsweg",
       "application.channel": "Art des Bewerbungswegs",
@@ -762,7 +771,7 @@ export const de = {
     salutationOverride: "Eigene Briefanrede (leer lassen für den Vorschlag)",
     saveLead: "Lead speichern",
     invalid:
-      "Bitte fülle Stellenbezeichnung und Firmenname aus und prüfe die Längen.",
+      "Bitte fülle Stellenbezeichnung und Firmenname aus und prüfe die Längen und die Links (sie beginnen mit https:// oder http://).",
   },
 
   coverLetter: {

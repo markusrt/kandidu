@@ -1,4 +1,5 @@
 import type { FileRef } from "./documents";
+import { isHttpUrl } from "./profile";
 
 export interface Address {
   readonly street?: string;
@@ -189,6 +190,12 @@ function checkText(value: string | undefined, max: number, required = false) {
   if (text.length > max) invalid();
 }
 
+/** A link field is empty or an http(s) URL within the limit (FR-050). */
+function checkUrl(value: string | undefined) {
+  if (value === undefined || value === "") return;
+  if (value.length > LEAD_LIMITS.url || !isHttpUrl(value)) invalid();
+}
+
 /** Validates editable lead content against data-model.md limits. */
 export function validateLeadDraft(draft: LeadDraft): void {
   checkText(draft.position.title, LEAD_LIMITS.positionTitle, true);
@@ -211,10 +218,19 @@ export function validateLeadDraft(draft: LeadDraft): void {
   }
   for (const url of [
     draft.sourceUrl,
+    draft.originalPostingUrl,
     draft.company.website,
     draft.application.portalUrl,
   ]) {
-    checkText(url, LEAD_LIMITS.url);
+    checkUrl(url);
+  }
+  const sources = draft.sources ?? [];
+  if (sources.length > LEAD_LIMITS.sources) invalid();
+  if (new Set(sources.map((s) => s.url)).size !== sources.length) invalid();
+  for (const source of sources) {
+    if (!source.url) invalid();
+    checkUrl(source.url);
+    checkText(source.title, LEAD_LIMITS.sourceTitle);
   }
   checkText(draft.application.notes, LEAD_LIMITS.notes);
   checkText(draft.process, LEAD_LIMITS.process);
@@ -244,17 +260,24 @@ export function assertNotImported(response: ImportedResponse): void {
   }
 }
 
-/** Creates leads in review from parsed drafts; `newId` supplies unique ids. */
+/**
+ * Creates leads in review from parsed drafts; `newId` supplies unique ids.
+ * A draft without `sourceUrl` gets the project's link when there is exactly
+ * one, so every lead knows the advertisement it came from (FR-051).
+ */
 export function createLeadsFromDrafts(
   drafts: readonly LeadDraft[],
   projectId: string,
+  projectLinks: readonly string[],
   responseId: string,
   newId: () => string,
   now: string,
 ): Lead[] {
+  const onlyLink = projectLinks.length === 1 ? projectLinks[0] : undefined;
   return drafts.map((draft, index) => {
     validateLeadDraft(draft);
     return {
+      ...(onlyLink ? { sourceUrl: onlyLink } : {}),
       ...draft,
       id: newId(),
       projectId,
