@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { StorageWarning } from "./StorageWarning";
 
 /** Labeled file picker; resets after each pick so the same file can be chosen again. */
 export function FileField({
@@ -17,6 +18,7 @@ export function FileField({
   const id = useId();
   return (
     <div className="field file-field">
+      <StorageWarning />
       <label htmlFor={id}>{label}</label>
       <input
         id={id}

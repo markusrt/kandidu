@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { KandiduStore } from "../storage/port";
+import { DataPage } from "./data/DataView";
 import { Home } from "./Home";
 import { errorMessage, useMessages } from "./i18n";
 import { LeadView } from "./lead/LeadView";
@@ -8,7 +9,7 @@ import { PlaceholderHelp } from "./PlaceholderHelp";
 import { ProjectView } from "./project/ProjectView";
 import { Link, type Route, useRoute } from "./router";
 import { SetupView } from "./setup/SetupView";
-import { AppProvider, useApp } from "./state";
+import { AppProvider, useApp, type WriteFailure } from "./state";
 
 export function App({ store }: { store: KandiduStore }) {
   return (
@@ -25,7 +26,7 @@ function routeKey(route: Route): string {
 function Shell() {
   const m = useMessages();
   const route = useRoute();
-  const { state, stale, notice } = useApp();
+  const { state, stale, notice, failure } = useApp();
   const main = useRef<HTMLElement>(null);
   const firstRoute = useRef(true);
   const key = routeKey(route);
@@ -71,12 +72,16 @@ function Shell() {
               <li>
                 <Link to={{ name: "placeholders" }}>{m.nav.placeholders}</Link>
               </li>
+              <li>
+                <Link to={{ name: "data" }}>{m.nav.data}</Link>
+              </li>
             </ul>
           </nav>
         </div>
       </header>
       <main id="main" ref={main} tabIndex={-1}>
         {stale && <StaleBanner />}
+        {failure && <FailureAlert key={failure.id} failure={failure} />}
         <div className="live" role="status" aria-live="polite">
           {notice?.kind === "status" && (
             <span key={notice.id}>{notice.text}</span>
@@ -108,6 +113,24 @@ function StaleBanner() {
       <button type="button" onClick={() => window.location.reload()}>
         {m.common.reload}
       </button>
+    </div>
+  );
+}
+
+/** A failed write: retry it or give up; the form keeps its input (FR-040). */
+function FailureAlert({ failure }: { failure: WriteFailure }) {
+  const m = useMessages();
+  return (
+    <div className="banner failure" role="alert">
+      <p>{failure.text}</p>
+      <div className="actions compact">
+        <button type="button" onClick={failure.retry}>
+          {m.common.retry}
+        </button>
+        <button type="button" className="secondary" onClick={failure.dismiss}>
+          {m.common.cancel}
+        </button>
+      </div>
     </div>
   );
 }
@@ -172,6 +195,8 @@ function Page({ route }: { route: Route }) {
       return <SetupView step={route.step} />;
     case "placeholders":
       return <PlaceholderHelp />;
+    case "data":
+      return <DataPage />;
     case "project":
       return <ProjectView projectId={route.projectId} step={route.step} />;
     case "lead":

@@ -83,13 +83,32 @@ and asks before leaving (same guard as profile, review, links). The e2e now
 also checks the FR-031 name suggestions, removing a package and that the ZIP
 download saves the definitions.
 
+US4 (Pausieren, Fortsetzen und Fehler überstehen), main session, own commit
+"feat: survive pauses, failed writes, full storage and other tabs (US4)":
+
+| Task | Spec IDs | Evidence |
+| --- | --- | --- |
+| T048 resume after browser restart (`promptState` routing, "Antwort ausstehend", draft kept) | FR-017, FR-046, SC-006 | e2e `C2 resume: … survive a browser restart` (new context from `storageState({ indexedDB: true })`) |
+| T049 failed writes: "Nicht gespeichert …", "Erneut versuchen"/"Abbrechen", input kept, follow-up only after success; damaged data → recovery view, never overwritten, confirmed reset | FR-040, FR-041, SC-006 | e2e `C2 recovery: a failed save …`, `… a full storage …` (injected `put` failures: UnknownError, QuotaExceededError), `… damaged stored data …` |
+| T050 `#/daten`: local-only notice, usage with 80 % warning, persistence state/request/denial, confirmed reset; upload warning in every file field | FR-042, FR-045 | `quota.test.ts` (threshold, clamping, unusable estimates); e2e `C2 storage: …` (2 tests, faked `StorageManager`) |
+| T051 two tabs: banner after a broadcast or a `conflict` write, stale write refused, input kept | FR-044 | `indexeddb.test.ts` (conflict; new: broadcast only after commit, unsubscribe); e2e `C2 multi-tab: …` |
+| T052 keyboard-only US1 path (Tab reachability + visible focus checked per element) and axe scans of 16 views + parse-error state | FR-046, FR-047, SC-009 | e2e `C2 keyboard: …`, `C2 a11y: …` (0 critical/serious, WCAG 2.1 A/AA tags) |
+| T053 360 px: no horizontal scrolling | SC-010 | e2e `C2 mobile: …` (14 views) |
+
+Findings fixed in US4: axe `label-content-name-mismatch` on the link remove
+button (visible "Löschen", name "Link entfernen: …"; now "Entfernen"); lead
+review overflowed at 360 px (`fieldset` min-content width); after a reset the
+old route showed "Nicht gefunden" (reset now returns to Home). New dev
+dependency `@axe-core/playwright` 4.14.0 (exact pin; `pnpm audit`: no known
+vulnerabilities).
+
 ### Started, not ticked (finish with their story)
 
 | Task | State | Open points |
 | --- | --- | --- |
 | T054 backup storage (US5) | `src/storage/backup.ts` (`buildBackup`, `parseBackup`), adapter `exportBackup(readme)` / `importBackup` (allowed after a failed load, one replacing transaction, export does not move the known revision), new port method `persistenceState()`, new error `backup-invalid`; `backup.test.ts` 17 tests (round trip bit-identical, replace, recovery import, 11 damage cases, stale-tab conflict) | no UI yet (T055); `persistenceState()` has no adapter test; `unsupported-version` text says "gespeicherte Daten" and needs a backup-specific wording in T055; contracts updated |
 
-Not started: T048–T053 (US4), T055–T056 (US5), T057 (GATE).
+Not started: T055–T056 (US5), T057 (GATE).
 
 Already present from C1 and relevant later: revision conflict detection and the
 stale-tab banner (T051 needs only UI/e2e proof), resume routing by `promptState`
@@ -111,6 +130,10 @@ and the "Antwort ausstehend" badge (T048 needs the restart e2e).
 
 ### Checks (2026-10-19, Node 24.21.0, pnpm 10.34.7)
 
+- After US4: **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0.** Biome 115 files;
+  `tsc -b` ok; dependency-cruiser 110 modules / 377 dependencies, no
+  violations; Vitest 26 files / **244 tests**; build ok; Playwright **45
+  passed, 1 skipped**.
 - After US3: **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0.** Biome 108 files;
   `tsc -b` ok; dependency-cruiser 106 modules / 361 dependencies, no
   violations; Vitest 25 files / **238 tests**; build ok; Playwright **25
@@ -326,8 +349,8 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
   US2 commit with the started US3/US5 work (see "C2 in progress"). Nothing
   pushed until the C2 gate is approved. Untracked local safety ref
   `refs/backup/c1-wip` still exists (never pushed).
-- **Exact next action:** US4 (T048–T053), finished, green and committed; then
-  US5 (T054–T056), then the C2 GATE T057.
+- **Exact next action:** US5 (T054 follow-ups, T055, T056), finished, green
+  and committed; then the C2 GATE T057.
 
 ## Subsequent handoff schema
 

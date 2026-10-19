@@ -9,6 +9,8 @@ describe("router", () => {
     ["#/einrichtung/vorlagen", { name: "setup", step: "vorlagen" }],
     ["#/einrichtung/nachweise", { name: "setup", step: "nachweise" }],
     ["#/platzhalter", { name: "placeholders" }],
+    ["#/daten", { name: "data" }],
+    ["#/daten/x", { name: "notFound" }],
     ["#/projekte/p1", { name: "project", projectId: "p1", step: undefined }],
     [
       "#/projekte/p1/antwort",
