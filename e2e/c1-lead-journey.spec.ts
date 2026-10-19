@@ -79,12 +79,23 @@ test("C1 journey: profile → templates → CV → project → prompt → answer
     cover.getByRole("list").getByText("{Vorname}", { exact: true }),
   ).toBeVisible();
 
-  // CV: filled DOCX download, then a 2-page PDF.
+  // CV: filled DOCX download, then a 2-page PDF. The profile has no optional
+  // fields: that is only a notice, the normal download stays (FR-025).
   await page.goto("/#/einrichtung/lebenslauf");
+  await expect(
+    page.getByText("Diese optionalen Platzhalter bleiben leer:"),
+  ).toBeVisible();
+  await expect(page.getByText("{Geburtsort}")).toBeVisible();
+  await expect(
+    page.getByText("Diese Platzhalter für Pflichtangaben bleiben leer:"),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Trotzdem herunterladen" }),
+  ).toHaveCount(0);
   const cvDocx = await captureDownload(page, () =>
     page
       .getByRole("button", {
-        name: /Ausgefüllten Lebenslauf \(DOCX\) herunterladen|Trotzdem herunterladen/,
+        name: "Ausgefüllten Lebenslauf (DOCX) herunterladen",
       })
       .click(),
   );
@@ -221,6 +232,25 @@ test("C1 journey: profile → templates → CV → project → prompt → answer
   await expect(page.locator(".package-items li").first()).toContainText(
     "Lebenslauf-PDF",
   );
+});
+
+test("C1 CV download: empty required data needs an explicit download anyway", async ({
+  page,
+}) => {
+  await page.goto("/#/einrichtung/lebenslauf");
+  await expect(
+    page.getByText("Diese Platzhalter für Pflichtangaben bleiben leer:"),
+  ).toBeVisible();
+  await expect(page.getByText("{Telefon}")).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Ausgefüllten Lebenslauf (DOCX) herunterladen",
+    }),
+  ).toHaveCount(0);
+  const download = await captureDownload(page, () =>
+    page.getByRole("button", { name: "Trotzdem herunterladen" }).click(),
+  );
+  expect(download.name).toMatch(/_Lebenslauf\.docx$/);
 });
 
 test("C1 gate: missing CV PDF blocks release and links to the CV step", async ({

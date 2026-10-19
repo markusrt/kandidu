@@ -356,9 +356,12 @@ export const de = {
     intro:
       "Kandidu verwendet für alle Bewerbungen dasselbe Lebenslauf-PDF. So geht es: ausgefüllten Lebenslauf herunterladen, in Word oder LibreOffice prüfen, als PDF speichern und hier hochladen.",
     downloadFilled: "Ausgefüllten Lebenslauf (DOCX) herunterladen",
-    missingHeading: "Diese Platzhalter bleiben leer:",
+    missingHeading: "Diese Platzhalter für Pflichtangaben bleiben leer:",
     missingHint:
       "Ergänze die Angaben unter „Persönliche Daten“ oder lade trotzdem herunter.",
+    optionalHeading: "Diese optionalen Platzhalter bleiben leer:",
+    optionalHint:
+      "Das ist in Ordnung. Wenn du sie im Lebenslauf haben möchtest, ergänze sie unter „Persönliche Daten“.",
     toProfile: "Persönliche Daten ergänzen",
     downloadAnyway: "Trotzdem herunterladen",
     pdfHowTo:

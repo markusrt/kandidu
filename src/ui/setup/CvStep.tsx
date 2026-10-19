@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { type DocumentRecord, findCvDocument } from "../../domain/documents";
 import { datedName } from "../../domain/fileNames";
 import { buildCvData, missingValues } from "../../domain/letterData";
+import { splitMissing } from "../../domain/placeholders";
 import { MAX_PDF_BYTES } from "../../files/errors";
 import { DOCX_MIME } from "../../files/mime";
 import { downloadBytes } from "../download";
@@ -96,21 +97,27 @@ export function CvStep() {
     );
   }
 
+  // Only empty required data needs a deliberate "anyway" (FR-025).
+  const { required, optional } = splitMissing(missing);
+  const tagList = (names: readonly string[]) => (
+    <ul className="tag-list">
+      {names.map((name) => (
+        <li key={name}>
+          <code>{`{${name}}`}</code>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <>
       <h1>{m.cv.heading}</h1>
       <p>{m.cv.intro}</p>
       <section className="card">
-        {missing.length > 0 && (
+        {required.length > 0 && (
           <div className="warning">
             <p>{m.cv.missingHeading}</p>
-            <ul className="tag-list">
-              {missing.map((name) => (
-                <li key={name}>
-                  <code>{`{${name}}`}</code>
-                </li>
-              ))}
-            </ul>
+            {tagList(required)}
             <p className="hint">{m.cv.missingHint}</p>
             <p>
               <Link to={{ name: "setup", step: "profil" }}>
@@ -119,14 +126,28 @@ export function CvStep() {
             </p>
           </div>
         )}
+        {optional.length > 0 && (
+          <div className="info">
+            <p>{m.cv.optionalHeading}</p>
+            {tagList(optional)}
+            <p className="hint">{m.cv.optionalHint}</p>
+            {required.length === 0 && (
+              <p>
+                <Link to={{ name: "setup", step: "profil" }}>
+                  {m.cv.toProfile}
+                </Link>
+              </p>
+            )}
+          </div>
+        )}
         <div className="actions">
           <button
             type="button"
-            className={missing.length > 0 ? "secondary" : undefined}
+            className={required.length > 0 ? "secondary" : undefined}
             disabled={busy || running}
             onClick={() => void download()}
           >
-            {missing.length > 0 ? m.cv.downloadAnyway : m.cv.downloadFilled}
+            {required.length > 0 ? m.cv.downloadAnyway : m.cv.downloadFilled}
           </button>
         </div>
         <p className="hint">{m.cv.pdfHowTo}</p>

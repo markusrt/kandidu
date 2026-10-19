@@ -331,6 +331,12 @@ ol.item-list {
 .warnings {
   padding-left: 2rem;
 }
+.info {
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.3rem;
+}
 .confirm {
   border: 1px dashed var(--line);
   border-radius: 0.5rem;

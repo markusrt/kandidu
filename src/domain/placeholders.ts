@@ -11,9 +11,18 @@ export interface Placeholder {
   readonly kind: PlaceholderKind;
   readonly templates: readonly TemplateKind[];
   readonly source: PlaceholderSource;
+  /** Filled from an optional profile field (FR-001); empty is fine (FR-025). */
+  readonly optional?: true;
 }
 
 const BOTH: readonly TemplateKind[] = ["cv", "coverLetter"];
+
+const OPTIONAL_PROFILE = new Set([
+  "Geburtsdatum",
+  "Geburtsort",
+  "Staatsangehoerigkeit",
+  "Website",
+]);
 const COVER: readonly TemplateKind[] = ["coverLetter"];
 
 export const MOTIVATION_BLOCK = "Motivation";
@@ -39,6 +48,7 @@ export const PLACEHOLDERS: readonly Placeholder[] = [
       kind: "text",
       templates: BOTH,
       source: "profile",
+      ...(OPTIONAL_PROFILE.has(name) ? { optional: true as const } : {}),
     }),
   ),
   { name: "Datum", kind: "text", templates: COVER, source: "system" },
@@ -77,6 +87,23 @@ const BY_NAME = new Map(PLACEHOLDERS.map((p) => [p.name, p]));
 
 export function placeholdersFor(kind: TemplateKind): Placeholder[] {
   return PLACEHOLDERS.filter((p) => p.templates.includes(kind));
+}
+
+/**
+ * Splits empty placeholders into those of required data (download needs an
+ * explicit "anyway") and optional ones (notice only); unknown names count as
+ * required (FR-025, clarification 2026-10-19).
+ */
+export function splitMissing(names: readonly string[]): {
+  required: string[];
+  optional: string[];
+} {
+  const required: string[] = [];
+  const optional: string[] = [];
+  for (const name of names) {
+    (BY_NAME.get(name)?.optional ? optional : required).push(name);
+  }
+  return { required, optional };
 }
 
 /** Tag structure as found in a template, independent of the engine. */
