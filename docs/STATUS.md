@@ -15,11 +15,13 @@
   T038 done. **C2 – Useful and recoverable: approved by the owner on
   2026-10-19 with follow-ups** (`specs/001-bewerbungs-mvp/feedback/C2.md`;
   on `main` as `16b34bb`) and **shipped** (see "C2 ship result"). GATE task
-  T057 done. C3 – Agreed acceptance: planned (C3 Phase A for R1–R4, then
-  US6, US7, Polish; see "C3 scope"), implementation not started.
+  T057 done. **C3 – Agreed acceptance: implemented and verified, GATE T070
+  pending an explicit human decision** (2026-10-19): C3 Phase A (R1–R4),
+  US6, US7, Polish T066–T069; all tasks except T070 ticked.
 - Approval state: C1 approved without change requests. C2 approved with
-  follow-ups R1–R6, no defects found; the owner tried review steps 1–2. R1–R4
-  are due at the next checkpoint (C3), R5–R6 go to the backlog.
+  follow-ups R1–R6 (R1–R4 now built in C3, R5–R6 in the spec backlog).
+  **C3 awaiting the owner's acceptance** (accept, or request changes); silence
+  is not acceptance. Owner review page: `specs/001-bewerbungs-mvp/review/C3.md`.
 - Ship mode: **`auto-merge`** (owner decision 2026-10-18, confirmed in the C2
   feedback). This authorizes push, PR, merge after green CI, and the GitHub
   Pages deployment for this product, after each approved gate. C3 work stays
@@ -219,16 +221,57 @@ the existing editable fields; the links block tells the person to check
 LLM-found data before sending (FR-050, FR-052). The project "Stelle" is not
 put into the prompt (FR-014 unchanged).
 
+### C3 local review (speckit-reviewer, opus, fresh context)
+
+Verdict before fixes: **not ready, 0 blockers, 4 should-fix, 6 nits**. Fixed in
+"fix: address the C3 review findings", then the full `pnpm verify` was rerun
+(exit 0, Vitest 28 files / 352 tests, Playwright 109 passed, 1 skipped).
+
+1. **S1** focus fell to `<body>` after a status change in Verlauf, a release
+   and a confirmed "Zurück in den Review" (reproduced in a browser). Now
+   "Aktueller Stand" or the step's `<h1>`; the C3 keyboard e2e asserts it.
+2. **S2** "Ungespeicherte Änderungen" stayed after saving a lead with added or
+   removed sources (reproduced). Dirty state compares the normalized content
+   (`formSignature`); the e2e checks the hint is gone after saving.
+3. **S3** spec edge case vs code for a wrong `sourceUrl`: implemented the
+   spec (one project link → it is the entered link) and keep the LLM's other
+   link as a source, so no link is lost. **Owner-visible choice**, see
+   question 4.
+4. **S4** new link fields from storage/backups are now required to be
+   http(s) (`originalPostingUrl`, `sources`, interview link); the C1/C2 link
+   fields stay length-only so existing data cannot fail to load; the
+   interview link renders only if http(s).
+
+Nits fixed: focus after removing the 20th source; no "next interview" for
+finished leads; confirmations announced (`role="alert"`); `importedLeadIds`
+of deleted leads documented as intended (FR-021 guard). Nits accepted: the
+l10n guard is a heuristic (it misses `aria-label={"…"}` and text with
+parentheses); STATUS wording fixed below.
+
 ### C3 model routing (merged by hand across sessions)
 
 `pnpm models:check` only sees the current session's transcripts, so every C3
-session appends its table and delegated task IDs here.
+session appends its table and delegated task IDs here. C3 so far ran in one
+session.
 
-- Session 1 (2026-10-19, C2 ship, C3 planning, C3 Phase A): routing probe
-  before the first task (`pnpm models:check --require-agent`: exit 0, main
-  `claude-opus-5-5`, speckit-implementer `claude-sonnet-5-5`). Delegated:
-  **T080, T060, T061, T065, T067**. Final table of this session follows at
-  the gate.
+Session 1 (`c8201844…`, 2026-10-19: C2 ship, C3 planning, all of C3, gate).
+Routing probe before the first task (`pnpm models:check --require-agent`:
+exit 0). At the gate `pnpm models:check`: exit 0, "Routing OK".
+
+| Agent | Models (responses) | Expected | Work |
+| --- | --- | --- | --- |
+| main session | claude-opus-5-5 (929) | opus | everything not listed below |
+| speckit-implementer `afdb02…` | claude-sonnet-5-5 (2) | sonnet | routing probe |
+| speckit-implementer `a8b2a5…` | claude-sonnet-5-5 (17) | sonnet | T080 |
+| speckit-implementer `a65cde…` | claude-sonnet-5-5 (48) | sonnet | T060, T061 |
+| speckit-implementer `a72844…` | claude-sonnet-5-5 (36) | sonnet | T065 |
+| speckit-implementer `a66e5b…` | claude-sonnet-5-5 (58) | sonnet | T067 |
+| speckit-reviewer `ac2c89…` | claude-opus-5-5 (92) | opus | C3 gate review |
+
+Delegated `[ROUTINE]` tasks in C3 (all sessions): **T060, T061, T065, T067,
+T080**. All reviewed in the main session; corrections there: T065's test
+exposed a focus defect in main-session code (fixed); T060 missed focus on
+undo/comment-delete confirmations (fixed in T066).
 
 ## C2 ship result (2026-10-19)
 
@@ -643,9 +686,10 @@ Remaining (accepted for C1, noted for C2):
 - Data migration: stored data and backups of version 1 are upgraded
   automatically (FR-053, FR-054); a C2 tab that stays open during the
   upgrade can no longer save and shows its reload banner. There is no
-  downgrade: after opening C3 once, an older Kandidu build refuses the data
-  as "newer version" (only relevant for local builds; Pages always serves the
-  latest build).
+  downgrade: after opening C3 once, a C1/C2 build cannot open the database
+  any more and shows its recovery view as a read error (the mapping to
+  "newer version" exists only from C3 on); do not use "zurücksetzen" there.
+  Only relevant for local builds; Pages always serves the latest build.
 - SC-001 (≤ 15 minutes for a first-time person) and SC-002's Word/
   LibreOffice round trip need a person; they are not measured by automation.
 - On narrow screens the lead table is shown as one card per lead with CSS
@@ -689,6 +733,28 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
 3. ~~C2 decision: approve C2, or request changes.~~ **Answered 2026-10-19**:
    approved with follow-ups R1–R6, ship mode `auto-merge`
    (`specs/001-bewerbungs-mvp/feedback/C2.md`).
+4. Entered link (review S3): with exactly one project link, Kandidu now
+   uses it as the lead's "eingegebener Link" even if the LLM answers with
+   another link; that other link is kept as a source. Keep this, or keep
+   the LLM's link? Recommendation: keep (the entered link is known for
+   sure). Nonblocking for acceptance unless you want it changed.
+5. **C3 decision (blocking for shipping C3):** accept C3 (agreed acceptance
+   of the MVP; ship mode `auto-merge` then pushes, opens the PR, merges after
+   green CI and deploys), or request changes. Optional: plan R5/R6 from the
+   backlog as a next feature.
+
+## Review steps for the owner at C3 (≤ 3)
+
+The owner-facing page (German) is `specs/001-bewerbungs-mvp/review/C3.md`.
+Review URL: **<http://127.0.0.1:5173/>**, checked 2026-10-19 with `curl`:
+HTTP 200, `lang="de"`, title "Kandidu"; it serves the current C3 tree
+(`/src/storage/schema.ts` has `SCHEMA_VERSION = 2`, `leadForm.ts` has
+`formSignature`). That Vite dev server was already running (PID 16808,
+started 2026-10-19 06:15 from this repository, not by this session); it
+reads the working tree, so it shows the checked-out branch. Loopback only;
+it may not survive. Restart: `pnpm install --frozen-lockfile`, then
+`pnpm dev --host 127.0.0.1 --port 5173 --strictPort`. Data stored on that
+origin during the C2 review is upgraded to version 2 on first open (FR-053).
 
 ## Review steps for the owner at C2 (≤ 3, done: steps 1–2 tried, approved)
 
@@ -727,13 +793,19 @@ it is gone: `pnpm install --frozen-lockfile`, then the same command.
 ## Worktree and next action
 
 - Worktree: C1 and C2 are merged into `main` (head `c3cc9b0`, PR #2) and
-  live. C3 work is on the local branch `001-bewerbungs-mvp-c3` (from
-  `c3cc9b0`): `36e4b0a` (C2 ship result), then the C3 planning commit (spec,
-  plan, data-model, contracts, tasks and this file). Nothing pushed. No stash,
-  no `refs/backup/*`.
-- **Exact next action:** `/speckit-implement` from T074 (C3 Phase A slice A,
-  storage v2), one slice/story at a time, each green and committed, up to GATE
-  T070; before the first task the routing probe (AGENTS.md).
+  live. C3 is on the local branch `001-bewerbungs-mvp-c3` (from `c3cc9b0`):
+  `36e4b0a` (C2 ship result), `ceb1237` (C3 plan), `93c6140` (slice A),
+  `8c3d00c` (R4), `92fc5bf` (R2/R3), `382d909` (R1), `37b9541` (US6),
+  `1594d56` (US7), `144fa4f` (T066), `23ccb98` (T067), `2f05e3d` (T068/T069),
+  `da96ab4` (review fixes), then the gate handoff commit with this file and
+  `review/C3.md`. Clean after it; nothing pushed. No stash, no
+  `refs/backup/*`.
+- **Exact next action:** wait for the owner's C3 decision (GATE T070,
+  question 5; review page `specs/001-bewerbungs-mvp/review/C3.md`). On
+  acceptance: record it here and in the spec, tick T070, run
+  `pnpm ship --mode auto-merge` (dry run first; a new PR for branch
+  `001-bewerbungs-mvp-c3`). On change requests: fold them in and repeat the
+  handoff. Do not mark anything accepted without the owner's decision.
 
 ## Subsequent handoff schema
 
