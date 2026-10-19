@@ -400,4 +400,38 @@ describe("IndexedDB store", () => {
     });
     expect(await none.requestPersistence()).toBe("unsupported");
   });
+
+  it("reads the persistence state without asking the browser", async () => {
+    let asked = 0;
+    const withAnswer = (persisted: () => Promise<boolean>) =>
+      createIndexedDbStore({
+        channel: noChannel,
+        storage: {
+          estimate: async () => ({ usage: 0, quota: 1 }),
+          persist: async () => {
+            asked += 1;
+            return true;
+          },
+          persisted,
+        },
+      });
+    expect(await withAnswer(async () => true).persistenceState()).toBe(
+      "granted",
+    );
+    expect(await withAnswer(async () => false).persistenceState()).toBe(
+      "denied",
+    );
+    expect(
+      await withAnswer(async () => {
+        throw new Error("blocked");
+      }).persistenceState(),
+    ).toBe("unsupported");
+    expect(
+      await createIndexedDbStore({
+        channel: noChannel,
+        storage: {} as never,
+      }).persistenceState(),
+    ).toBe("unsupported");
+    expect(asked).toBe(0);
+  });
 });

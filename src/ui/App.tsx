@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { KandiduStore } from "../storage/port";
+import { BackupImport } from "./data/BackupImport";
 import { DataPage } from "./data/DataView";
 import { Home } from "./Home";
 import { errorMessage, useMessages } from "./i18n";
@@ -159,6 +160,9 @@ function Recovery({ cause }: { cause: unknown }) {
           </button>
         )}
       </div>
+      <h2>{m.backup.importHeading}</h2>
+      <p>{m.backup.recoveryHint}</p>
+      <BackupImport hasData />
       {confirming && (
         <fieldset className="confirm">
           <legend>{m.recovery.resetStart}</legend>

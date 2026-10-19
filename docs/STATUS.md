@@ -102,13 +102,26 @@ old route showed "Nicht gefunden" (reset now returns to Home). New dev
 dependency `@axe-core/playwright` 4.14.0 (exact pin; `pnpm audit`: no known
 vulnerabilities).
 
-### Started, not ticked (finish with their story)
+US5 (Sicherung exportieren und importieren), own commit "feat: export and
+import a full backup (US5)":
+
+| Task | Spec IDs | Evidence |
+| --- | --- | --- |
+| T054 backup storage (manifest, SHA-256, LIESMICH from the catalog, validate first, one replacing transaction, works after a failed load) + `persistenceState()` | FR-043, SC-007 | `backup.test.ts` (17 tests); `indexeddb.test.ts` new: `persistenceState` granted/denied/unsupported/throwing, never prompts |
+| T055 backup UI on `#/daten` and in the recovery view | FR-041, FR-043, FR-045 | e2e `C2 backup: export is named by date …` (name `JJJJ-MM-TT_Kandidu_Sicherung.zip`, notice, LIESMICH), `… import asks before replacing, and invalid or newer backups change nothing`, `… the recovery view imports a backup over damaged data` |
+| T056 e2e journey (delegated, reviewed) | FR-043, SC-007 | e2e `C2 backup: a full C1 state survives export and import into a fresh browser` (profile, lead, status, ZIP entry names and page counts identical; empty target imports without asking) |
+
+Review fixes on the delegated T056 test: removed a constant snapshot field
+that proved nothing; the package page count is now also checked absolutely
+(3 = cover letter 1 + CV 2), not only before vs. after.
+
+### Started before US3, now finished (history)
 
 | Task | State | Open points |
 | --- | --- | --- |
 | T054 backup storage (US5) | `src/storage/backup.ts` (`buildBackup`, `parseBackup`), adapter `exportBackup(readme)` / `importBackup` (allowed after a failed load, one replacing transaction, export does not move the known revision), new port method `persistenceState()`, new error `backup-invalid`; `backup.test.ts` 17 tests (round trip bit-identical, replace, recovery import, 11 damage cases, stale-tab conflict) | no UI yet (T055); `persistenceState()` has no adapter test; `unsupported-version` text says "gespeicherte Daten" and needs a backup-specific wording in T055; contracts updated |
 
-Not started: T055–T056 (US5), T057 (GATE).
+The T054 open points above are resolved in US5. Not started: T057 (GATE).
 
 Already present from C1 and relevant later: revision conflict detection and the
 stale-tab banner (T051 needs only UI/e2e proof), resume routing by `promptState`
@@ -130,6 +143,10 @@ and the "Antwort ausstehend" badge (T048 needs the restart e2e).
 
 ### Checks (2026-10-19, Node 24.21.0, pnpm 10.34.7)
 
+- After US5: **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0.** Biome 117 files;
+  `tsc -b` ok; dependency-cruiser 111 modules / 388 dependencies, no
+  violations; Vitest 26 files / **245 tests**; build ok; Playwright **53
+  passed, 1 skipped**.
 - After US4: **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0.** Biome 115 files;
   `tsc -b` ok; dependency-cruiser 110 modules / 377 dependencies, no
   violations; Vitest 26 files / **244 tests**; build ok; Playwright **45
@@ -349,8 +366,7 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
   US2 commit with the started US3/US5 work (see "C2 in progress"). Nothing
   pushed until the C2 gate is approved. Untracked local safety ref
   `refs/backup/c1-wip` still exists (never pushed).
-- **Exact next action:** US5 (T054 follow-ups, T055, T056), finished, green
-  and committed; then the C2 GATE T057.
+- **Exact next action:** C2 GATE T057 (handoff procedure in AGENTS.md).
 
 ## Subsequent handoff schema
 
