@@ -124,8 +124,14 @@ a {
 }
 .field {
   display: grid;
+  /* minmax(0, …): a wide control (the file picker's text depends on the
+     platform's fonts) must not widen the column past the viewport. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.25rem;
   margin-block: 0.75rem;
+}
+input[type="file"] {
+  max-width: 100%;
 }
 .field-grid {
   display: grid;
