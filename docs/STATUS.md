@@ -175,6 +175,21 @@ slice below; nothing of C3 is human-accepted.
   template deletion, 360 px). `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0
   (Biome 126 files, dependency-cruiser 116 modules / 426 dependencies, Vitest
   27 files / 317 tests, Playwright 103 passed, 1 skipped).
+- **T066 accessibility pass (main session): implemented and verified.**
+  Closes the C2 review item "focus falls to `<body>`" everywhere it applied:
+  removing a tag (→ tag input), a link (→ link input), a package item (→ "PDF
+  auswählen"), a package (→ "Weiteres Paket-PDF"), cancelling the backup
+  import (→ file picker; `FileField` got an `inputRef`), and every inline
+  confirmation that replaces its button (undo and comment delete in
+  Verlauf, which the delegated T060 had missed; "Zurück in den Review";
+  CV delete; both reset dialogs): focus moves to "Abbrechen" on open and
+  back to the opener on cancel, via the new `useReturnFocus` hook and the
+  stable `focusOnMount` ref in `src/ui/focus.ts`. New e2e `C3 keyboard:
+  Verlauf, comments and every removal keep the focus` (status change,
+  comment and undo by keyboard with announcements, then each removal and
+  cancel above, axe scan). `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0
+  (dependency-cruiser 116 modules / 432 dependencies, Vitest 317 tests,
+  Playwright 105 passed, 1 skipped).
 
 | Feedback | Timing | Spec | Tasks |
 | --- | --- | --- | --- |

@@ -243,7 +243,7 @@ in `docs/STATUS.md`.
 
 **Purpose**: Demonstrate agreed acceptance criteria and hand off
 
-- [ ] T066 [P] Accessibility pass: keyboard-only journey, focus, labels, status/error announcements. Covers: FR-047, SC-009.
+- [X] T066 [P] Accessibility pass: keyboard-only journey, focus, labels, status/error announcements. Covers: FR-047, SC-009.
 - [ ] T067 [P] [ROUTINE] Localization pass: no user-facing strings outside src/ui/i18n/, `Intl` formatting, layouts tolerate longer text at mobile width. Covers: FR-048.
 - [ ] T068 Run quickstart.md validation. Covers: SC-001.
 - [ ] T069 Document known limits and exact restart/resume steps in docs/STATUS.md and README.md. Covers: FR-045.

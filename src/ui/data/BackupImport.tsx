@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FileField } from "../FileField";
 import { errorCode, errorMessage, useMessages } from "../i18n";
 import { useApp } from "../state";
@@ -13,6 +13,7 @@ export function BackupImport({ hasData }: { hasData: boolean }) {
   const [pending, setPending] = useState<{ name: string; bytes: Uint8Array }>();
   const [error, setError] = useState("");
   const [working, setWorking] = useState(false);
+  const picker = useRef<HTMLInputElement>(null);
 
   async function run(bytes: Uint8Array) {
     setPending(undefined);
@@ -52,6 +53,7 @@ export function BackupImport({ hasData }: { hasData: boolean }) {
         accept=".zip,application/zip"
         disabled={busy || working}
         storageWarning={false}
+        inputRef={picker}
         onFile={(file) => void pick(file)}
       />
       {pending && (
@@ -70,7 +72,11 @@ export function BackupImport({ hasData }: { hasData: boolean }) {
             <button
               type="button"
               className="secondary"
-              onClick={() => setPending(undefined)}
+              onClick={() => {
+                setPending(undefined);
+                // The confirmation closes; go back to the file picker.
+                picker.current?.focus();
+              }}
             >
               {m.common.cancel}
             </button>
