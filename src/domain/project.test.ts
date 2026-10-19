@@ -22,6 +22,7 @@ import {
   removeLink,
   renameProject,
   type StoredResponse,
+  setProjectPosition,
   setPromptContext,
   setResponseDraft,
   updateLink,
@@ -158,6 +159,29 @@ describe("links", () => {
     expect(r.links).toEqual([]);
     expect(r.updatedAt).toBe(T1);
     expectCode(() => removeLink(withLink(), "zz", T1), "link-not-found");
+  });
+});
+
+describe("project Stelle (FR-049)", () => {
+  it("trims, clears on blank and enforces 200 characters", () => {
+    const set = setProjectPosition(base(), "  Industriekaufmann ", T1);
+    expect(set.position).toBe("Industriekaufmann");
+    expect(set.updatedAt).toBe(T1);
+    expect("position" in setProjectPosition(set, "   ", T1)).toBe(false);
+    expect(
+      setProjectPosition(base(), "x".repeat(200), T1).position,
+    ).toHaveLength(200);
+    expectCode(
+      () => setProjectPosition(base(), "x".repeat(201), T1),
+      "position-too-long",
+    );
+  });
+
+  it("does not change the prompt (it never goes to the LLM)", () => {
+    const p = withLink();
+    expect(promptFingerprint(setProjectPosition(p, "Kaufmann", T1))).toBe(
+      promptFingerprint(p),
+    );
   });
 });
 

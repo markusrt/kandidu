@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { LEAD_LIMITS } from "../../domain/lead";
 import {
   addLink,
   LINK_MAX,
@@ -7,6 +8,7 @@ import {
   type Project,
   removeLink,
   renameProject,
+  setProjectPosition,
   setPromptContext,
   updateLink,
 } from "../../domain/project";
@@ -28,6 +30,9 @@ export function LinksStep({ project }: { project: Project }) {
   const [editError, setEditError] = useState("");
   const [context, setContext] = useState(project.promptContext);
   const [contextError, setContextError] = useState("");
+  const [position, setPosition] = useState(project.position ?? "");
+  const [positionError, setPositionError] = useState("");
+  const positionId = useId();
   const titleId = useId();
   const urlId = useId();
   const editId = useId();
@@ -38,9 +43,11 @@ export function LinksStep({ project }: { project: Project }) {
 
   const editedLink = project.links.find((l) => l.id === editing);
   const contextDirty = context !== project.promptContext;
+  const positionDirty = position.trim() !== (project.position ?? "");
   const dirty =
     title.trim() !== project.title ||
     contextDirty ||
+    positionDirty ||
     url.trim() !== "" ||
     (editedLink !== undefined && editUrl.trim() !== editedLink.url);
   useUnsavedGuard(dirty, m.common.unsavedConfirm);
@@ -110,6 +117,18 @@ export function LinksStep({ project }: { project: Project }) {
     if (await save(next, m.project.linkUpdated)) stopEdit();
   }
 
+  async function savePosition() {
+    setPositionError("");
+    let next: Project;
+    try {
+      next = setProjectPosition(project, position, nowIso());
+    } catch (cause) {
+      setPositionError(errorMessage(cause, m));
+      return;
+    }
+    if (await save(next, m.common.saved)) setPosition(next.position ?? "");
+  }
+
   async function saveContext() {
     setContextError("");
     let next: Project;
@@ -156,6 +175,46 @@ export function LinksStep({ project }: { project: Project }) {
           >
             {m.project.rename}
           </button>
+        </form>
+      </section>
+      <section className="card" aria-labelledby="position-heading">
+        <h2 id="position-heading">{m.project.positionHeading}</h2>
+        <form
+          className="inline-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void savePosition();
+          }}
+        >
+          <div className="field">
+            <label htmlFor={positionId}>{m.project.positionLabel}</label>
+            <input
+              id={positionId}
+              value={position}
+              maxLength={LEAD_LIMITS.letterPosition}
+              aria-invalid={positionError ? true : undefined}
+              aria-describedby={`${positionId}-hint${
+                positionError ? ` ${positionId}-error` : ""
+              }`}
+              onChange={(event) => setPosition(event.target.value)}
+            />
+            <p id={`${positionId}-hint`} className="hint">
+              {m.project.positionHint}
+            </p>
+            {positionError && (
+              <p id={`${positionId}-error`} className="field-error">
+                {positionError}
+              </p>
+            )}
+          </div>
+          <button
+            type="submit"
+            className="secondary"
+            disabled={busy || !positionDirty}
+          >
+            {m.project.positionSave}
+          </button>
+          {positionDirty && <span className="hint">{m.common.unsaved}</span>}
         </form>
       </section>
       <section className="card" aria-labelledby="links-heading">

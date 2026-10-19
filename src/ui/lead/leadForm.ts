@@ -42,6 +42,7 @@ export interface LeadForm {
   readonly research: string;
   readonly motivation: string;
   readonly salutationOverride: string;
+  readonly letterPosition: string;
 }
 
 export function formFromLead(lead: Lead): LeadForm {
@@ -81,6 +82,7 @@ export function formFromLead(lead: Lead): LeadForm {
     research: lead.research,
     motivation: lead.motivation,
     salutationOverride: lead.salutationOverride ?? "",
+    letterPosition: lead.letterPosition ?? "",
   };
 }
 

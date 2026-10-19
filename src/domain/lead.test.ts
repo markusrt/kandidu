@@ -95,21 +95,64 @@ describe("reviseLead", () => {
     const next = reviseLead(
       sampleLead(),
       { ...draft(), motivation: "Neu." },
-      "  Liebes Team,  ",
+      { salutationOverride: "  Liebes Team,  " },
       NOW,
     );
     expect(next.motivation).toBe("Neu.");
     expect(next.salutationOverride).toBe("Liebes Team,");
     expect(next.updatedAt).toBe(NOW);
-    const cleared = reviseLead(next, draft(), " ", NOW);
+    const cleared = reviseLead(next, draft(), { salutationOverride: " " }, NOW);
     expect("salutationOverride" in cleared).toBe(false);
+  });
+
+  it("sets, trims and clears the lead's own Stelle (FR-049)", () => {
+    const next = reviseLead(
+      sampleLead(),
+      draft(),
+      { letterPosition: "  Kaufmann für Büromanagement " },
+      NOW,
+    );
+    expect(next.letterPosition).toBe("Kaufmann für Büromanagement");
+    expect("letterPosition" in reviseLead(next, draft(), {}, NOW)).toBe(false);
+    expect(
+      "letterPosition" in
+        reviseLead(next, draft(), { letterPosition: "   " }, NOW),
+    ).toBe(false);
+    expect(
+      code(() =>
+        reviseLead(
+          sampleLead(),
+          draft(),
+          { letterPosition: "x".repeat(201) },
+          NOW,
+        ),
+      ),
+    ).toBe("lead-invalid");
+    expect(
+      reviseLead(
+        sampleLead(),
+        draft(),
+        { letterPosition: "x".repeat(200) },
+        NOW,
+      ).letterPosition,
+    ).toHaveLength(200);
   });
 
   it("is locked outside review", () => {
     const ready = sampleLead({ status: "ready" });
-    expect(code(() => reviseLead(ready, draft(), undefined, NOW))).toBe(
+    expect(code(() => reviseLead(ready, draft(), {}, NOW))).toBe(
       "not-in-review",
     );
+    expect(
+      code(() =>
+        reviseLead(
+          sampleLead({ status: "ready", letterPosition: "Alt" }),
+          draft(),
+          { letterPosition: "Neu" },
+          NOW,
+        ),
+      ),
+    ).toBe("not-in-review");
     expect(code(() => setCoverLetterPdf(ready, pdf, NOW))).toBe(
       "not-in-review",
     );
@@ -117,7 +160,7 @@ describe("reviseLead", () => {
 
   it("rejects too long fields", () => {
     const long = { ...draft(), research: "x".repeat(50_001) };
-    expect(code(() => reviseLead(sampleLead(), long, undefined, NOW))).toBe(
+    expect(code(() => reviseLead(sampleLead(), long, {}, NOW))).toBe(
       "lead-invalid",
     );
   });

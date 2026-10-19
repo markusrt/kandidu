@@ -1,4 +1,4 @@
-import type { LeadDraft } from "./lead";
+import { LEAD_LIMITS, type LeadDraft } from "./lead";
 import { isHttpUrl } from "./profile";
 
 export const PROJECT_TITLE_MAX = 120;
@@ -92,7 +92,8 @@ export type ProjectErrorCode =
   | "no-links"
   | "context-too-long"
   | "draft-too-large"
-  | "link-not-found";
+  | "link-not-found"
+  | "position-too-long";
 
 export class ProjectError extends Error {
   readonly code: ProjectErrorCode;
@@ -200,6 +201,20 @@ export function removeLink(
   return touch(project, now, {
     links: project.links.filter((l) => l.id !== linkId),
   });
+}
+
+/** Sets the project's "Stelle (im Anschreiben)"; blank removes it (FR-049). */
+export function setProjectPosition(
+  project: Project,
+  value: string,
+  now: string,
+): Project {
+  const position = value.trim();
+  if (position.length > LEAD_LIMITS.letterPosition) {
+    throw new ProjectError("position-too-long");
+  }
+  const { position: _old, ...rest } = project;
+  return touch(rest, now, position ? { position } : {});
 }
 
 export function setPromptContext(

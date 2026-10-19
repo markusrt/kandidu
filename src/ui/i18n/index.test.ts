@@ -91,6 +91,7 @@ describe("letter wording", () => {
     const fmt = letterFormatter(de);
     const data = buildCoverLetterData(
       sampleProfile(),
+      undefined,
       sampleLead(),
       "2026-10-18",
       fmt,
