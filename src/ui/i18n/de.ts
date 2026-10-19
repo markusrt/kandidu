@@ -40,13 +40,13 @@ const percentFormat = new Intl.NumberFormat("de-DE", {
 const isoToDate = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00Z`);
 
 function bytes(size: number): string {
-  if (size < 1024) return `${size} B`;
+  if (size < 1024) return `${numberFormat.format(size)} B`;
   if (size < 1024 * 1024) return `${numberFormat.format(size / 1024)} KB`;
   return `${numberFormat.format(size / (1024 * 1024))} MB`;
 }
 
 const plural = (n: number, one: string, many: string) =>
-  `${n} ${n === 1 ? one : many}`;
+  `${numberFormat.format(n)} ${n === 1 ? one : many}`;
 
 export const de = {
   locale: "de-DE",
@@ -96,7 +96,7 @@ export const de = {
       "Kandidu wurde in einem anderen Tab geändert. Bitte lade die Seite neu, bevor du weiterarbeitest.",
     reload: "Neu laden",
     stepOf: (current: number, total: number) =>
-      `Schritt ${current} von ${total}`,
+      `Schritt ${numberFormat.format(current)} von ${numberFormat.format(total)}`,
     localNotice:
       "Deine Daten liegen nur in diesem Browser auf diesem Gerät. Wer die Browserdaten löscht, löscht auch Kandidu.",
   },
@@ -200,7 +200,8 @@ export const de = {
     leadCount: (n: number) => plural(n, "Lead", "Leads"),
     pendingResponse: "Antwort ausstehend",
     statusCountsLabel: (project: string) => `Leads nach Status: ${project}`,
-    statusCount: (status: string, n: number) => `${status}: ${n}`,
+    statusCount: (status: string, n: number) =>
+      `${status}: ${numberFormat.format(n)}`,
     nextInterview: (when: string) => `Nächster Gesprächstermin: ${when}`,
     deleteLabel: (project: string) => `Löschen: Projekt ${project}`,
     deletePrompt: (project: string, leads: number, responses: number) =>
@@ -480,7 +481,7 @@ export const de = {
       "Zeugnisse, Zertifikate und andere Nachweise als PDF. Du kannst sie später pro Bewerbung ins Paket aufnehmen. Mit Tags behältst du den Überblick.",
     uploadHeading: "Nachweis hochladen",
     nameLabel: "Name des Nachweises",
-    nameHint: (max: number) => `Höchstens ${max} Zeichen.`,
+    nameHint: (max: number) => `Höchstens ${numberFormat.format(max)} Zeichen.`,
     fileLabel: "PDF-Datei",
     upload: "Hochladen",
     picked: (fileName: string) => `Gewählte Datei: ${fileName}`,
@@ -640,7 +641,7 @@ export const de = {
       "schema-invalid": "Die Antwort passt nicht zum erwarteten Aufbau:",
     },
     jsonPosition: (position: number) =>
-      `Fehler ungefähr bei Zeichen ${position}.`,
+      `Fehler ungefähr bei Zeichen ${numberFormat.format(position)}.`,
     issue: (
       entry: number,
       field: string,
@@ -693,7 +694,7 @@ export const de = {
       `Diese Antwort hast du am ${date} schon eingelesen (${plural(leads, "Lead", "Leads")}). Noch einmal einlesen legt die Leads doppelt an.`,
     duplicateConfirm: "Trotzdem erneut einlesen",
     importValid: (valid: number, total: number) =>
-      `Nur gültige Einträge übernehmen (${valid} von ${total})`,
+      `Nur gültige Einträge übernehmen (${numberFormat.format(valid)} von ${numberFormat.format(total)})`,
   },
 
   leads: {
@@ -719,7 +720,7 @@ export const de = {
     shown: (shown: number, total: number) =>
       shown === total
         ? plural(total, "Lead", "Leads")
-        : `${shown} von ${plural(total, "Lead", "Leads")}`,
+        : `${numberFormat.format(shown)} von ${plural(total, "Lead", "Leads")}`,
     filteredEmpty: "Keine Leads mit diesem Status.",
     deleteLabel: (company: string) => `Löschen: Lead ${company}`,
     deletePrompt: (company: string, comments: number, coverPdf: boolean) =>
