@@ -199,6 +199,14 @@ export const de = {
     createProject: "Projekt anlegen",
     leadCount: (n: number) => plural(n, "Lead", "Leads"),
     pendingResponse: "Antwort ausstehend",
+    statusCountsLabel: (project: string) => `Leads nach Status: ${project}`,
+    statusCount: (status: string, n: number) => `${status}: ${n}`,
+    nextInterview: (when: string) => `Nächster Gesprächstermin: ${when}`,
+    deleteLabel: (project: string) => `Löschen: Projekt ${project}`,
+    deletePrompt: (project: string, leads: number, responses: number) =>
+      `Projekt „${project}“ endgültig löschen? Entfernt werden: das Projekt mit seinen Links, ${plural(responses, "gespeicherte Antwort", "gespeicherte Antworten")} und ${plural(leads, "Lead", "Leads")} mit Verlauf, Kommentaren, Paketen und Anschreiben-PDFs. Profil, Vorlagen, Nachweise und das Lebenslauf-PDF bleiben erhalten.`,
+    deleteConfirm: "Ja, Projekt löschen",
+    deleted: (project: string) => `Projekt „${project}“ gelöscht.`,
     created: "Projekt angelegt.",
   },
 
@@ -694,6 +702,30 @@ export const de = {
     columnCompany: "Unternehmen",
     columnPosition: "Stelle",
     columnStatus: "Status",
+    columns: {
+      company: "Unternehmen",
+      position: "Stelle",
+      status: "Status",
+      next: "Nächster Termin",
+      activity: "Letzte Aktivität",
+      actions: "Aktionen",
+    },
+    none: "–",
+    filterLabel: "Status anzeigen",
+    filterAll: "Alle",
+    sortLabel: "Sortieren nach",
+    sortActivity: "Letzter Aktivität (neueste zuerst)",
+    sortNext: "Nächstem Termin (früheste zuerst)",
+    shown: (shown: number, total: number) =>
+      shown === total
+        ? plural(total, "Lead", "Leads")
+        : `${shown} von ${plural(total, "Lead", "Leads")}`,
+    filteredEmpty: "Keine Leads mit diesem Status.",
+    deleteLabel: (company: string) => `Löschen: Lead ${company}`,
+    deletePrompt: (company: string, comments: number, coverPdf: boolean) =>
+      `Lead „${company}“ endgültig löschen? Entfernt werden: der Lead mit seinem Verlauf, ${plural(comments, "Kommentar", "Kommentare")}, seine Pakete${coverPdf ? " und das hochgeladene Anschreiben-PDF" : ""}. Profil, Vorlagen, Nachweise und das Lebenslauf-PDF bleiben erhalten.`,
+    deleteConfirm: "Ja, Lead löschen",
+    deleted: (company: string) => `Lead „${company}“ gelöscht.`,
     open: (company: string) => `Lead öffnen: ${company}`,
     status: {
       review: "Review (Entwurf)",
@@ -718,6 +750,7 @@ export const de = {
     },
     headingFallback: "Lead",
     eyebrow: (project: string, company: string) => `${project} · ${company}`,
+    backToProject: (project: string) => `Zurück zu den Leads von „${project}“`,
     statusLine: (status: string) => `Status: ${status}`,
     lockedNotice:
       "Dieser Lead ist freigegeben. Zum Ändern gehe in der Freigabe „Zurück in den Review“.",

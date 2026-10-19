@@ -1,10 +1,11 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { DOCUMENT_NAME_MAX, type DocumentRecord } from "../../domain/documents";
 import { documentUsage, withoutDocument } from "../../domain/packages";
 import { tagsInUse } from "../../domain/tags";
 import { MAX_PDF_BYTES } from "../../files/errors";
 import { FileField } from "../FileField";
 import { loadPdf, readPicked } from "../files";
+import { focusOnMount } from "../focus";
 import { useMessages } from "../i18n";
 import { useApp, useSnapshot, useTask } from "../state";
 import { newId, nowIso } from "../time";
@@ -140,6 +141,7 @@ function EvidenceList() {
   const snapshot = useSnapshot();
   const filterId = useId();
   const [filter, setFilter] = useState("");
+  const listHeading = useRef<HTMLHeadingElement>(null);
   const evidence = snapshot.documents
     .filter((d) => d.role === "evidence")
     .sort((a, b) => a.name.localeCompare(b.name, "de"));
@@ -151,7 +153,9 @@ function EvidenceList() {
 
   return (
     <section className="card" aria-labelledby={`${filterId}-heading`}>
-      <h2 id={`${filterId}-heading`}>{m.evidence.listHeading}</h2>
+      <h2 id={`${filterId}-heading`} ref={listHeading} tabIndex={-1}>
+        {m.evidence.listHeading}
+      </h2>
       {evidence.length === 0 ? (
         <p>{m.evidence.none}</p>
       ) : (
@@ -176,7 +180,11 @@ function EvidenceList() {
           ) : (
             <ul className="document-list">
               {shown.map((document) => (
-                <EvidenceItem key={document.id} document={document} />
+                <EvidenceItem
+                  key={document.id}
+                  document={document}
+                  onDeleted={() => listHeading.current?.focus()}
+                />
               ))}
             </ul>
           )}
@@ -186,9 +194,30 @@ function EvidenceList() {
   );
 }
 
-function EvidenceItem({ document }: { document: DocumentRecord }) {
+function EvidenceItem({
+  document,
+  onDeleted,
+}: {
+  document: DocumentRecord;
+  onDeleted: () => void;
+}) {
   const m = useMessages();
   const [mode, setMode] = useState<"view" | "edit" | "delete">("view");
+  const editButton = useRef<HTMLButtonElement>(null);
+  const deleteButton = useRef<HTMLButtonElement>(null);
+  // Back in view mode, focus returns to the button that left it.
+  const returnTo = useRef<"edit" | "delete">(undefined);
+
+  useEffect(() => {
+    if (mode !== "view" || !returnTo.current) return;
+    (returnTo.current === "edit" ? editButton : deleteButton).current?.focus();
+    returnTo.current = undefined;
+  }, [mode]);
+
+  function open(next: "edit" | "delete") {
+    returnTo.current = next;
+    setMode(next);
+  }
 
   return (
     <li>
@@ -210,20 +239,26 @@ function EvidenceItem({ document }: { document: DocumentRecord }) {
             )}
           </p>
           {mode === "delete" ? (
-            <DeleteConfirm document={document} onDone={() => setMode("view")} />
+            <DeleteConfirm
+              document={document}
+              onDone={() => setMode("view")}
+              onDeleted={onDeleted}
+            />
           ) : (
             <div className="actions">
               <button
                 type="button"
                 className="secondary"
-                onClick={() => setMode("edit")}
+                ref={editButton}
+                onClick={() => open("edit")}
               >
                 {m.evidence.edit}
               </button>
               <button
                 type="button"
                 className="secondary"
-                onClick={() => setMode("delete")}
+                ref={deleteButton}
+                onClick={() => open("delete")}
               >
                 {m.evidence.delete}
               </button>
@@ -318,9 +353,12 @@ function EditForm({
 function DeleteConfirm({
   document,
   onDone,
+  onDeleted,
 }: {
   document: DocumentRecord;
   onDone: () => void;
+  /** The item is gone afterwards; the list moves focus. */
+  onDeleted: () => void;
 }) {
   const m = useMessages();
   const snapshot = useSnapshot();
@@ -343,7 +381,7 @@ function DeleteConfirm({
       }),
       m.evidence.deleted,
     );
-    if (ok) onDone();
+    if (ok) onDeleted();
   }
 
   return (
@@ -376,7 +414,13 @@ function DeleteConfirm({
         >
           {m.evidence.confirmDelete}
         </button>
-        <button type="button" className="secondary" onClick={onDone}>
+        <button
+          type="button"
+          className="secondary"
+          // The button that opened this confirmation is gone now.
+          ref={focusOnMount}
+          onClick={onDone}
+        >
           {m.evidence.cancel}
         </button>
       </div>

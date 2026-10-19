@@ -158,6 +158,119 @@ describe("IndexedDB store", () => {
     await expectCode(s.readFile("c1"), "file-missing");
   });
 
+  // US7, SC-011: nothing related stays behind after a delete.
+  async function rawRecords() {
+    const db = await openDB(DB_NAME);
+    const result = {
+      projects: (await db.getAll("projects" as never)) as { id: string }[],
+      leads: (await db.getAll("leads" as never)) as { id: string }[],
+      files: (await db.getAllKeys("files" as never)).map(String).sort(),
+    };
+    db.close();
+    return result;
+  }
+
+  const coverPdf = (fileId: string) => ({
+    fileId,
+    fileName: "a.pdf",
+    size: 1,
+    pageCount: 1,
+    uploadedAt: "t",
+  });
+
+  async function twoProjects() {
+    const s = store();
+    await s.load();
+    await s.saveDocument(cvDocument("cv", "f-cv"), bytes(1));
+    await s.saveProject(
+      sampleProject({
+        responses: [
+          {
+            id: "r1",
+            text: "{}",
+            receivedAt: "t",
+            result: { ok: false, error: "no-json-found" },
+            importedLeadIds: ["lead1", "lead2"],
+          },
+        ],
+      }),
+    );
+    await s.saveProject(sampleProject({ id: "p2", title: "Zweites Projekt" }));
+    await s.saveLeadFile(
+      sampleLead({
+        coverLetterPdf: coverPdf("c1"),
+        comments: [
+          {
+            id: "k1",
+            date: "2026-10-18",
+            text: "Notiz",
+            createdAt: "t",
+            updatedAt: "t",
+          },
+        ],
+      }),
+      bytes(2),
+    );
+    await s.saveLeadFile(
+      sampleLead({ id: "lead2", coverLetterPdf: coverPdf("c2") }),
+      bytes(3),
+    );
+    await s.saveLeadFile(
+      sampleLead({
+        id: "lead3",
+        projectId: "p2",
+        coverLetterPdf: coverPdf("c3"),
+      }),
+      bytes(4),
+    );
+    return s;
+  }
+
+  it("deletes a lead with its cover letter PDF, history and comments only", async () => {
+    const s = await twoProjects();
+    await s.deleteLead("lead1");
+    const raw = await rawRecords();
+    expect(raw.leads.map((l) => l.id).sort()).toEqual(["lead2", "lead3"]);
+    expect(raw.files).toEqual(["c2", "c3", "f-cv"]);
+    expect(raw.projects.map((p) => p.id).sort()).toEqual(["p1", "p2"]);
+    // Deleting an unknown lead changes nothing.
+    await s.deleteLead("gone");
+    expect((await rawRecords()).leads).toHaveLength(2);
+  });
+
+  it("deletes a project with responses, leads and files; profile data stays", async () => {
+    const s = await twoProjects();
+    await s.saveProfile(sampleProfile());
+    await s.deleteProject("p1");
+    const raw = await rawRecords();
+    expect(raw.projects.map((p) => p.id)).toEqual(["p2"]);
+    expect(raw.leads.map((l) => l.id)).toEqual(["lead3"]);
+    expect(raw.files).toEqual(["c3", "f-cv"]);
+    const snapshot = await s.load();
+    expect(snapshot.profile).toEqual(sampleProfile());
+    expect(snapshot.documents.map((d) => d.id)).toEqual(["cv"]);
+  });
+
+  it("leaves everything in place when a cascade delete fails", async () => {
+    const s = await twoProjects();
+    const before = await rawRecords();
+    const proto = globalThis.IDBObjectStore.prototype;
+    const original = proto.delete;
+    let calls = 0;
+    // The second delete inside the transaction fails, after one succeeded.
+    proto.delete = function (this: IDBObjectStore, key: IDBValidKey) {
+      calls += 1;
+      if (calls === 2) throw new DOMException("disk", "UnknownError");
+      return original.call(this, key);
+    } as typeof proto.delete;
+    try {
+      await expectCode(s.deleteProject("p1"), "delete-failed");
+    } finally {
+      proto.delete = original;
+    }
+    expect(await rawRecords()).toEqual(before);
+  });
+
   it("deletes an evidence document with its file and writes the affected leads", async () => {
     const s = store();
     await s.load();

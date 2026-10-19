@@ -517,9 +517,67 @@ legend {
   font-style: italic;
   color: var(--muted);
 }
+.project-summary {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+.status-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9rem;
+}
+.project-list .confirm {
+  flex: 1 1 100%;
+}
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+}
+.filter-bar .field {
+  flex: 1 1 12rem;
+}
 @media (max-width: 30rem) {
   .item-list > li {
     align-items: flex-start;
+  }
+  /* The lead table becomes one card per lead (SC-010). */
+  .lead-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .lead-table tr {
+    display: block;
+    border-bottom: 1px solid var(--line);
+    padding-block: 0.4rem;
+  }
+  .lead-table td {
+    display: grid;
+    grid-template-columns: minmax(0, 8rem) minmax(0, 1fr);
+    gap: 0.5rem;
+    border-bottom: 0;
+    padding: 0.2rem 0;
+    overflow-wrap: anywhere;
+  }
+  .lead-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .lead-table .confirm-row td {
+    display: block;
+  }
+  .lead-table .confirm-row td::before {
+    content: none;
   }
   .actions > button,
   .actions > .button {
