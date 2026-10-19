@@ -65,15 +65,28 @@ at a time, one commit per story (AGENTS.md "Owner working rules").
 
 US2 (Nachweise) is complete: implemented and verified, not yet human-accepted.
 
-### Started, not ticked (in the same commit; finish with their story)
+US3 (Mehrere Links und Leads, flexible Pakete), reviewed and finished in the
+main session on 2026-10-19, own commit "feat: deliver multi-link projects,
+partial import and multiple packages (US3)":
+
+| Task | Spec IDs | Evidence |
+| --- | --- | --- |
+| T072 edit links (inline edit, field errors, Escape, focus return) | FR-012, FR-013 | `project.test.ts` (`updateLink`); e2e `C2 multi: three links, edit, remove and re-add …` |
+| T044 prompt context (≤ 2 000, counter, LLM notice, "Prompt geändert" after copy) | FR-013–FR-015 | `prompt.test.ts`, `project.test.ts` (fingerprint); same e2e |
+| T045 partial import + duplicate guard | FR-019–FR-021 | `project.test.ts` (`partialImport`, `findImportedResponse`, new: partly imported response is found again; the guard lives in `project.ts`, not `lead.ts` as the task text said); e2e `C2 multi: partial import …` |
+| T046 multiple packages (presets with FR-031 names, add/remove, unique names, saved) | FR-030–FR-033 | `packages.test.ts`; e2e `C2 multi: two package PDFs …` |
+| T047 e2e `e2e/c2-multi.spec.ts` | FR-012, FR-013, FR-021, FR-030, FR-031, FR-033 | 8 passed (desktop + mobile) |
+
+Review fixes in US3: the package step lost added/removed/renamed packages
+silently when leaving without saving; it now shows "Ungespeicherte Änderungen"
+and asks before leaving (same guard as profile, review, links). The e2e now
+also checks the FR-031 name suggestions, removing a package and that the ZIP
+download saves the definitions.
+
+### Started, not ticked (finish with their story)
 
 | Task | State | Open points |
 | --- | --- | --- |
-| T072 edit links (US3) | `LinksStep` inline edit with `updateLink`, errors at the field, Escape cancels, focus back to the edit button; domain tests existed from C1 | review e2e coverage in `c2-multi.spec.ts`, tick |
-| T044 prompt context (US3) | textarea (≤ 2 000, counter, notice), save; prompt shows a notice when context is included; "Prompt geändert" text names context; `prompt.test.ts` context case existed from C1 | review, tick |
-| T045 partial import (US3) | domain `partialImport(result)` + tests in `project.test.ts`; ResponseStep button "Nur gültige Einträge übernehmen (n von m)" via `markResponseImported` | check duplicate-guard test in `lead.test.ts` (task text), review e2e, tick |
-| T046 multiple packages (US3) | domain `presetPackage` (FR-031 names) + `setPackages` tests in `packages.test.ts`; PackageStep with one section per package PDF, presets, remove, one ZIP | review, tick |
-| T047 e2e `e2e/c2-multi.spec.ts` (US3) | draft written by the delegated implementer, which was stopped before reporting; **8 passed** locally but **not reviewed** | review against the task text, then tick |
 | T054 backup storage (US5) | `src/storage/backup.ts` (`buildBackup`, `parseBackup`), adapter `exportBackup(readme)` / `importBackup` (allowed after a failed load, one replacing transaction, export does not move the known revision), new port method `persistenceState()`, new error `backup-invalid`; `backup.test.ts` 17 tests (round trip bit-identical, replace, recovery import, 11 damage cases, stale-tab conflict) | no UI yet (T055); `persistenceState()` has no adapter test; `unsupported-version` text says "gespeicherte Daten" and needs a backup-specific wording in T055; contracts updated |
 
 Not started: T048–T053 (US4), T055–T056 (US5), T057 (GATE).
@@ -97,6 +110,15 @@ and the "Antwort ausstehend" badge (T048 needs the restart e2e).
   `KANDIDU_E2E_PORT=4174`.
 
 ### Checks (2026-10-19, Node 24.21.0, pnpm 10.34.7)
+
+- After US3: **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0.** Biome 108 files;
+  `tsc -b` ok; dependency-cruiser 106 modules / 361 dependencies, no
+  violations; Vitest 25 files / **238 tests**; build ok; Playwright **25
+  passed, 1 skipped**. Note: `pnpm test:e2e` alone serves the existing `dist`
+  through `vite preview`, so run `pnpm build` first (a stale build made a
+  single e2e run fail once during US3).
+
+Earlier run (US2 commit):
 
 - **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0.** Biome 108 files; `tsc -b` ok;
   dependency-cruiser 106 modules / 360 dependencies, no violations; Vitest
@@ -304,10 +326,8 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
   US2 commit with the started US3/US5 work (see "C2 in progress"). Nothing
   pushed until the C2 gate is approved. Untracked local safety ref
   `refs/backup/c1-wip` still exists (never pushed).
-- **Exact next action:** finish US3 (review and tick T072, T044, T045, T046,
-  T047; run `KANDIDU_E2E_PORT=4174 pnpm verify`), then commit US3. After that
-  US4, then US5, each finished, green and committed on its own, then the C2
-  GATE T057.
+- **Exact next action:** US4 (T048–T053), finished, green and committed; then
+  US5 (T054–T056), then the C2 GATE T057.
 
 ## Subsequent handoff schema
 

@@ -175,13 +175,32 @@ test("C2 multi: two package PDFs with chosen names in one ZIP, restored after re
   await gotoLeadStep(page, "Paket");
 
   const first = page.getByRole("region", { name: "Paket-PDF 1" });
+  const unsaved = page.getByText("Ungespeicherte Änderungen");
+  await expect(unsaved).toHaveCount(0);
   await first.getByLabel("Dateiname des PDFs").fill("Bewerbung_komplett.pdf");
+  await expect(unsaved).toBeVisible();
 
-  await page
-    .getByLabel("Vorlage für das neue Paket-PDF")
-    .selectOption({ label: "Anschreiben und Lebenslauf" });
-  await page.getByRole("button", { name: "Paket-PDF hinzufügen" }).click();
+  // A preset suggests its FR-031 name; an extra package can be removed again.
+  const preset = page.getByLabel("Vorlage für das neue Paket-PDF");
+  const addPackage = page.getByRole("button", { name: "Paket-PDF hinzufügen" });
+  await preset.selectOption({ label: "Alles in einem PDF" });
+  await addPackage.click();
+  await expect(
+    page
+      .getByRole("region", { name: "Paket-PDF 2" })
+      .getByLabel("Dateiname des PDFs"),
+  ).toHaveValue(/^\d{4}-\d{2}-\d{2}_.+_Bewerbung\.pdf$/);
+  await page.getByRole("button", { name: "Paket-PDF 2 entfernen" }).click();
+  await expect(
+    page.getByRole("region", { name: /^Paket-PDF \d$/ }),
+  ).toHaveCount(1);
+
+  await preset.selectOption({ label: "Anschreiben und Lebenslauf" });
+  await addPackage.click();
   const second = page.getByRole("region", { name: "Paket-PDF 2" });
+  await expect(second.getByLabel("Dateiname des PDFs")).toHaveValue(
+    /^\d{4}-\d{2}-\d{2}_.+_Anschreiben_Lebenslauf\.pdf$/,
+  );
   await second.getByLabel("Dateiname des PDFs").fill("Nur_Lebenslauf.pdf");
   // The second PDF carries the CV only.
   await second
@@ -194,6 +213,8 @@ test("C2 multi: two package PDFs with chosen names in one ZIP, restored after re
   const zip = await captureDownload(page, () =>
     page.getByRole("button", { name: "ZIP herunterladen" }).click(),
   );
+  // Downloading saves the definitions.
+  await expect(unsaved).toHaveCount(0);
   const entries = zipEntries(zip.bytes);
   expect([...entries.keys()].sort()).toEqual([
     "Bewerbung_komplett.pdf",

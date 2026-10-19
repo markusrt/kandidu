@@ -17,6 +17,7 @@ import { useMessages } from "../i18n";
 import { Link } from "../router";
 import { useApp, useSnapshot, useTask } from "../state";
 import { newId, nowIso, todayIso } from "../time";
+import { useUnsavedGuard } from "../unsaved";
 import { PackageEditor } from "./PackageEditor";
 
 const PRESETS: readonly PackagePreset[] = [
@@ -32,7 +33,7 @@ export function PackageStep({ lead }: { lead: Lead }) {
   const { running, run } = useTask();
   const presetId = useId();
   const words = m.letter.fileWords;
-  const [definitions, setDefinitions] = useState<readonly PackageDef[]>(() =>
+  const [initial] = useState<readonly PackageDef[]>(() =>
     effectivePackages(lead, () =>
       defaultPackage(
         newId(),
@@ -40,7 +41,14 @@ export function PackageStep({ lead }: { lead: Lead }) {
       ),
     ),
   );
+  const [definitions, setDefinitions] = useState(initial);
   const [preset, setPreset] = useState<PackagePreset>("coverLetterAndCv");
+  // Added, removed or renamed packages only persist on save or download.
+  const dirty =
+    lead.status !== "review" &&
+    JSON.stringify(definitions) !==
+      JSON.stringify(lead.packages.length > 0 ? lead.packages : initial);
+  useUnsavedGuard(dirty, m.common.unsavedConfirm);
   const cv = findCvDocument(snapshot.documents);
   const evidenceIds = snapshot.documents
     .filter((d) => d.role === "evidence")
@@ -272,6 +280,7 @@ export function PackageStep({ lead }: { lead: Lead }) {
         >
           {m.package.saveDefinition}
         </button>
+        {dirty && <span className="hint">{m.common.unsaved}</span>}
       </div>
     </>
   );
