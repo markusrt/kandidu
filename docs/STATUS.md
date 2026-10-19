@@ -15,13 +15,16 @@
   T038 done. **C2 – Useful and recoverable: approved by the owner on
   2026-10-19 with follow-ups** (`specs/001-bewerbungs-mvp/feedback/C2.md`;
   on `main` as `16b34bb`) and **shipped** (see "C2 ship result"). GATE task
-  T057 done. **C3 – Agreed acceptance: implemented and verified, GATE T070
-  pending an explicit human decision** (2026-10-19): C3 Phase A (R1–R4),
-  US6, US7, Polish T066–T069; all tasks except T070 ticked.
+  T057 done. **C3 – Agreed acceptance: accepted by the owner on 2026-10-19**
+  ("C3 ist abgenommen mit auto-merge"), GATE T070 done: C3 Phase A (R1–R4),
+  US6, US7, Polish T066–T069. Shipping is recorded under "C3 ship result"
+  once it has run.
 - Approval state: C1 approved without change requests. C2 approved with
-  follow-ups R1–R6 (R1–R4 now built in C3, R5–R6 in the spec backlog).
-  **C3 awaiting the owner's acceptance** (accept, or request changes); silence
-  is not acceptance. Owner review page: `specs/001-bewerbungs-mvp/review/C3.md`.
+  follow-ups R1–R6 (R1–R4 built in C3, R5–R6 in the spec backlog). **C3
+  accepted without change requests.** There is no `feedback/C3.md`; the
+  decision was given in the chat of 2026-10-19. The owner did not object to
+  the review-page proposal on the entered link (question 4), so it stays as
+  built. Owner review page: `specs/001-bewerbungs-mvp/review/C3.md`.
 - Ship mode: **`auto-merge`** (owner decision 2026-10-18, confirmed in the C2
   feedback). This authorizes push, PR, merge after green CI, and the GitHub
   Pages deployment for this product, after each approved gate. C3 work stays
@@ -738,10 +741,11 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
    another link; that other link is kept as a source. Keep this, or keep
    the LLM's link? Recommendation: keep (the entered link is known for
    sure). Nonblocking for acceptance unless you want it changed.
-5. **C3 decision (blocking for shipping C3):** accept C3 (agreed acceptance
-   of the MVP; ship mode `auto-merge` then pushes, opens the PR, merges after
-   green CI and deploys), or request changes. Optional: plan R5/R6 from the
-   backlog as a next feature.
+   **Answered 2026-10-19 implicitly**: C3 accepted without change requests, so
+   the behavior stays (the owner may still reverse it as a follow-up).
+5. ~~C3 decision.~~ **Answered 2026-10-19**: C3 accepted, ship mode
+   `auto-merge`. Open and nonblocking: whether to plan R5/R6 from the backlog
+   as a next feature.
 
 ## Review steps for the owner at C3 (≤ 3)
 
@@ -797,15 +801,17 @@ it is gone: `pnpm install --frozen-lockfile`, then the same command.
   `36e4b0a` (C2 ship result), `ceb1237` (C3 plan), `93c6140` (slice A),
   `8c3d00c` (R4), `92fc5bf` (R2/R3), `382d909` (R1), `37b9541` (US6),
   `1594d56` (US7), `144fa4f` (T066), `23ccb98` (T067), `2f05e3d` (T068/T069),
-  `da96ab4` (review fixes), then the gate handoff commit with this file and
-  `review/C3.md`. Clean after it; nothing pushed. No stash, no
-  `refs/backup/*`.
-- **Exact next action:** wait for the owner's C3 decision (GATE T070,
-  question 5; review page `specs/001-bewerbungs-mvp/review/C3.md`). On
-  acceptance: record it here and in the spec, tick T070, run
-  `pnpm ship --mode auto-merge` (dry run first; a new PR for branch
-  `001-bewerbungs-mvp-c3`). On change requests: fold them in and repeat the
-  handoff. Do not mark anything accepted without the owner's decision.
+  `da96ab4` (review fixes), `b20edb7` (gate handoff with this file and
+  `review/C3.md`), then the acceptance commit (T070 ticked). Nothing was
+  pushed before the ship. No stash, no `refs/backup/*`.
+- **Exact next action (state after the merge):** C3 is on `main` and live at
+  <https://markusrt.github.io/kandidu/>; the branch `001-bewerbungs-mvp-c3` is
+  deleted by the merge, and the MVP (001-bewerbungs-mvp) is complete. Start a
+  new branch from `origin/main` only for a follow-up feature: `/speckit-specify`
+  for R5 (cover letter template per project) and/or R6 (date in the PDF stays
+  fixed, spike), from the spec's "Backlog", after the owner confirms scope. If
+  the ship did not complete, the fix goes on a new branch (exit code 1) or the
+  printed hint applies (exit code 3); see "C3 ship result".
 
 ## Subsequent handoff schema
 
