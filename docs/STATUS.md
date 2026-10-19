@@ -4,19 +4,27 @@
 
 - Updated: 2026-10-19.
 - Product: **Kandidu** (Bewerbungs-Assistent), repository `markusrt/kandidu`.
-- Branch: `001-bewerbungs-mvp` (local, recreated from `main` at `b8af643` for C2;
-  the remote branch of the same name was deleted when PR #1 merged). Not pushed.
+- Branch: C2 was built on `001-bewerbungs-mvp` (local, recreated from `main` at
+  `b8af643`; the remote branch of the same name was deleted when PR #1 merged).
+  This file is written for the C2 ship: `pnpm ship --mode auto-merge` pushes
+  that branch, opens a **new** PR (PR #1 with the same branch name is merged),
+  rebase-merges it and deletes the branch, so `main` gets new commit hashes.
+  C3 starts on a new local branch `001-bewerbungs-mvp-c3` from `origin/main`
+  (Spec Kit finds the feature through `.specify/feature.json`, not the branch).
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
   gebe C1 frei mit auto-merge") and **shipped** (see "C1 ship result"). GATE task
-  T038 done. **C2 – Useful and recoverable: implemented and verified, GATE T057
-  pending an explicit human decision** (2026-10-19). Nothing of C3 started.
-- Approval state: C1 approved without change requests. **C2 awaiting the
-  owner's decision** (approve, or request changes); silence is not approval.
-- Ship mode: **`auto-merge`** (owner decision 2026-10-18). This authorizes push,
-  PR, merge after green CI, and the GitHub Pages deployment for this product,
-  after each approved gate. C2 work stays local until the C2 gate is approved.
+  T038 done. **C2 – Useful and recoverable: approved by the owner on
+  2026-10-19 with follow-ups** (`specs/001-bewerbungs-mvp/feedback/C2.md`,
+  committed unchanged in `16fc817`). GATE task T057 done. Nothing of C3 started.
+- Approval state: C1 approved without change requests. C2 approved with
+  follow-ups R1–R6, no defects found; the owner tried review steps 1–2. R1–R4
+  are due at the next checkpoint (C3), R5–R6 go to the backlog.
+- Ship mode: **`auto-merge`** (owner decision 2026-10-18, confirmed in the C2
+  feedback). This authorizes push, PR, merge after green CI, and the GitHub
+  Pages deployment for this product, after each approved gate. C3 work stays
+  local until the C3 gate is approved.
 - Owner instructions (2026-10-18, still valid): `.gitattributes` with
   `*.sh text eol=lf`; Spec Kit init committed separately (`54fa373 chore:
   initialize Spec Kit` after the rebase merge).
@@ -31,6 +39,17 @@
   story after another, each finished, green and committed; delegate only tasks
   of the current story and do not touch files their checks use meanwhile.
   US2 plus the started US3/US5 work go into one commit, then hand over.
+- Owner instructions (2026-10-19, C2 gate): commit the feedback file
+  unchanged; record the approval and tick T057; ship with `auto-merge`
+  (dry run first, check that a new PR is created, check the live URL); then a
+  new local branch for C3; fold R1–R4 into spec and tasks for C3 via
+  `/speckit-clarify` (questions batched with recommendations, including the
+  migration of stored data and the backup format), R5–R6 into a backlog
+  section of the spec; record feedback ID → FR/task here; then
+  `/speckit-implement` up to the C3 gate T070, one story at a time. Merge the
+  delegated tasks of all C3 sessions here by hand (`pnpm models:check` sees
+  only the current session). At the C3 gate also write the review steps to
+  `specs/001-bewerbungs-mvp/review/C3.md` (German, ≤ 30 lines).
 
 ## C1 ship result (2026-10-18, verified 2026-10-19)
 
@@ -46,13 +65,16 @@
   `curl`: HTTP 200, `lang="de"`, `<title>Kandidu</title>`. Public (GitHub Pages);
   all data stays in the visitor's browser.
 
-## C2 scope and evidence (GATE T057 pending, 2026-10-19)
+## C2 scope and evidence (GATE T057 approved with follow-ups, 2026-10-19)
 
-All C2 tasks T039–T056 and T071–T073 are ticked; T057 (GATE) is open. Every
-story below is implemented and verified by tests, **none is human-accepted
-yet**. Commits per story (owner rule "one story at a time"): `c715960` (T071),
-`f5739c0` (US2 + started US3/US5), `ace67cc` (US3), `e7fba0e` (US4),
-`5ac1c78` (US5), then the C2 review-fix commit and the gate handoff commit.
+All C2 tasks T039–T056, T071–T073 and the GATE T057 are ticked. Every story
+below is implemented and verified by tests and **approved by the owner at the
+C2 gate** (review steps 1–2 tried, no defects; follow-ups R1–R6 in
+`feedback/C2.md`). Commits per story (owner rule "one story at a time") on the
+local C2 branch: `c715960` (T071), `f5739c0` (US2 + started US3/US5),
+`ace67cc` (US3), `e7fba0e` (US4), `5ac1c78` (US5), `d3b184a` (C2 review
+fixes), `9c213bf` (gate handoff), `16fc817` (owner feedback). The rebase
+merge gives them new hashes on `main`.
 
 ### US2 and C1 feedback (ticked in tasks.md)
 
@@ -403,9 +425,9 @@ Remaining (accepted for C1, noted for C2):
 - Agent environment: drive C: was 100 % full during part of this session (tests
   ran with TMP/TEMP on D:), and the owner's PC crashed (bluescreen) before the
   first feature commit. After the crash: `git fsck` clean, no empty/NUL files,
-  full `pnpm verify` green. A non-branch safety snapshot was written to
-  `refs/backup/c1-wip` (local ref, never pushed); it can be deleted with
-  `git update-ref -d refs/backup/c1-wip`. Not product issues.
+  full `pnpm verify` green. The temporary safety ref `refs/backup/c1-wip` no
+  longer exists (`git for-each-ref refs/backup` empty, 2026-10-19). Not
+  product issues.
 
 ## Questions for the owner
 
@@ -418,11 +440,11 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
    task T071).
 2. Trademark search (DPMA/EUIPO/WIPO) before any public launch (open item from the
    brief; the 2026-10-18 web/domain check is not a clearance). Nonblocking.
-3. **C2 decision (blocking for C3 and for shipping C2):** approve C2, or
-   request changes. On approval the recorded ship mode `auto-merge` pushes the
-   branch, opens the PR, merges after green CI and deploys to GitHub Pages.
+3. ~~C2 decision: approve C2, or request changes.~~ **Answered 2026-10-19**:
+   approved with follow-ups R1–R6, ship mode `auto-merge`
+   (`specs/001-bewerbungs-mvp/feedback/C2.md`).
 
-## Review steps for the owner at C2 (≤ 3)
+## Review steps for the owner at C2 (≤ 3, done: steps 1–2 tried, approved)
 
 The dev server was started with `pnpm dev --host 127.0.0.1 --port 5173
 --strictPort` and answered on **<http://127.0.0.1:5173/>** (HTTP 200,
@@ -458,16 +480,20 @@ it is gone: `pnpm install --frozen-lockfile`, then the same command.
 
 ## Worktree and next action
 
-- Worktree: C1 is merged into `main` (`b8af643`) and live. C2 is on the local
-  branch `001-bewerbungs-mvp`: `01abef1` (docs), `c715960` (T071), `f5739c0`
-  (US2), `ace67cc` (US3), `e7fba0e` (US4), `5ac1c78` (US5), then the C2
-  review-fix commit and the gate handoff commit (this file). Clean after the
-  handoff commit; nothing pushed. Local safety ref `refs/backup/c1-wip` still
-  exists (never pushed).
-- **Exact next action:** wait for the owner's C2 decision (GATE T057). On
-  approval: record it here, tick T057, run `pnpm ship --mode auto-merge`. On
-  change requests: fold them in and repeat the handoff. Do not start C3 (US6)
-  before that.
+- Worktree (written for the C2 ship): C1 is merged into `main` (`b8af643`)
+  and live. C2 (approved) is on the local branch `001-bewerbungs-mvp` on top
+  of `b8af643`: `01abef1` (docs), `c715960` (T071), `f5739c0` (US2), `ace67cc`
+  (US3), `e7fba0e` (US4), `5ac1c78` (US5), `d3b184a` (review fixes),
+  `9c213bf` (gate handoff), `16fc817` (owner feedback), then the approval
+  commit with this file. The worktree is clean after it. `pnpm ship --mode
+  auto-merge` pushes the branch, opens a new PR, rebase-merges it after green
+  CI, deletes the branch and deploys `main` to GitHub Pages. No other local
+  refs (no stash, no `refs/backup/*`).
+- **Exact next action:** C2 is shipped. Create the local branch
+  `001-bewerbungs-mvp-c3` from the updated `origin/main`, record the C2 ship
+  result here (PR URL, PR checks, `main` run, live URL check), then fold the
+  C2 follow-ups R1–R4 into spec and tasks for C3 via `/speckit-clarify` and
+  start C3. If the ship failed instead, report it and fix it on a new branch.
 
 ## Subsequent handoff schema
 
