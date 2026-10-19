@@ -4,20 +4,18 @@
 
 - Updated: 2026-10-19.
 - Product: **Kandidu** (Bewerbungs-Assistent), repository `markusrt/kandidu`.
-- Branch: C2 was built on `001-bewerbungs-mvp` (local, recreated from `main` at
-  `b8af643`; the remote branch of the same name was deleted when PR #1 merged).
-  This file is written for the C2 ship: `pnpm ship --mode auto-merge` pushes
-  that branch, opens a **new** PR (PR #1 with the same branch name is merged),
-  rebase-merges it and deletes the branch, so `main` gets new commit hashes.
-  C3 starts on a new local branch `001-bewerbungs-mvp-c3` from `origin/main`
-  (Spec Kit finds the feature through `.specify/feature.json`, not the branch).
+- Branch: **`001-bewerbungs-mvp-c3`** (local, created from `origin/main` at
+  `c3cc9b0` after the C2 merge, no upstream). Not pushed. Spec Kit finds the
+  feature through `.specify/feature.json`, not the branch name. The C2 branch
+  `001-bewerbungs-mvp` was deleted locally and on GitHub by the merge.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
   gebe C1 frei mit auto-merge") and **shipped** (see "C1 ship result"). GATE task
   T038 done. **C2 – Useful and recoverable: approved by the owner on
-  2026-10-19 with follow-ups** (`specs/001-bewerbungs-mvp/feedback/C2.md`,
-  committed unchanged in `16fc817`). GATE task T057 done. Nothing of C3 started.
+  2026-10-19 with follow-ups** (`specs/001-bewerbungs-mvp/feedback/C2.md`;
+  on `main` as `16b34bb`) and **shipped** (see "C2 ship result"). GATE task
+  T057 done. C3 – Agreed acceptance: in preparation (follow-ups R1–R4).
 - Approval state: C1 approved without change requests. C2 approved with
   follow-ups R1–R6, no defects found; the owner tried review steps 1–2. R1–R4
   are due at the next checkpoint (C3), R5–R6 go to the backlog.
@@ -50,6 +48,30 @@
   delegated tasks of all C3 sessions here by hand (`pnpm models:check` sees
   only the current session). At the C3 gate also write the review steps to
   `specs/001-bewerbungs-mvp/review/C3.md` (German, ≤ 30 lines).
+
+## C2 ship result (2026-10-19)
+
+- `pnpm ship --mode auto-merge --dry-run` first: no open PR for the branch
+  (PR #1 with the same branch name is merged), so it planned `gh pr create`.
+- Attempt 1: pushed, created PR [#2](https://github.com/markusrt/kandidu/pull/2)
+  "feat: deliver C2 – useful and recoverable application workflow". PR check
+  run [39208732654](https://github.com/markusrt/kandidu/actions/runs/39208732654):
+  **`verify` failed** (`C2 mobile …`, 380 px on `#/einrichtung/vorlagen` on
+  the Linux runner), nothing merged, exit 1. Fixed on the same branch (commit
+  "fix: keep file pickers inside 360 px on every platform", see C2 "Checks").
+- Attempt 2 (dry run: reuses PR #2): PR check run
+  [39209264854](https://github.com/markusrt/kandidu/actions/runs/39209264854)
+  `verify` **pass** (2m4s); PR #2 **merged** 2026-10-19 06:21:56 UTC (rebase,
+  branch deleted; `main` head `c3cc9b0`).
+- `main` run: [39209488407](https://github.com/markusrt/kandidu/actions/runs/39209488407),
+  jobs `verify`, `pages-check`, `deploy`: all success. PR comment: "Deployed
+  c3cc9b0 to `https://markusrt.github.io/kandidu/`".
+- Live URL **<https://markusrt.github.io/kandidu/>** checked 2026-10-19 with
+  `curl`: HTTP 200, `lang="de"`, `<title>Kandidu</title>`; the served
+  `assets/index-esQwCr54.css` contains the fix (`grid-template-columns:
+  minmax(0,1fr)`), so the C2 build is live.
+- CI notes (not failures): GitHub warns that Node 20 actions are forced onto
+  Node 24, and that `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19.
 
 ## C1 ship result (2026-10-18, verified 2026-10-19)
 
@@ -491,20 +513,15 @@ it is gone: `pnpm install --frozen-lockfile`, then the same command.
 
 ## Worktree and next action
 
-- Worktree (written for the C2 ship): C1 is merged into `main` (`b8af643`)
-  and live. C2 (approved) is on the local branch `001-bewerbungs-mvp` on top
-  of `b8af643`: `01abef1` (docs), `c715960` (T071), `f5739c0` (US2), `ace67cc`
-  (US3), `e7fba0e` (US4), `5ac1c78` (US5), `d3b184a` (review fixes),
-  `9c213bf` (gate handoff), `16fc817` (owner feedback), then the approval
-  commit with this file. The worktree is clean after it. `pnpm ship --mode
-  auto-merge` pushes the branch, opens a new PR, rebase-merges it after green
-  CI, deletes the branch and deploys `main` to GitHub Pages. No other local
-  refs (no stash, no `refs/backup/*`).
-- **Exact next action:** C2 is shipped. Create the local branch
-  `001-bewerbungs-mvp-c3` from the updated `origin/main`, record the C2 ship
-  result here (PR URL, PR checks, `main` run, live URL check), then fold the
-  C2 follow-ups R1–R4 into spec and tasks for C3 via `/speckit-clarify` and
-  start C3. If the ship failed instead, report it and fix it on a new branch.
+- Worktree: C1 and C2 are merged into `main` (head `c3cc9b0`, PR #2) and
+  live. C3 work is on the local branch `001-bewerbungs-mvp-c3` (from
+  `c3cc9b0`): first the commit recording the C2 ship result (this change).
+  Nothing pushed. No stash, no `refs/backup/*`.
+- **Exact next action:** fold the C2 follow-ups R1–R4 into spec and tasks
+  for C3 via `/speckit-clarify` (questions to the owner batched, each with a
+  recommendation, incl. migration of stored data and the backup format),
+  R5–R6 into the spec backlog, record feedback ID → FR/task here, then
+  `/speckit-implement` up to GATE T070.
 
 ## Subsequent handoff schema
 
