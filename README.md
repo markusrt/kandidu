@@ -5,6 +5,27 @@ applications. All data stays in the browser. See the
 [feature spec](specs/001-bewerbungs-mvp/spec.md) for requirements and
 [docs/STATUS.md](docs/STATUS.md) for current progress and pending reviews.
 
+## Using Kandidu: data, resume, limits
+
+- The public build of `main` runs at <https://markusrt.github.io/kandidu/>.
+  It is a static page; no data leaves the browser and nothing is sent to a
+  server. The LLM step is copy and paste by the person.
+- Data (profile, templates, PDFs, projects, leads) lives in IndexedDB of the
+  browser profile and origin that was used. Reopening the same browser
+  resumes where you left off. Another browser, device, or a local server on a
+  different port starts empty.
+- The only safeguard is the backup: "Daten" → "Sicherung herunterladen"
+  (a ZIP with personal data, unencrypted) and "Sicherung importieren".
+  Clearing browser data deletes everything; ask for persistent storage on
+  "Daten".
+- Stored data and backups from older versions are upgraded automatically on
+  first open; there is no downgrade.
+- Known limits: automated tests cover Chromium only; Word/LibreOffice
+  round trips and the 15-minute first-run goal (SC-001) are checked by a
+  person; LLM research (original posting, address, sources) is not verified
+  by the app; dates inside uploaded PDFs are fixed. Details and the current
+  list: [docs/STATUS.md](docs/STATUS.md) "Limits and known gaps".
+
 ## Make an independent project
 
 - [ ] `markusrt/mvp-starter` is marked as a template repository (checked
