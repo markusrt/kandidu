@@ -5,12 +5,22 @@ import type {
   ContactSalutation,
   Lead,
   LeadDraft,
+  LeadSource,
 } from "../../domain/lead";
 
 // Flat string form state of the review step and its conversion to a LeadDraft.
 
+/** One editable source row; `key` only identifies the row in the UI. */
+export interface SourceRow {
+  readonly key: string;
+  readonly title: string;
+  readonly url: string;
+}
+
 export interface LeadForm {
   readonly sourceUrl: string;
+  readonly originalPostingUrl: string;
+  readonly sources: readonly SourceRow[];
   readonly positionTitle: string;
   readonly referenceNumber: string;
   readonly location: string;
@@ -51,6 +61,12 @@ export function formFromLead(lead: Lead): LeadForm {
   const contact = lead.contact;
   return {
     sourceUrl: lead.sourceUrl ?? "",
+    originalPostingUrl: lead.originalPostingUrl ?? "",
+    sources: (lead.sources ?? []).map((source, index) => ({
+      key: `saved-${index}`,
+      title: source.title ?? "",
+      url: source.url,
+    })),
     positionTitle: lead.position.title,
     referenceNumber: lead.position.referenceNumber ?? "",
     location: lead.position.location ?? "",
@@ -130,8 +146,16 @@ export function draftFromForm(form: LeadForm): LeadDraft {
     ...present("email", form.contactEmail),
     ...present("phone", form.contactPhone),
   };
+  // Rows left completely empty are ignored; a title without a link is kept
+  // so validation can point at it.
+  const sources: LeadSource[] = form.sources
+    .map((row) => ({ title: row.title.trim(), url: row.url.trim() }))
+    .filter((row) => row.title || row.url)
+    .map((row) => (row.title ? row : { url: row.url }));
   return {
     ...present("sourceUrl", form.sourceUrl),
+    ...present("originalPostingUrl", form.originalPostingUrl),
+    ...(sources.length > 0 ? { sources } : {}),
     position: {
       title: form.positionTitle.trim(),
       ...present("referenceNumber", form.referenceNumber),

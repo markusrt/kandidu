@@ -1,6 +1,11 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { addProjectLink, setupReleasedLead } from "./flows";
+import {
+  addProjectLink,
+  createProjectWithLeads,
+  openLead,
+  setupReleasedLead,
+} from "./flows";
 
 // C2 mobile proof (User Story 4, SC-010): at 360 px no view scrolls
 // horizontally. Lifecycle and comment views follow in C3.
@@ -65,4 +70,19 @@ test("C2 mobile: home, project, lead list and lead status fit 360 px", async ({
   }
   await page.goto(`${lead}/freigabe`);
   await expect(page.getByText("Status: Bereit zum Versenden")).toBeVisible();
+});
+
+test("C3 mobile: the links block fits 360 px with a long URL", async ({
+  page,
+}) => {
+  await createProjectWithLeads(page, "valid-original-sources");
+  await openLead(page, "Beispiel GmbH");
+  await page.getByRole("button", { name: "Quelle hinzufügen" }).click();
+  await page
+    .getByLabel("Link der Quelle 4")
+    .fill(`https://example.org/quellen/${"sehr-lange-kennung-".repeat(8)}ende`);
+  await page.getByLabel("Titel der Quelle 4 (optional)").fill("Lange Quelle");
+  await page.getByRole("button", { name: "Lead speichern" }).click();
+  await expect(page.getByRole("status")).toContainText("Gespeichert.");
+  await expectNoHorizontalScroll(page, "links block");
 });

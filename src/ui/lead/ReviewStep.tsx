@@ -5,6 +5,7 @@ import {
   LEAD_LIMITS,
   type Lead,
   LeadError,
+  leadLinkIssues,
   reviseLead,
 } from "../../domain/lead";
 import { letterPosition, suggestedSalutation } from "../../domain/letterData";
@@ -17,6 +18,7 @@ import { LazyMarkdown } from "../LazyMarkdown";
 import { useApp, useSnapshot } from "../state";
 import { nowIso } from "../time";
 import { useUnsavedGuard } from "../unsaved";
+import { LeadLinks } from "./LeadLinks";
 import { draftFromForm, formFromLead, type LeadForm } from "./leadForm";
 
 type TextKey = {
@@ -157,6 +159,7 @@ export function ReviewStep({ lead }: { lead: Lead }) {
     draftFromForm(form),
     letterFormatter(m),
   );
+  const linkIssues = leadLinkIssues(draftFromForm(form));
   // What `{Stelle}` becomes while the lead's own field is empty (FR-049).
   const { letterPosition: _own, ...withoutOwn } = lead;
   const inherited = letterPosition(
@@ -173,6 +176,13 @@ export function ReviewStep({ lead }: { lead: Lead }) {
         noValidate
         onSubmit={(event) => void submit(event)}
       >
+        <LeadLinks
+          form={form}
+          locked={locked}
+          issues={linkIssues}
+          showIssues={invalid}
+          onChange={(patch) => setForm((current) => ({ ...current, ...patch }))}
+        />
         <fieldset disabled={locked}>
           <fieldset>
             <legend>{m.review.positionHeading}</legend>
@@ -195,7 +205,6 @@ export function ReviewStep({ lead }: { lead: Lead }) {
               m.review.employmentType,
               LEAD_LIMITS.shortText,
             )}
-            {field("sourceUrl", m.review.sourceUrl, LEAD_LIMITS.url, "url")}
             {field(
               "letterPosition",
               m.review.letterPosition,
@@ -215,7 +224,6 @@ export function ReviewStep({ lead }: { lead: Lead }) {
               "text",
               true,
             )}
-            {field("companyWebsite", m.review.website, LEAD_LIMITS.url, "url")}
             {field("companyStreet", m.review.street, LEAD_LIMITS.shortText)}
             <div className="field-grid">
               {field(
@@ -294,7 +302,6 @@ export function ReviewStep({ lead }: { lead: Lead }) {
                 ))}
               </select>
             </div>
-            {field("portalUrl", m.review.portalUrl, LEAD_LIMITS.url, "url")}
             {field(
               "applicationEmail",
               m.review.applicationEmail,

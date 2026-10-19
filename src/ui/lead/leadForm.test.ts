@@ -94,4 +94,43 @@ describe("draftFromForm", () => {
     expect(draft.company).toEqual(lead.company);
     expect(draft.application).toEqual(lead.application);
   });
+
+  it("round-trips the original posting and the sources (FR-050)", () => {
+    const lead = sampleLead({
+      originalPostingUrl: "https://karriere.example.org/1",
+      sources: [
+        { title: "Impressum", url: "https://example.org/impressum" },
+        { url: "https://example.org/ueber-uns" },
+      ],
+    });
+    const form = formFromLead(lead);
+    expect(form.sources.map((row) => row.key)).toEqual(["saved-0", "saved-1"]);
+    const draft = draftFromForm(form);
+    expect(draft.originalPostingUrl).toBe(lead.originalPostingUrl);
+    expect(draft.sources).toEqual(lead.sources);
+  });
+
+  it("drops empty source rows, trims and keeps a title without link", () => {
+    const draft = draftFromForm({
+      ...blank,
+      originalPostingUrl: "  ",
+      sources: [
+        { key: "a", title: "  ", url: " " },
+        { key: "b", title: " Impressum ", url: " https://example.org/i " },
+        { key: "c", title: "Nur Titel", url: "" },
+      ],
+    });
+    expect("originalPostingUrl" in draft).toBe(false);
+    expect(draft.sources).toEqual([
+      { title: "Impressum", url: "https://example.org/i" },
+      { title: "Nur Titel", url: "" },
+    ]);
+    expect(
+      "sources" in
+        draftFromForm({
+          ...blank,
+          sources: [{ key: "a", title: "", url: "" }],
+        }),
+    ).toBe(false);
+  });
 });

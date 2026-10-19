@@ -105,6 +105,28 @@ slice below; nothing of C3 is human-accepted.
   (+3), `schema.test.ts` (+1), `prompt.test.ts` (+2, incl. project Stelle not
   in the prompt), `lead.test.ts` (+4). `KANDIDU_E2E_PORT=4174 pnpm verify`:
   exit 0 (Vitest 275 tests, Playwright 61 passed, 1 skipped).
+- **Slice D, links block (T079 main session, T080 delegated): implemented
+  and verified.** `src/ui/lead/LeadLinks.tsx` as the first group of the
+  review form: entered link, original posting, portal, company website
+  (moved out of their old groups) and an editable sources list (title + URL,
+  add/remove, ≤ 20; focus goes to the new URL field, after removal to "Quelle
+  hinzufügen"); every valid link also as "Öffnen" (`target="_blank"`,
+  `rel="noopener noreferrer"`, name "Öffnen: Feldname (neuer Tab)"); notice to
+  check LLM-found links and data; after release a read-only list of links.
+  Field errors come from the new pure `leadLinkIssues(draft)` (also used by
+  `validateLeadDraft`) after a save attempt, with `aria-invalid` and
+  `aria-describedby`. `reviseLead` now also replaces `originalPostingUrl` and
+  `sources`. Tests: `lead.test.ts` (+2), `leadForm.test.ts` (+2); e2e
+  `C3 a11y: the links block …, also with errors`, `C3 mobile: the links
+  block fits 360 px with a long URL`, and 6 delegated `C3 feedback: …` tests
+  (prompt rules, block contents and open links, edit/add/remove + reload,
+  invalid link not saved, released lead read-only, seeded v1 database
+  upgraded to v2). Delegated T080 reviewed: the v1 seed in an init script is
+  ordered by the IndexedDB connection queue (seed opens first; the app's
+  upgrade waits for the seed connection to close), confirmed with
+  `--repeat-each 5` (10 passed). `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0
+  (dependency-cruiser 112 modules / 399 dependencies, Vitest 279 tests,
+  Playwright 77 passed, 1 skipped). **C3 Phase A (R1–R4) complete.**
 
 | Feedback | Timing | Spec | Tasks |
 | --- | --- | --- | --- |
@@ -127,7 +149,10 @@ put into the prompt (FR-014 unchanged).
 `pnpm models:check` only sees the current session's transcripts, so every C3
 session appends its table and delegated task IDs here.
 
-- Session 1 (2026-10-19, C2 ship + C3 preparation): no delegation yet.
+- Session 1 (2026-10-19, C2 ship, C3 planning, C3 Phase A): routing probe
+  before the first task (`pnpm models:check --require-agent`: exit 0, main
+  `claude-opus-5-5`, speckit-implementer `claude-sonnet-5-5`). Delegated:
+  **T080**. Final table of this session follows at the gate.
 
 ## C2 ship result (2026-10-19)
 

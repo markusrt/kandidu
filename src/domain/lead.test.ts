@@ -5,6 +5,7 @@ import {
   currentStatus,
   type LeadDraft,
   LeadError,
+  leadLinkIssues,
   reviseLead,
   setCoverLetterPdf,
   validateLeadDraft,
@@ -121,6 +122,36 @@ describe("createLeadsFromDrafts", () => {
   });
 });
 
+describe("leadLinkIssues (FR-050)", () => {
+  it("names each bad field and source position", () => {
+    expect(leadLinkIssues(draft())).toEqual([]);
+    expect(
+      leadLinkIssues({
+        ...draft(),
+        sourceUrl: "example.org",
+        company: {
+          name: "Firma",
+          website: `https://e.org/${"x".repeat(2000)}`,
+        },
+        sources: [
+          { url: "https://example.org/a" },
+          { url: "https://example.org/a" },
+          { title: "Ohne Link", url: "" },
+          { title: "x".repeat(201), url: "https://example.org/b" },
+          { url: "ftp://example.org" },
+        ],
+      }),
+    ).toEqual([
+      { field: "sourceUrl", code: "link-invalid" },
+      { field: "companyWebsite", code: "too-long" },
+      { field: { source: 1 }, code: "link-duplicate" },
+      { field: { source: 2 }, code: "link-invalid" },
+      { field: { source: 3 }, code: "too-long" },
+      { field: { source: 4 }, code: "link-invalid" },
+    ]);
+  });
+});
+
 describe("validateLeadDraft links (FR-050)", () => {
   const source = (n: number) => ({ url: `https://example.org/q/${n}` });
   const check = (extra: Partial<LeadDraft>) =>
@@ -187,6 +218,33 @@ describe("reviseLead", () => {
     expect(next.updatedAt).toBe(NOW);
     const cleared = reviseLead(next, draft(), { salutationOverride: " " }, NOW);
     expect("salutationOverride" in cleared).toBe(false);
+  });
+
+  it("replaces the original posting and the sources (FR-050)", () => {
+    const withLinks = sampleLead({
+      originalPostingUrl: "https://karriere.example.org/1",
+      sources: [{ url: "https://example.org/a" }],
+    });
+    const edited = reviseLead(
+      withLinks,
+      {
+        ...draft(),
+        originalPostingUrl: "https://karriere.example.org/2",
+        sources: [{ title: "Neu", url: "https://example.org/b" }],
+      },
+      {},
+      NOW,
+    );
+    expect(edited.originalPostingUrl).toBe("https://karriere.example.org/2");
+    expect(edited.sources).toEqual([
+      { title: "Neu", url: "https://example.org/b" },
+    ]);
+    const cleared = reviseLead(edited, draft(), {}, NOW);
+    expect(cleared.originalPostingUrl).toBeUndefined();
+    expect(cleared.sources).toBeUndefined();
+    expect(() =>
+      reviseLead(withLinks, { ...draft(), sourceUrl: "kein-link" }, {}, NOW),
+    ).toThrow(LeadError);
   });
 
   it("sets, trims and clears the lead's own Stelle (FR-049)", () => {
