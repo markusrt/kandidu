@@ -185,9 +185,9 @@ in `docs/STATUS.md`.
 
 **Independent Test**: export complete US1 state, import into a fresh context, all data and files identical.
 
-- [ ] T054 [US5] Backup in src/storage/backup.ts and adapter methods `exportBackup`/`importBackup`: manifest, SHA-256 per file (Web Crypto), `LIESMICH.txt` text passed in from the catalog, validation before any write, single replacing transaction; tests in src/storage/backup.test.ts (round trip bit-identical, missing file, hash mismatch, newer version, corrupt JSON leave data untouched). Covers: FR-043, SC-007.
-- [ ] T055 [US5] Backup UI on `#/daten`: export button (`JJJJ-MM-TT_Kandidu_Sicherung.zip`, "enthält persönliche Daten" notice), import with confirmation when data exists, clear errors; recovery view links to import. Covers: FR-041, FR-043, FR-045.
-- [ ] T056 [US5] [ROUTINE] Playwright journey e2e/c2-backup.spec.ts (`C2 backup …`): export after the C1 journey, import into a fresh browser context, compare lead data and downloaded package page counts. Covers: FR-043, SC-007.
+- [X] T054 [US5] Backup in src/storage/backup.ts and adapter methods `exportBackup`/`importBackup`: manifest, SHA-256 per file (Web Crypto), `LIESMICH.txt` text passed in from the catalog, validation before any write, single replacing transaction; tests in src/storage/backup.test.ts (round trip bit-identical, missing file, hash mismatch, newer version, corrupt JSON leave data untouched). (Also: port method `persistenceState()` with adapter test in src/storage/indexeddb.test.ts.) Covers: FR-043, SC-007.
+- [X] T055 [US5] Backup UI on `#/daten`: export button (`JJJJ-MM-TT_Kandidu_Sicherung.zip`, "enthält persönliche Daten" notice), import with confirmation when data exists, clear errors; recovery view links to import. (Done: src/ui/data/BackupImport.tsx is used on `#/daten` and in the recovery view itself; a newer backup gets its own text instead of the stored-data `unsupported-version` text; e2e in e2e/c2-backup.spec.ts.) Covers: FR-041, FR-043, FR-045.
+- [X] T056 [US5] [ROUTINE] Playwright journey e2e/c2-backup.spec.ts (`C2 backup …`): export after the C1 journey, import into a fresh browser context, compare lead data and downloaded package page counts. Covers: FR-043, SC-007.
 
 ### C2 GATE
 

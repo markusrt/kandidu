@@ -129,10 +129,37 @@ export const de = {
     toData: "Zu „Daten und Speicher“",
   },
 
+  backup: {
+    heading: "Sicherung",
+    intro:
+      "Die Sicherung ist eine ZIP-Datei mit allen Kandidu-Daten und Dateien dieses Browsers. Damit stellst du alles in einem anderen Browser oder nach dem Löschen der Browserdaten wieder her.",
+    personalData:
+      "Die Sicherung enthält persönliche Daten: dein Profil, deine Vorlagen, deinen Lebenslauf, Nachweise und Bewerbungen. Bewahre sie sicher auf und gib sie nicht weiter.",
+    export: "Sicherung herunterladen",
+    exporting: "Sicherung wird erstellt …",
+    exported: (name: string) => `${name} heruntergeladen.`,
+    fileWord: "Sicherung",
+    importHeading: "Sicherung importieren",
+    importLabel: "Sicherungs-ZIP auswählen",
+    importHint:
+      "Eine ZIP-Datei, die Kandidu erstellt hat. Sie wird vollständig geprüft, bevor etwas geändert wird.",
+    importing: "Sicherung wird geprüft …",
+    replacePrompt: (name: string) =>
+      `In diesem Browser sind schon Kandidu-Daten gespeichert. Sollen sie vollständig durch die Sicherung „${name}“ ersetzt werden? Das kann nicht rückgängig gemacht werden. Lade vorher eine Sicherung des aktuellen Stands herunter, wenn du ihn noch brauchst.`,
+    replaceConfirm: "Ja, aktuellen Stand ersetzen",
+    imported: "Sicherung importiert. Alle Daten wurden wiederhergestellt.",
+    newerVersion:
+      "Diese Sicherung stammt aus einer neueren Kandidu-Version. Lade die Seite neu, damit die aktuelle Version geladen wird, und versuche es dann erneut. Es wurde nichts geändert.",
+    recoveryHint:
+      "Wenn du eine Sicherung hast, kannst du sie hier importieren. Sie ersetzt den gespeicherten Stand.",
+    readme:
+      "Kandidu-Sicherung\r\n\r\nDiese ZIP-Datei enthält persönliche Daten: dein Profil, deine Vorlagen, deinen Lebenslauf, Nachweise und Bewerbungen. Bewahre sie sicher auf und gib sie nicht weiter.\r\n\r\nWiederherstellen: Öffne Kandidu, gehe zu „Daten“ und wähle „Sicherung importieren“. Verändere die Dateien in dieser ZIP-Datei nicht, sonst wird die Sicherung abgelehnt.\r\n",
+  },
+
   recovery: {
     heading: "Gespeicherte Daten konnten nicht gelesen werden",
     intro:
-      "Kandidu hat nichts überschrieben. Du kannst es erneut versuchen. Wenn die Daten beschädigt sind, kannst du die Kandidu-Daten in diesem Browser bewusst zurücksetzen.",
+      "Kandidu hat nichts überschrieben. Du kannst es erneut versuchen, eine Sicherung importieren oder, wenn die Daten beschädigt sind, die Kandidu-Daten in diesem Browser bewusst zurücksetzen.",
     resetPrompt:
       "Wirklich alle Kandidu-Daten in diesem Browser löschen? Andere Websites sind nicht betroffen. Das kann nicht rückgängig gemacht werden.",
     resetStart: "Kandidu-Daten zurücksetzen …",

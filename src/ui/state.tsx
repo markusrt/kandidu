@@ -51,6 +51,8 @@ interface AppContextValue {
   readonly failure: WriteFailure | undefined;
   reload(): Promise<void>;
   reset(): Promise<void>;
+  /** Replaces everything with a backup; throws the store error on failure. */
+  restore(zip: Uint8Array): Promise<void>;
   /**
    * Runs `write` against the store and, only if it succeeds, applies `update`
    * to the snapshot and announces `success`. Returns whether it succeeded;
@@ -127,6 +129,25 @@ export function AppProvider({
       setBusy(false);
     }
   }, [store, show, m]);
+
+  const restore = useCallback(
+    async (zip: Uint8Array) => {
+      if (locked.current) return;
+      locked.current = true;
+      setBusy(true);
+      try {
+        // The adapter validates the whole backup before it writes (FR-043).
+        const snapshot = await store.importBackup(zip);
+        setState({ kind: "ready", snapshot });
+        setStale(false);
+        show("status", m.backup.imported);
+      } finally {
+        locked.current = false;
+        setBusy(false);
+      }
+    },
+    [store, show, m],
+  );
 
   // Writes run one after another: a write requested while another is running
   // waits instead of being dropped (an autosave must never vanish silently).
@@ -205,6 +226,7 @@ export function AppProvider({
       failure,
       reload,
       reset,
+      restore,
       commit,
       announce,
       fail,
@@ -219,6 +241,7 @@ export function AppProvider({
       failure,
       reload,
       reset,
+      restore,
       commit,
       announce,
       fail,
