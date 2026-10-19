@@ -18,6 +18,19 @@
   README has prompt templates for later features. Applied by hand from
   mvp-starter (same text, its ADR 008), not through `/speckit-constitution`.
   The MVP feature 001-bewerbungs-mvp is unaffected (it ran as Full).
+- Process change 2026-10-19 (owner request, from the kandidu retro in
+  mvp-starter): AGENTS.md now has "Working rules", "Context budget" (fresh
+  session per gate and after planning; about 250k restart at a story
+  boundary; targeted reads), and "Project working rules" (the owner rules,
+  formerly "Owner working rules"), plus rules for the planning commit, FR IDs
+  on tasks, analyze after feedback, chat in German after subagent reports,
+  resume after interruptions, STATUS claims checked against git, the
+  post-merge next action, and where the ship record goes. Handoff steps 6–8:
+  the human gate page `specs/NNN-*/review/C<n>.md` and the feedback file
+  `specs/NNN-*/feedback/C<n>.md`, from `docs/templates/`. The tasks override
+  names the gate page in the GATE task. README: "At a gate and while the agent
+  works". Template code fixes (E2E port, e2e build, models:check path) were
+  not ported; kandidu already has `KANDIDU_E2E_PORT`.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich

@@ -76,7 +76,9 @@ review, fix blockers, and report the remaining findings. Verify the app runs and
 stated URL is reachable in your environment; state who can reach it (loopback
 is local only). Never fabricate a URL, preview, passing check, or review. Give
 the human at most three steps: how to reach/start the app, what to try, and what
-decision is needed. Update docs/STATUS.md and the spec in the same commit, with
+decision is needed, on a short gate page specs/NNN-*/review/C<n>.md
+(docs/templates/gate-review.md) that your handoff message links. Update
+docs/STATUS.md and the spec in the same commit, with
 spec IDs, results, questions, limits, worktree state, and one next action. Make
 authorized local commits only, as coherent slices with conventional WHAT
 subjects and WHY bodies. Then STOP for my local feedback. After I approve,
@@ -85,7 +87,8 @@ PR URL; auto-merge waits for CI, merges, waits for the GitHub Pages deployment,
 and reports the live URL. If Pages is not set up, tell me the exact steps.
 
 AFTER FEEDBACK
-Record the human decision in docs/STATUS.md. Fold requested changes into
+If I wrote specs/NNN-*/feedback/C<n>.md, commit it unchanged first; quote a
+chat decision verbatim. Record the human decision in docs/STATUS.md. Fold requested changes into
 spec.md with /speckit-clarify (stable IDs; never redefine accepted work
 silently), refresh remaining work with /speckit-tasks or /speckit-converge, then
 /speckit-implement to the next GATE. After C3 acceptance, each new capability is
@@ -95,8 +98,9 @@ or Spike; constitution "Delivery modes"). The first feature is always Full.
 LIMITS
 Do not guess domain, privacy, identity, consent, retention, or authorization
 rules. Do not add paid services, expose data, create remote resources,
-destructively change Git, or bypass checks without explicit permission. Branches,
-push, PRs, merges, and deployment only as the recorded SHIP MODE allows. Copied starters do not inherit permission grants.
+destructively change Git, or bypass checks without explicit permission. Work on
+a local feature branch from the first commit; push, PRs, merges, and deployment
+only as the recorded SHIP MODE allows. Copied starters do not inherit permission grants.
 Constitution changes need human approval, /speckit-constitution, and an ADR.
 Silence is not approval. A fresh agent must be able to resume solely from the
 repository; process/server survival is not guaranteed, so document restart

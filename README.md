@@ -86,7 +86,9 @@ pnpm verify      # lint → typecheck → architecture → test → build → te
 These commands are not recorded execution evidence. See `docs/STATUS.md` for actual
 results and limitations, including unavailable tooling or browser checks in
 `docs/STATUS.md`. `pnpm test:e2e` expects a built app (`pnpm build` first);
-Playwright starts and waits for its own production-preview server on port 4173.
+Playwright starts and waits for its own production-preview server on port 4173
+(`KANDIDU_E2E_PORT=4174` moves it if the port is taken). A targeted e2e run
+tests the last build, so run `pnpm build` after source changes.
 Unit and browser runners fail when no tests are found.
 
 To restart after a session ends, run `pnpm dev --host 127.0.0.1 --port 5173 --strictPort`.
@@ -166,7 +168,7 @@ in the language of the prompt. Replace the bracketed parts.
 ### Implement a backlog item (for example R5 or R6)
 
 ```text
-Lies .specify/memory/constitution.md, AGENTS.md („Owner working rules“),
+Lies .specify/memory/constitution.md, AGENTS.md („Project working rules“),
 docs/STATUS.md (Kopf und „Exact next action“) und aus
 specs/001-bewerbungs-mvp/spec.md nur den Backlog-Eintrag [ID]. Weitere
 Abschnitte aus Spec, Plan oder Code nur lesen, wenn ein Schritt sie braucht.
@@ -186,8 +188,6 @@ HINWEISE (optional): [was ich schon weiß, will oder ausschließe]
 4. /speckit-tasks, /speckit-analyze, Befunde beheben, Planung committen.
 5. /speckit-implement Story für Story (ein Commit pro Story) bis zum nächsten
    GATE, Übergabe durchführen, dann stopp.
-Wenn der Kontext über etwa 250k Tokens wächst: an der nächsten Story-Grenze mit
-einer „in progress“-Übergabe in STATUS anhalten und mir Bescheid geben.
 Sprich Deutsch mit mir.
 ```
 
@@ -196,7 +196,7 @@ Sprich Deutsch mit mir.
 Examples: deployment with a real database, comments in Markdown with links.
 
 ```text
-Lies .specify/memory/constitution.md, AGENTS.md („Owner working rules“),
+Lies .specify/memory/constitution.md, AGENTS.md („Project working rules“),
 docs/STATUS.md (Kopf und „Exact next action“) und die ADRs, die der Auftrag
 berührt (z. B. 001 Stack, 002/008 Speicher, 007 Ship-Ablauf). Frühere Specs nur
 gezielt nach dem durchsuchen, was dieses Feature ändert, nicht vollständig lesen.
@@ -220,10 +220,25 @@ RAHMEN (optional): [Budget, Datenschutz, Geräte, Termin, Dienste]
 4. /speckit-tasks, /speckit-analyze, Befunde beheben, Planung committen.
 5. /speckit-implement Story für Story (ein Commit pro Story) bis zum nächsten
    GATE, Übergabe durchführen, dann stopp.
-Wenn der Kontext über etwa 250k Tokens wächst: an der nächsten Story-Grenze mit
-einer „in progress“-Übergabe in STATUS anhalten und mir Bescheid geben.
 Sprich Deutsch mit mir.
 ```
+
+## At a gate and while the agent works
+
+- At each gate the agent writes a short page for the owner,
+  `specs/NNN-*/review/C<n>.md` (what's new, URL, ≤3 steps, decisions), and
+  links it in its message. `docs/STATUS.md` is the agent's detailed log.
+- Answer with `specs/NNN-*/feedback/C<n>.md`, copied from
+  [docs/templates/gate-feedback.md](docs/templates/gate-feedback.md) (see
+  `specs/001-bewerbungs-mvp/feedback/C2.md` for a real one): decision, ship
+  mode, and one row per item with timing and type. The agent commits it
+  unchanged and maps each item to a fix, a spec change, or the backlog. A short
+  chat answer works too; the agent then quotes it in STATUS.
+- To steer a running agent, send a normal message: it arrives at the agent's
+  next tool call. `/btw` only asks a side question and cannot change the work.
+  Send one consolidated instruction rather than several corrections.
+- Standing rules for the agent belong in AGENTS.md ("Project working rules"),
+  not in agent memory.
 
 ## Ship and deploy
 
