@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-18
 
-**Status**: C1 (US1) accepted by the owner on 2026-10-18 and shipped; C2 (US2–US5) approved by the owner on 2026-10-19 with follow-ups R1–R6 (`feedback/C2.md`, GATE T057) and shipped; C3 (C2 follow-ups R1–R4 as FR-049–FR-054, US6, US7) implemented, verified and accepted by the owner on 2026-10-19 (GATE T070, ship mode `auto-merge`; no feedback file, no change requests); R5–R6 in the Backlog
+**Status**: C1 (US1) accepted by the owner on 2026-10-18 and shipped; C2 (US2–US5) approved by the owner on 2026-10-19 with follow-ups R1–R6 (`feedback/C2.md`, GATE T057) and shipped; C3 (C2 follow-ups R1–R4 as FR-049–FR-054, US6, US7) implemented, verified and accepted by the owner on 2026-10-19 (GATE T070, ship mode `auto-merge`; no feedback file, no change requests) and shipped (PR #3); R5–R6 in the Backlog
 
 **Spec Language**: de-DE
 

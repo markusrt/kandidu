@@ -4,10 +4,11 @@
 
 - Updated: 2026-10-19.
 - Product: **Kandidu** (Bewerbungs-Assistent), repository `markusrt/kandidu`.
-- Branch: **`001-bewerbungs-mvp-c3`** (local, created from `origin/main` at
-  `c3cc9b0` after the C2 merge, no upstream). Not pushed. Spec Kit finds the
-  feature through `.specify/feature.json`, not the branch name. The C2 branch
-  `001-bewerbungs-mvp` was deleted locally and on GitHub by the merge.
+- Branch: **`001-bewerbungs-mvp-c3-ship`** (local, from `origin/main` at
+  `b1f4523` after the C3 merge, no upstream, not pushed); it only carries
+  this C3 ship record. Spec Kit finds the feature through
+  `.specify/feature.json`, not the branch name. The C2 and C3 branches were
+  deleted locally and on GitHub by their merges.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
@@ -17,8 +18,8 @@
   on `main` as `16b34bb`) and **shipped** (see "C2 ship result"). GATE task
   T057 done. **C3 – Agreed acceptance: accepted by the owner on 2026-10-19**
   ("C3 ist abgenommen mit auto-merge"), GATE T070 done: C3 Phase A (R1–R4),
-  US6, US7, Polish T066–T069. Shipping is recorded under "C3 ship result"
-  once it has run.
+  US6, US7, Polish T066–T069, and **shipped** (see "C3 ship result"). The
+  MVP feature 001-bewerbungs-mvp is complete; all tasks are ticked.
 - Approval state: C1 approved without change requests. C2 approved with
   follow-ups R1–R6 (R1–R4 built in C3, R5–R6 in the spec backlog). **C3
   accepted without change requests.** There is no `feedback/C3.md`; the
@@ -275,6 +276,30 @@ Delegated `[ROUTINE]` tasks in C3 (all sessions): **T060, T061, T065, T067,
 T080**. All reviewed in the main session; corrections there: T065's test
 exposed a focus defect in main-session code (fixed); T060 missed focus on
 undo/comment-delete confirmations (fixed in T066).
+
+## C3 ship result (2026-10-19)
+
+- `pnpm ship --mode auto-merge --dry-run` first: no open PR for branch
+  `001-bewerbungs-mvp-c3`, so it planned `gh pr create` (title and body
+  file passed, body written from this file).
+- PR [#3](https://github.com/markusrt/kandidu/pull/3) "feat: deliver C3 –
+  lifecycle, overview and C2 follow-ups". PR check run
+  [39235612783](https://github.com/markusrt/kandidu/actions/runs/39235612783):
+  `verify` **pass** (2m55s; `pages-check` and `deploy` skipped on PRs by
+  design). **Merged** 2026-10-19 10:14:19 UTC (rebase, branch deleted;
+  `main` head `b1f4523`). Green on the first attempt, no CI fix needed.
+- `main` run: [39236008495](https://github.com/markusrt/kandidu/actions/runs/39236008495),
+  jobs `verify`, `pages-check`, `deploy`: all success. PR comment: "Deployed
+  b1f4523 to `https://markusrt.github.io/kandidu/`".
+- Live URL **<https://markusrt.github.io/kandidu/>** checked 2026-10-19 with
+  `curl`: HTTP 200, `lang="de"`, `<title>Kandidu</title>`; the served
+  `assets/index-CiEr1xlx.js` contains the C3 texts "Stelle im Anschreiben",
+  "Quelle hinzufügen" and "Verlauf", so the C3 build is live.
+- The PR body was later amended with the missing "Generated with Claude
+  Code" footer (`gh api` PATCH; `gh pr edit` fails on the deprecated
+  Projects classic field).
+- CI notes (not failures): same as C2 (Node 20 actions forced onto Node 24;
+  `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19).
 
 ## C2 ship result (2026-10-19)
 
@@ -796,22 +821,20 @@ it is gone: `pnpm install --frozen-lockfile`, then the same command.
 
 ## Worktree and next action
 
-- Worktree: C1 and C2 are merged into `main` (head `c3cc9b0`, PR #2) and
-  live. C3 is on the local branch `001-bewerbungs-mvp-c3` (from `c3cc9b0`):
-  `36e4b0a` (C2 ship result), `ceb1237` (C3 plan), `93c6140` (slice A),
-  `8c3d00c` (R4), `92fc5bf` (R2/R3), `382d909` (R1), `37b9541` (US6),
-  `1594d56` (US7), `144fa4f` (T066), `23ccb98` (T067), `2f05e3d` (T068/T069),
-  `da96ab4` (review fixes), `b20edb7` (gate handoff with this file and
-  `review/C3.md`), then the acceptance commit (T070 ticked). Nothing was
-  pushed before the ship. No stash, no `refs/backup/*`.
+- Worktree: C1, C2 and C3 are merged into `main` (head `b1f4523`, PR #3)
+  and live. The C3 commits got new hashes in the rebase merge (local
+  `b20edb7` gate handoff → `b4700e4`, `6555159` acceptance → `b1f4523`).
+  This ship record is one local commit on `001-bewerbungs-mvp-c3-ship`
+  (not pushed); it reaches `main` with the next PR (rebase the next feature
+  branch onto it, or ship it on its own after the owner says so). Clean
+  after it. No stash, no `refs/backup/*`.
 - **Exact next action (state after the merge):** C3 is on `main` and live at
   <https://markusrt.github.io/kandidu/>; the branch `001-bewerbungs-mvp-c3` is
   deleted by the merge, and the MVP (001-bewerbungs-mvp) is complete. Start a
   new branch from `origin/main` only for a follow-up feature: `/speckit-specify`
   for R5 (cover letter template per project) and/or R6 (date in the PDF stays
-  fixed, spike), from the spec's "Backlog", after the owner confirms scope. If
-  the ship did not complete, the fix goes on a new branch (exit code 1) or the
-  printed hint applies (exit code 3); see "C3 ship result".
+  fixed, spike), from the spec's "Backlog", after the owner confirms scope.
+  Nothing of it is started.
 
 ## Subsequent handoff schema
 
