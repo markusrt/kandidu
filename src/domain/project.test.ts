@@ -283,6 +283,14 @@ describe("findImportedResponse (FR-021)", () => {
     expect(findImportedResponse(p, "  ")).toBeUndefined();
   });
 
+  it("finds a response once its valid entries were taken over", () => {
+    const failed = { ...response(), text: "teilweise" };
+    const p = addResponse(withLink(), failed, T1);
+    expect(findImportedResponse(p, "teilweise")).toBeUndefined();
+    const partly = markResponseImported(p, failed.id, ["a"], T1);
+    expect(findImportedResponse(partly, "teilweise")?.id).toBe(failed.id);
+  });
+
   it("ignores responses that created no leads", () => {
     const failed = { ...response(), text: "x" };
     expect(
