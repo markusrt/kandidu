@@ -1,5 +1,11 @@
 import type { Page } from "@playwright/test";
-import { expect, readFixture, type UploadFile } from "./fixtures";
+import {
+  expect,
+  PROFILE,
+  pdfFile,
+  readFixture,
+  type UploadFile,
+} from "./fixtures";
 
 // UI flows shared by journeys. Selectors use visible German labels and roles,
 // the way a person (or a screen reader) finds them.
@@ -91,6 +97,49 @@ export async function fillProfile(
   }
   await page.getByRole("button", { name: "Speichern" }).click();
   await expect(page.getByRole("status")).toContainText("Gespeichert.");
+}
+
+export async function gotoProjectStep(page: Page, step: string): Promise<void> {
+  await page
+    .getByRole("navigation", { name: "Schritte des Projekts" })
+    .getByRole("link", { name: step, exact: true })
+    .click();
+}
+
+/** Creates an empty project and lands on its link step. */
+export async function createProject(page: Page, title: string): Promise<void> {
+  await openHome(page);
+  await page.getByLabel("Titel des Projekts").fill(title);
+  await page.getByRole("button", { name: "Projekt anlegen" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Links zu Stellenausschreibungen",
+  );
+}
+
+export async function addProjectLink(page: Page, url: string): Promise<void> {
+  await page.getByLabel("Link zur Stellenanzeige").fill(url);
+  await page.getByRole("button", { name: "Link hinzufügen" }).click();
+  await expect(
+    page.getByRole("button", { name: `Link bearbeiten: ${url}` }),
+  ).toBeVisible();
+}
+
+/** Profile, CV PDF, a project with one lead (fixture) and that lead released. */
+export async function setupReleasedLead(
+  page: Page,
+  options: { cvPages: number; coverPages: number },
+): Promise<void> {
+  await fillProfile(page, PROFILE);
+  await uploadCvPdf(
+    page,
+    await pdfFile("Lebenslauf.pdf", options.cvPages, { width: 600 }),
+  );
+  await createProjectWithLeads(page, "valid-plain");
+  await openLead(page, "Beispiel GmbH");
+  await releaseLead(
+    page,
+    await pdfFile("Anschreiben.pdf", options.coverPages, { width: 500 }),
+  );
 }
 
 export async function releaseLead(

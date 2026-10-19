@@ -3,6 +3,7 @@ import { LeadError } from "../../domain/lead";
 import { buildCoverLetterData } from "../../domain/letterData";
 import { PLACEHOLDERS, placeholdersFor } from "../../domain/placeholders";
 import { ProjectError } from "../../domain/project";
+import { TagError } from "../../domain/tags";
 import { sampleLead, sampleProfile } from "../../domain/testing";
 import { buildDemoTemplate } from "../../files/demoTemplates";
 import { inspectTemplate } from "../../files/docx";
@@ -25,6 +26,9 @@ describe("message catalogs", () => {
     );
     expect(errorMessage(new LeadError("gate-incomplete"), de)).toBe(
       de.errors["gate-incomplete"],
+    );
+    expect(errorMessage(new TagError("tag-invalid"), de)).toBe(
+      de.errors["tag-invalid"],
     );
   });
 

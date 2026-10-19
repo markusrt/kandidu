@@ -29,12 +29,13 @@ interface KandiduStore {
   deleteLead(id: string): Promise<void>;                                    // cascade (FR-037)
   deleteProject(id: string): Promise<void>;                                 // cascade (FR-037)
 
-  exportBackup(): Promise<Uint8Array>;                                      // C2, contracts/backup-format.md
-  importBackup(zip: Uint8Array): Promise<AppSnapshot>;                      // validates fully, then replaces
+  exportBackup(readme: string): Promise<Uint8Array>;                        // C2, contracts/backup-format.md; readme = catalog LIESMICH text
+  importBackup(zip: Uint8Array): Promise<AppSnapshot>;                      // validates fully, then replaces; allowed after a failed load
   resetAll(): Promise<void>;                                                // only own database, confirmed by user
 
   storageEstimate(): Promise<{ usage: number; quota: number } | undefined>;
   requestPersistence(): Promise<"granted" | "denied" | "unsupported">;
+  persistenceState(): Promise<"granted" | "denied" | "unsupported">;        // navigator.storage.persisted(), no prompt
   onExternalChange(listener: () => void): () => void;                       // other tab wrote (FR-044)
 }
 ```
@@ -53,5 +54,11 @@ Rules:
   deletes the old bytes in the same transaction; `saveDocument` with role `cv`
   removes any other CV record and its bytes (exactly one global CV PDF).
 - Every write checks and increments `meta.revision`; mismatch → `conflict` (C2).
+  `exportBackup` reads without changing the known revision, so a stale tab still
+  gets `conflict` on its next write. `importBackup` is a confirmed full replace:
+  it skips the revision check, works from the recovery view, and leaves the store
+  loaded at the new revision.
+- A damaged or foreign backup → `backup-invalid`; a newer one →
+  `unsupported-version`. Both leave the current data untouched.
 - Deletes remove file bytes in the same transaction as the records that referenced them.
 - The adapter never touches databases or keys other than `kandidu:data`.

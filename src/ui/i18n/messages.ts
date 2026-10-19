@@ -1,6 +1,7 @@
 import type { LeadErrorCode } from "../../domain/lead";
 import type { ProfileErrorCode } from "../../domain/profile";
 import type { ProjectErrorCode } from "../../domain/project";
+import type { TagErrorCode } from "../../domain/tags";
 import type { FileErrorCode } from "../../files/errors";
 import type { StoreErrorCode } from "../../storage/port";
 import type { Messages } from "./de";
@@ -13,6 +14,7 @@ export type ErrorCode =
   | ProfileErrorCode
   | ProjectErrorCode
   | LeadErrorCode
+  | TagErrorCode
   | "unexpected";
 
 // Every error code has catalog text; a missing entry is a type error.

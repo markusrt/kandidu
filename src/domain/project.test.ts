@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { LeadDraft } from "./lead";
 import {
   addLink,
   addResponse,
@@ -9,11 +10,13 @@ import {
   LINKS_MAX,
   markPromptCopied,
   markResponseImported,
+  type ParseResult,
   PROJECT_TITLE_MAX,
   PROMPT_CONTEXT_MAX,
   type Project,
   ProjectError,
   type ProjectErrorCode,
+  partialImport,
   promptFingerprint,
   RESPONSE_MAX,
   removeLink,
@@ -284,6 +287,42 @@ describe("findImportedResponse (FR-021)", () => {
     const failed = { ...response(), text: "x" };
     expect(
       findImportedResponse(addResponse(withLink(), failed, T1), "x"),
+    ).toBeUndefined();
+  });
+});
+
+describe("partialImport (FR-021)", () => {
+  // Only the count of drafts matters here.
+  const draft = {} as unknown as LeadDraft;
+  const invalid = (
+    entries: number[],
+    validLeads: LeadDraft[],
+  ): ParseResult => ({
+    ok: false,
+    error: "schema-invalid",
+    issues: entries.map((entry) => ({
+      entry,
+      path: ["company", "name"],
+      kind: "missing",
+    })),
+    validLeads,
+    warnings: [],
+  });
+
+  it("counts valid entries against all entries", () => {
+    // Entry 2 has two issues but counts once.
+    expect(partialImport(invalid([2, 2], [draft, draft]))).toEqual({
+      valid: 2,
+      total: 3,
+    });
+  });
+
+  it("offers nothing without valid entries, for global issues or other errors", () => {
+    expect(partialImport(invalid([1], []))).toBeUndefined();
+    expect(partialImport(invalid([0], [draft]))).toBeUndefined();
+    expect(partialImport({ ok: false, error: "json-invalid" })).toBeUndefined();
+    expect(
+      partialImport({ ok: true, leads: [draft], warnings: [] }),
     ).toBeUndefined();
   });
 });

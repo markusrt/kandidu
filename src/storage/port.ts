@@ -42,12 +42,16 @@ export interface KandiduStore {
   deleteLead(id: string): Promise<void>;
   deleteProject(id: string): Promise<void>;
 
-  exportBackup(): Promise<Uint8Array>;
+  /** Backup ZIP of all data and files; `readme` is the catalog's LIESMICH text. */
+  exportBackup(readme: string): Promise<Uint8Array>;
+  /** Validates the whole backup first, then replaces everything in one transaction. */
   importBackup(zip: Uint8Array): Promise<AppSnapshot>;
   resetAll(): Promise<void>;
 
   storageEstimate(): Promise<StorageEstimate | undefined>;
   requestPersistence(): Promise<PersistenceResult>;
+  /** Whether the browser already granted persistent storage (no prompt). */
+  persistenceState(): Promise<PersistenceResult>;
   onExternalChange(listener: () => void): () => void;
 }
 
@@ -61,7 +65,8 @@ export type StoreErrorCode =
   | "delete-failed"
   | "unsupported-version"
   | "store-blocked"
-  | "record-invalid";
+  | "record-invalid"
+  | "backup-invalid";
 
 // Adapters report codes, not user-facing text; the UI localizes them.
 export class StoreError extends Error {

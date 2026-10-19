@@ -169,7 +169,8 @@ templates: TemplateKind[], source: "profile"|"lead"|"system" }`.
 
 - `StoreError`: `read-failed`, `data-invalid`, `save-failed`, `quota-exceeded`,
   `conflict`, `file-missing`, `delete-failed`, `unsupported-version`,
-  `store-blocked`, `record-invalid`.
+  `store-blocked`, `record-invalid`, `backup-invalid` (C2).
+- `TagError` (`src/domain/tags.ts`, C2): `tag-invalid` (longer than 40 chars).
 - `FileError` (`src/files`): `file-too-large`, `docx-invalid`, `pdf-invalid`,
   `pdf-encrypted`, `render-failed`, `zip-failed`.
 - `TemplateIssue` codes: `unknown-placeholder`, `wrong-template`, `block-misused`,

@@ -3,6 +3,7 @@ import { LeadError } from "../../domain/lead";
 import type { LetterFormatter } from "../../domain/letterData";
 import { ProfileError } from "../../domain/profile";
 import { ProjectError } from "../../domain/project";
+import { TagError } from "../../domain/tags";
 import { FileError } from "../../files/errors";
 import { StoreError } from "../../storage/port";
 import { de } from "./de";
@@ -41,7 +42,8 @@ export function errorCode(cause: unknown): ErrorCode {
     cause instanceof FileError ||
     cause instanceof ProfileError ||
     cause instanceof ProjectError ||
-    cause instanceof LeadError
+    cause instanceof LeadError ||
+    cause instanceof TagError
   ) {
     return cause.code;
   }

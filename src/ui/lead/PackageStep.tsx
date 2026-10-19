@@ -5,48 +5,47 @@ import type { Lead, PackageDef, PackageItem } from "../../domain/lead";
 import {
   defaultPackage,
   effectivePackages,
-  itemKey,
-  moveItem,
+  type PackagePreset,
+  presetPackage,
   setPackages,
 } from "../../domain/packages";
 import { ZIP_MIME } from "../../files/mime";
 import { StoreError } from "../../storage/port";
 import { downloadBytes } from "../download";
 import { loadPdf, loadZip } from "../files";
-import { type Messages, useMessages } from "../i18n";
+import { useMessages } from "../i18n";
 import { Link } from "../router";
 import { useApp, useSnapshot, useTask } from "../state";
 import { newId, nowIso, todayIso } from "../time";
+import { PackageEditor } from "./PackageEditor";
 
-function itemLabel(
-  item: PackageItem,
-  m: Messages,
-  documentName: (id: string) => string,
-): string {
-  if (item.kind === "coverLetter") return m.package.items.coverLetter;
-  if (item.kind === "cv") return m.package.items.cv;
-  return m.package.items.document(documentName(item.documentId));
-}
+const PRESETS: readonly PackagePreset[] = [
+  "coverLetterAndCv",
+  "evidence",
+  "all",
+];
 
 export function PackageStep({ lead }: { lead: Lead }) {
   const m = useMessages();
   const snapshot = useSnapshot();
-  const { commit, busy, store, announce } = useApp();
+  const { commit, busy, store, announce, fail } = useApp();
   const { running, run } = useTask();
-  const nameId = useId();
+  const presetId = useId();
   const words = m.letter.fileWords;
-  const [definition, setDefinition] = useState<PackageDef>(
-    () =>
-      effectivePackages(lead, () =>
-        defaultPackage(
-          newId(),
-          datedName(todayIso(), [lead.company.name, words.application], "pdf"),
-        ),
-      )[0] as PackageDef,
+  const [definitions, setDefinitions] = useState<readonly PackageDef[]>(() =>
+    effectivePackages(lead, () =>
+      defaultPackage(
+        newId(),
+        datedName(todayIso(), [lead.company.name, words.application], "pdf"),
+      ),
+    ),
   );
+  const [preset, setPreset] = useState<PackagePreset>("coverLetterAndCv");
   const cv = findCvDocument(snapshot.documents);
-  const documentName = (id: string) =>
-    snapshot.documents.find((d) => d.id === id)?.name ?? id;
+  const evidenceIds = snapshot.documents
+    .filter((d) => d.role === "evidence")
+    .sort((a, b) => a.name.localeCompare(b.name, "de"))
+    .map((d) => d.id);
 
   if (lead.status === "review") {
     return (
@@ -67,9 +66,25 @@ export function PackageStep({ lead }: { lead: Lead }) {
     );
   }
 
-  async function saveDefinition(def: PackageDef, success?: string) {
-    const next = setPackages(lead, [def], nowIso());
-    return commit(
+  /** Saves all package definitions; names become safe and unique (FR-031). */
+  async function saveDefinitions(
+    defs: readonly PackageDef[],
+    success?: string,
+  ): Promise<Lead | undefined> {
+    const normalized = defs.map((def) => ({
+      ...def,
+      fileName: withExtension(def.fileName, "pdf"),
+    }));
+    let next: Lead;
+    try {
+      next = setPackages(lead, normalized, nowIso());
+    } catch (cause) {
+      fail(cause);
+      return undefined;
+    }
+    // Show the names that will actually be used.
+    setDefinitions(next.packages);
+    const ok = await commit(
       (s) => s.saveLeads([next]),
       (s) => ({
         ...s,
@@ -77,6 +92,7 @@ export function PackageStep({ lead }: { lead: Lead }) {
       }),
       success,
     );
+    return ok ? next : undefined;
   }
 
   function sourceOf(item: PackageItem): { fileId: string; pageCount: number } {
@@ -91,41 +107,83 @@ export function PackageStep({ lead }: { lead: Lead }) {
   }
 
   async function build() {
-    const def = {
-      ...definition,
-      fileName: withExtension(definition.fileName, "pdf"),
-    };
-    // Show the name that will actually be used.
-    setDefinition(def);
-    if (!(await saveDefinition(def))) return;
+    const saved = await saveDefinitions(definitions);
+    if (!saved) return;
     announce(m.package.building);
     const result = await run(async () => {
-      const sources = def.items.map(sourceOf);
-      const parts = [];
-      for (const source of sources)
-        parts.push(await store.readFile(source.fileId));
       const [{ mergePdfs }, { zipFiles }] = await Promise.all([
         loadPdf(),
         loadZip(),
       ]);
-      const merged = await mergePdfs(parts);
-      const pageCount = sources.reduce((sum, s) => sum + s.pageCount, 0);
-      const zip = zipFiles([
-        { name: def.fileName, bytes: merged, compress: false },
-      ]);
+      const entries = [];
+      let pageCount = 0;
+      for (const def of saved.packages) {
+        const sources = def.items.map(sourceOf);
+        const parts = [];
+        for (const source of sources) {
+          parts.push(await store.readFile(source.fileId));
+        }
+        entries.push({
+          name: def.fileName,
+          bytes: await mergePdfs(parts),
+          compress: false,
+        });
+        pageCount += sources.reduce((sum, s) => sum + s.pageCount, 0);
+      }
       downloadBytes(
-        zip,
+        zipFiles(entries),
         datedName(todayIso(), [lead.company.name, words.application], "zip"),
         ZIP_MIME,
       );
-      return pageCount;
+      return { pageCount, names: entries.map((e) => e.name) };
     });
-    if (result !== undefined) {
-      announce(m.package.built(def.fileName, m.format.pages(result)));
+    if (result) {
+      announce(
+        result.names.length === 1
+          ? m.package.built(
+              result.names[0] ?? "",
+              m.format.pages(result.pageCount),
+            )
+          : m.package.builtMany(
+              result.names.length,
+              m.format.pages(result.pageCount),
+            ),
+      );
     }
   }
 
-  const needsCv = definition.items.some((item) => item.kind === "cv");
+  function addPackage() {
+    const def = presetPackage(
+      preset,
+      newId(),
+      todayIso(),
+      lead.company.name,
+      words,
+      evidenceIds,
+    );
+    // The button is disabled when the preset would be empty.
+    if (!def) return;
+    setDefinitions([...definitions, def]);
+    announce(m.package.packageAdded(definitions.length + 1));
+  }
+
+  function removePackage(id: string) {
+    const index = definitions.findIndex((d) => d.id === id);
+    setDefinitions(definitions.filter((d) => d.id !== id));
+    announce(m.package.packageRemoved(index + 1));
+  }
+
+  const update = (next: PackageDef) =>
+    setDefinitions(definitions.map((d) => (d.id === next.id ? next : d)));
+  const items = definitions.flatMap((def) => def.items);
+  const needsCv = items.some((item) => item.kind === "cv");
+  const documentMissing = items.some(
+    (item) =>
+      item.kind === "document" &&
+      !snapshot.documents.some((d) => d.id === item.documentId),
+  );
+  const presetAvailable = preset !== "evidence" || evidenceIds.length > 0;
+
   return (
     <>
       <h1>{m.package.heading}</h1>
@@ -138,79 +196,83 @@ export function PackageStep({ lead }: { lead: Lead }) {
           </Link>
         </p>
       )}
-      <section className="card">
-        <div className="field">
-          <label htmlFor={nameId}>{m.package.fileNameLabel}</label>
-          <input
-            id={nameId}
-            value={definition.fileName}
-            maxLength={200}
-            onChange={(event) =>
-              setDefinition({ ...definition, fileName: event.target.value })
-            }
+      {definitions.map((def, index) => (
+        <section
+          key={def.id}
+          className="card"
+          aria-labelledby={`package-${def.id}`}
+        >
+          <h2 id={`package-${def.id}`}>
+            {m.package.packageHeading(index + 1)}
+          </h2>
+          <PackageEditor
+            definition={def}
+            onChange={update}
+            documents={snapshot.documents}
+            disabled={busy || running}
           />
-        </div>
-        <h2>{m.package.itemsLabel}</h2>
-        <ol className="item-list package-items">
-          {definition.items.map((item, index) => {
-            const label = itemLabel(item, m, documentName);
-            return (
-              <li key={itemKey(item)}>
-                <span>{label}</span>
-                <span className="actions compact">
-                  <button
-                    type="button"
-                    className="secondary small"
-                    aria-label={m.package.moveUp(label)}
-                    disabled={index === 0}
-                    onClick={() =>
-                      setDefinition(moveItem(definition, index, -1))
-                    }
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    className="secondary small"
-                    aria-label={m.package.moveDown(label)}
-                    disabled={index === definition.items.length - 1}
-                    onClick={() =>
-                      setDefinition(moveItem(definition, index, 1))
-                    }
-                  >
-                    ↓
-                  </button>
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-        <div className="actions">
-          <button
-            type="button"
-            disabled={busy || running || (needsCv && !cv)}
-            onClick={() => void build()}
-          >
-            {running ? m.package.building : m.package.download}
-          </button>
+          {definitions.length > 1 && (
+            <div className="actions">
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy || running}
+                onClick={() => removePackage(def.id)}
+              >
+                {m.package.removePackage(index + 1)}
+              </button>
+            </div>
+          )}
+        </section>
+      ))}
+      <section className="card" aria-labelledby="package-add">
+        <h2 id="package-add">{m.package.addPackageHeading}</h2>
+        <p className="hint">{m.package.addPackageHint}</p>
+        <div className="inline-form">
+          <div className="field">
+            <label htmlFor={presetId}>{m.package.presetLabel}</label>
+            <select
+              id={presetId}
+              value={preset}
+              onChange={(event) =>
+                setPreset(event.target.value as PackagePreset)
+              }
+            >
+              {PRESETS.map((p) => (
+                <option key={p} value={p}>
+                  {m.package.presets[p]}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             type="button"
             className="secondary"
-            disabled={busy || running}
-            onClick={() =>
-              void saveDefinition(
-                {
-                  ...definition,
-                  fileName: withExtension(definition.fileName, "pdf"),
-                },
-                m.common.saved,
-              )
-            }
+            disabled={busy || running || !presetAvailable}
+            onClick={addPackage}
           >
-            {m.package.saveDefinition}
+            {m.package.addPackage}
           </button>
         </div>
+        {!presetAvailable && <p className="hint">{m.package.noEvidence}</p>}
       </section>
+      <div className="actions">
+        <button
+          type="button"
+          disabled={busy || running || (needsCv && !cv) || documentMissing}
+          onClick={() => void build()}
+        >
+          {running ? m.package.building : m.package.download}
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          disabled={busy || running}
+          onClick={() => void saveDefinitions(definitions, m.common.saved)}
+        >
+          {m.package.saveDefinition}
+        </button>
+      </div>
     </>
   );
 }

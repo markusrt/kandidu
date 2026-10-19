@@ -26,6 +26,10 @@
   tasks; CV download: empty optional placeholders only give a notice, the
   "download anyway" confirmation is only for empty required placeholders
   (answers question 1 below); then `/speckit-implement` up to the C2 gate.
+- Owner instructions (2026-10-19, later): stop working across stories; one
+  story after another, each finished, green and committed; delegate only tasks
+  of the current story and do not touch files their checks use meanwhile.
+  US2 plus the started US3/US5 work go into one commit, then hand over.
 
 ## C1 ship result (2026-10-18, verified 2026-10-19)
 
@@ -40,6 +44,78 @@
 - Live URL: **<https://markusrt.github.io/kandidu/>**, rechecked 2026-10-19 with
   `curl`: HTTP 200, `lang="de"`, `<title>Kandidu</title>`. Public (GitHub Pages);
   all data stays in the visitor's browser.
+
+## C2 in progress (2026-10-19)
+
+State of branch `001-bewerbungs-mvp` after the commit "feat: deliver C2 evidence
+management (US2) with started US3/US5 work". Owner rule from now on: one story
+at a time, one commit per story (AGENTS.md "Owner working rules").
+
+### Done (ticked in tasks.md)
+
+| Task | Spec IDs | Evidence |
+| --- | --- | --- |
+| T071 CV download: notice for empty optional placeholders, "Trotzdem herunterladen" only for empty required ones (own commit `c715960`) | FR-024, FR-025 | `placeholders.test.ts`; e2e `C1 CV download …` + journey |
+| T039 tags domain (`src/domain/tags.ts`) | FR-010 | `tags.test.ts` |
+| T040 `deleteDocument` tests (adapter existed from C1) | FR-009, FR-028, FR-038 | `indexeddb.test.ts`: evidence delete with affected leads, CV delete keeps `cv` items, refused delete changes nothing, no orphaned files |
+| T073 delete the global CV PDF (CvStep, confirmation, releases stay) | FR-028, FR-029 | e2e `C2 evidence: deleting the CV PDF …` |
+| T041 evidence step `#/einrichtung/nachweise` (upload, tags with suggestions, filter, rename/retag, delete with usage list) | FR-009–FR-011, FR-038, FR-042 | e2e `C2 evidence: upload, tags …` |
+| T042 evidence in packages (`PackageEditor`: add by tag filter, remove item, missing-document guard) | FR-030, FR-011 | e2e `C2 evidence: use in a package …` (merged PDF 8 pages) |
+| T043 e2e `e2e/c2-evidence.spec.ts` | FR-009–FR-011, FR-030, FR-038 | 6 passed (desktop + mobile) |
+
+US2 (Nachweise) is complete: implemented and verified, not yet human-accepted.
+
+### Started, not ticked (in the same commit; finish with their story)
+
+| Task | State | Open points |
+| --- | --- | --- |
+| T072 edit links (US3) | `LinksStep` inline edit with `updateLink`, errors at the field, Escape cancels, focus back to the edit button; domain tests existed from C1 | review e2e coverage in `c2-multi.spec.ts`, tick |
+| T044 prompt context (US3) | textarea (≤ 2 000, counter, notice), save; prompt shows a notice when context is included; "Prompt geändert" text names context; `prompt.test.ts` context case existed from C1 | review, tick |
+| T045 partial import (US3) | domain `partialImport(result)` + tests in `project.test.ts`; ResponseStep button "Nur gültige Einträge übernehmen (n von m)" via `markResponseImported` | check duplicate-guard test in `lead.test.ts` (task text), review e2e, tick |
+| T046 multiple packages (US3) | domain `presetPackage` (FR-031 names) + `setPackages` tests in `packages.test.ts`; PackageStep with one section per package PDF, presets, remove, one ZIP | review, tick |
+| T047 e2e `e2e/c2-multi.spec.ts` (US3) | draft written by the delegated implementer, which was stopped before reporting; **8 passed** locally but **not reviewed** | review against the task text, then tick |
+| T054 backup storage (US5) | `src/storage/backup.ts` (`buildBackup`, `parseBackup`), adapter `exportBackup(readme)` / `importBackup` (allowed after a failed load, one replacing transaction, export does not move the known revision), new port method `persistenceState()`, new error `backup-invalid`; `backup.test.ts` 17 tests (round trip bit-identical, replace, recovery import, 11 damage cases, stale-tab conflict) | no UI yet (T055); `persistenceState()` has no adapter test; `unsupported-version` text says "gespeicherte Daten" and needs a backup-specific wording in T055; contracts updated |
+
+Not started: T048–T053 (US4), T055–T056 (US5), T057 (GATE).
+
+Already present from C1 and relevant later: revision conflict detection and the
+stale-tab banner (T051 needs only UI/e2e proof), resume routing by `promptState`
+and the "Antwort ausstehend" badge (T048 needs the restart e2e).
+
+### Known problems and notes
+
+- "ZIP hang" in the C1 journey (reported by a delegated implementer): not
+  reproducible on the finished tree; all C1 journeys passed (11 passed, 1
+  skipped by design) and the full `pnpm verify` is green. Most likely that run
+  built while `PackageStep.tsx` was being rewritten.
+- Process lesson: work ran across US2, US3 and US5 at the same time, so their
+  files overlap (`de.ts`, `packages.ts`, `PackageStep.tsx`) and could not be
+  committed per story. From now on: one story at a time.
+- Tag text typed without Enter or a suggestion click is not added on upload
+  (T041 behaviour; the hint says "Mit Enter …"). Candidate for the C2 review.
+- On this machine port 4173 is taken: run e2e and verify with
+  `KANDIDU_E2E_PORT=4174`.
+
+### Checks (2026-10-19, Node 24.21.0, pnpm 10.34.7)
+
+- **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0.** Biome 108 files; `tsc -b` ok;
+  dependency-cruiser 106 modules / 360 dependencies, no violations; Vitest
+  **25 files / 237 tests** passed; `vite build` ok; Playwright **25 passed, 1
+  skipped** (C1 journeys, `c2-evidence`, draft `c2-multi`).
+- `pnpm models:check`: exit 0, "Routing OK".
+
+| Agent | Models (responses) | Expected |
+| --- | --- | --- |
+| main session | claude-opus-5-5 (381) | opus |
+| speckit-implementer (probe) | claude-sonnet-5-5 (2) | sonnet |
+| speckit-implementer T039 | claude-sonnet-5-5 (18) | sonnet |
+| speckit-implementer T041 | claude-sonnet-5-5 (46) | sonnet |
+| speckit-implementer T043 + T047 (stopped by the main session) | claude-sonnet-5-5 (40) | sonnet |
+
+Delegated: T039, T041, T043 (+ T047 draft). Reviewed in the main session; fixes
+there: `suggestTags` no longer throws on over-long input, evidence list layout
+class, two e2e locator races in `c2-evidence.spec.ts` (identical status text;
+edit-mode heading).
 
 ## Clarifications recorded (2026-10-18, spec `## Clarifications`)
 
@@ -223,12 +299,15 @@ C1 decision and ship mode: answered 2026-10-18 (approve, `auto-merge`).
 
 ## Worktree and next action
 
-- Worktree: C1 is merged into `main` (`b8af643`) and live. C2 work happens on
-  the local branch `001-bewerbungs-mvp`, one commit per finished user story
-  (AGENTS.md "Owner working rules"); nothing pushed until the C2 gate is approved.
-- **Exact next action:** implement C2 with `/speckit-implement`, starting with
-  the C1 feedback task T071 and Phase 4 (US2, T039), through Phase 7 (US5), then
-  run the C2 GATE T057 procedure and stop for the owner's decision.
+- Worktree: C1 is merged into `main` (`b8af643`) and live. C2 work is on the
+  local branch `001-bewerbungs-mvp`: `01abef1` (docs), `c715960` (T071), then the
+  US2 commit with the started US3/US5 work (see "C2 in progress"). Nothing
+  pushed until the C2 gate is approved. Untracked local safety ref
+  `refs/backup/c1-wip` still exists (never pushed).
+- **Exact next action:** finish US3 (review and tick T072, T044, T045, T046,
+  T047; run `KANDIDU_E2E_PORT=4174 pnpm verify`), then commit US3. After that
+  US4, then US5, each finished, green and committed on its own, then the C2
+  GATE T057.
 
 ## Subsequent handoff schema
 

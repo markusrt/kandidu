@@ -25,6 +25,7 @@ export function CvStep() {
   const { commit, busy, store } = useApp();
   const { running, run } = useTask();
   const [missing, setMissing] = useState<readonly string[]>([]);
+  const [askDelete, setAskDelete] = useState(false);
   const cv = findCvDocument(snapshot.documents);
   const { profile } = snapshot;
 
@@ -97,6 +98,18 @@ export function CvStep() {
     );
   }
 
+  // Deleting the CV keeps releases; packages with the CV wait for a new
+  // upload (FR-028, spec edge cases).
+  const released = snapshot.leads.filter((l) => l.status !== "review").length;
+  async function remove(id: string) {
+    const done = await commit(
+      (s) => s.deleteDocument(id, []),
+      (s) => ({ ...s, documents: s.documents.filter((d) => d.id !== id) }),
+      m.cv.deleted,
+    );
+    if (done) setAskDelete(false);
+  }
+
   // Only empty required data needs a deliberate "anyway" (FR-025).
   const { required, optional } = splitMissing(missing);
   const tagList = (names: readonly string[]) => (
@@ -163,6 +176,40 @@ export function CvStep() {
               )
             : m.cv.none}
         </p>
+        {cv &&
+          (askDelete ? (
+            <div className="confirm">
+              <p>{m.cv.deletePrompt(released)}</p>
+              <div className="actions">
+                <button
+                  type="button"
+                  className="danger"
+                  disabled={busy}
+                  onClick={() => void remove(cv.id)}
+                >
+                  {m.cv.deleteConfirm}
+                </button>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setAskDelete(false)}
+                >
+                  {m.common.cancel}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="actions">
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy || running}
+                onClick={() => setAskDelete(true)}
+              >
+                {m.cv.deleteStart}
+              </button>
+            </div>
+          ))}
         {cv && <p className="warning">{m.cv.replaceWarning}</p>}
         <FileField
           label={m.cv.uploadLabel}

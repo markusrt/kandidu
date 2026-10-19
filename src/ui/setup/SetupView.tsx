@@ -2,6 +2,7 @@ import { useMessages } from "../i18n";
 import type { SetupStep } from "../router";
 import { Stepper } from "../Stepper";
 import { CvStep } from "./CvStep";
+import { EvidenceStep } from "./EvidenceStep";
 import { ProfileStep } from "./ProfileStep";
 import { TemplatesStep } from "./TemplatesStep";
 
@@ -29,8 +30,14 @@ export function SetupView({ step }: { step: SetupStep }) {
             label: m.setup.steps.cv,
             to: { name: "setup", step: "lebenslauf" },
           },
+          {
+            key: "nachweise",
+            label: m.setup.steps.evidence,
+            to: { name: "setup", step: "nachweise" },
+          },
         ]}
       />
+      {step === "nachweise" && <EvidenceStep />}
       {step === "profil" && <ProfileStep />}
       {step === "vorlagen" && <TemplatesStep />}
       {step === "lebenslauf" && <CvStep />}

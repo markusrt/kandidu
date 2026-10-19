@@ -4,9 +4,11 @@ import {
   addResponse,
   type EntryIssue,
   findImportedResponse,
+  markResponseImported,
   type ParseResult,
   type ParseWarning,
   type Project,
+  partialImport,
   RESPONSE_MAX,
   type StoredResponse,
   setResponseDraft,
@@ -52,6 +54,7 @@ export function ResponseStep({ project }: { project: Project }) {
   const [draftNote, setDraftNote] = useState("");
   const [result, setResult] = useState<ParseResult>();
   const [created, setCreated] = useState<readonly Lead[]>([]);
+  const [responseId, setResponseId] = useState<string>();
   const areaId = useId();
   const saved = useRef<string | undefined>(project.responseDraft);
   const latest = useRef(project);
@@ -142,8 +145,45 @@ export function ResponseStep({ project }: { project: Project }) {
     if (!ok) return;
     saved.current = next.responseDraft;
     setResult(parsed);
+    setResponseId(responseId);
     setCreated(leads);
     if (leads.length > 0) setText("");
+  }
+
+  // Takes over only the valid entries of the response just read (FR-021).
+  async function importValid() {
+    if (!result || result.ok || result.error !== "schema-invalid") return;
+    if (!responseId) return;
+    const now = nowIso();
+    const leads = createLeadsFromDrafts(
+      result.validLeads,
+      project.id,
+      responseId,
+      newId,
+      now,
+    );
+    const next = markResponseImported(
+      project,
+      responseId,
+      leads.map((lead) => lead.id),
+      now,
+    );
+    setSubmitting(true);
+    const ok = await commit(
+      (s) => s.saveLeads(leads, next),
+      (s) => ({
+        ...s,
+        projects: replaceProject(s.projects, next),
+        leads: [...s.leads, ...leads],
+      }),
+      m.response.created(leads.length),
+    );
+    setSubmitting(false);
+    if (!ok) return;
+    saved.current = next.responseDraft;
+    setResult(undefined);
+    setCreated(leads);
+    setText("");
   }
 
   return (
@@ -202,7 +242,13 @@ export function ResponseStep({ project }: { project: Project }) {
             </div>
           )}
         </form>
-        {result && !result.ok && <ParseErrors result={result} />}
+        {result && !result.ok && (
+          <ParseErrors
+            result={result}
+            busy={submitting}
+            onImportValid={() => void importValid()}
+          />
+        )}
         {result?.ok && result.warnings.length > 0 && (
           <ul className="warnings">
             {result.warnings.map((warning) => (
@@ -230,10 +276,15 @@ export function ResponseStep({ project }: { project: Project }) {
 
 function ParseErrors({
   result,
+  busy,
+  onImportValid,
 }: {
   result: Extract<ParseResult, { ok: false }>;
+  busy: boolean;
+  onImportValid: () => void;
 }) {
   const m = useMessages();
+  const partial = partialImport(result);
   return (
     <div className="issues" role="alert">
       <h2>{m.response.errorHeading}</h2>
@@ -252,6 +303,18 @@ function ParseErrors({
         </ul>
       )}
       <p>{m.response.keptHint}</p>
+      {partial && (
+        <div className="actions">
+          <button
+            type="button"
+            className="secondary"
+            disabled={busy}
+            onClick={onImportValid}
+          >
+            {m.response.importValid(partial.valid, partial.total)}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
