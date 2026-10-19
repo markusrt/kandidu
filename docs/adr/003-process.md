@@ -4,7 +4,8 @@ Status: selected process; amended by [ADR 004](004-spec-kit.md), which moves the
 constitution to `.specify/memory/constitution.md` and replaces `docs/SPEC.md` with
 Spec Kit feature specs under `specs/`. Checkpoint execution and human decisions
 remain in `docs/STATUS.md`. [ADR 007](007-ship-flow.md) adds local review, ship
-modes, and GitHub Pages deployment.
+modes, and GitHub Pages deployment. [ADR 010](010-delivery-modes.md) lets later
+features use fewer checkpoints (delivery modes Full, Light, Spike).
 
 ## Context
 

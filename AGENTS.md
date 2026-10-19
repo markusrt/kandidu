@@ -34,8 +34,8 @@ product, preserve its specs/history and honor its pending gates instead.
 | --- | --- | --- |
 | Spec | `/speckit-specify <brief>` | Autonomous. Mark unknowns `[NEEDS CLARIFICATION]`. |
 | Clarify | `/speckit-clarify` | Ask blocking questions (≤5, each with a recommended answer). Stop only if an answer changes acceptance, domain, privacy, retention, paid usage, external access, or architecture. |
-| Plan | `/speckit-plan` | Autonomous. Default to the stack in ADR 001; a departure needs an ADR and approval. |
-| Tasks | `/speckit-tasks` | Autonomous. The override template inserts C1–C3 GATE tasks. |
+| Plan | `/speckit-plan` | Autonomous. Default to the stack in ADR 001; a departure needs an ADR and approval. Choose the delivery mode (Full, Light, Spike; constitution "Delivery modes") and record it with its reason in plan.md and STATUS. |
+| Tasks | `/speckit-tasks` | Autonomous. The override template inserts the GATE tasks of the delivery mode (Full: C1–C3; Light: C3; Spike: C1). |
 | Analyze | `/speckit-analyze` | Autonomous. Fix inconsistencies before implementing. |
 | Implement | `/speckit-implement` | Autonomous until the next GATE task, then stop. |
 | Feedback | `/speckit-clarify` or spec edit, then `/speckit-tasks` / `/speckit-converge` | After a human decision at a gate. |
@@ -190,7 +190,8 @@ lives in `.specify/templates/overrides/`.
 
 ## Checkpoints and handoff
 
-C1–C3 are defined in the constitution and expressed as GATE tasks. Before
+C1–C3 and the delivery modes are defined in the constitution and expressed as
+GATE tasks; a feature has only the gates of its mode. Before
 requesting review, verify the actual running application and a reachable URL in
 the available environment. Never invent a preview or imply loopback is
 reachable from another machine. Give at most three user steps and link the

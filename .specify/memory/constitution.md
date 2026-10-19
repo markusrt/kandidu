@@ -103,7 +103,8 @@ approve its own exception or advance past a pending gate.
 
 ## Delivery Checkpoints
 
-Agents work autonomously between checkpoints and stop at each one:
+Agents work autonomously between checkpoints and stop at each checkpoint of the
+feature's delivery mode (below):
 
 - **C1 — Risky core**: the P1 story runs end to end on real (synthetic,
   discardable) data and tests its important failures.
@@ -116,6 +117,29 @@ At each checkpoint: `pnpm verify` passes (or its failure is recorded), the app i
 actually running at a verified URL, and `docs/STATUS.md` gives at most three
 human steps. `AGENTS.md` defines the exact procedure.
 
+### Delivery modes
+
+Not every feature needs all three gates. In `/speckit-plan` the agent chooses
+one mode, records it with a one-line reason as `**Delivery Mode**` in `plan.md`
+and in `docs/STATUS.md`, and reports it to the human. `/speckit-tasks` inserts
+only that mode's GATE tasks.
+
+- **Full** (C1 → C2 → C3): a product's first feature, and any feature that adds
+  a new workflow whose core assumption is not yet proven.
+- **Light** (one GATE after the last story, C3 procedure): a feature that
+  extends a proven workflow and whose risks can be tested inside the slice. The
+  single gate demonstrates, for the feature's scope, the core end to end, the C2
+  behavior (reload, invalid data, failures, recovery, keyboard, devices) of
+  what changed, and the acceptance criteria.
+- **Spike** (C1 only, time-boxed): a feature whose central question has an open
+  outcome. It ends at a C1 GATE with a recorded go/no-go result and its
+  evidence. The human decides what follows: continue as Light or Full (tasks
+  refreshed), or stop and record the learning.
+
+When in doubt, choose the mode with more gates. The agent may switch to a mode
+with more gates and records why; a mode with fewer gates needs human approval.
+The human may set or change the mode at any time.
+
 ## Governance
 
 This constitution supersedes conflicting template text and plan output. Amend it
@@ -126,4 +150,4 @@ principle or section; PATCH: wording). Reading order and operational approval
 gates are defined in `AGENTS.md`. These are generic project defaults; override
 them consciously for a product.
 
-**Version**: 2.1.0 | **Ratified**: 2026-10-16 | **Last Amended**: 2026-10-18
+**Version**: 2.2.0 | **Ratified**: 2026-10-16 | **Last Amended**: 2026-10-19

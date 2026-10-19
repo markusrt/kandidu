@@ -144,11 +144,86 @@ behind a message catalog. Headings, markers, and IDs inside specs stay English s
 Spec Kit commands keep working; all technical docs and code are English
 ([ADR 005](docs/adr/005-language-policy.md)).
 
+Later features choose a delivery mode in `/speckit-plan` (constitution,
+[ADR 010](docs/adr/010-delivery-modes.md)): **Full** stops at C1, C2, and C3;
+**Light** (a small extension of a proven workflow) stops once at C3; **Spike**
+(an open question) stops once at C1 with a go/no-go result. The first feature
+is always Full.
+
 The checkpoints are enforced by GATE tasks from
 `.specify/templates/overrides/tasks-template.md`, which `/speckit-tasks` uses
 instead of Spec Kit's core template. No agent-specific memory is required;
 acceptance and external actions remain explicit human gates. Rationale:
 [ADR 004](docs/adr/004-spec-kit.md).
+
+## Prompt templates for later features
+
+Use these for features after the MVP (001-bewerbungs-mvp). Start a fresh
+session for each (`claude --model opus`); the repository is the handoff. The
+templates are German because the spec language is `de-DE` and the agent talks
+in the language of the prompt. Replace the bracketed parts.
+
+### Implement a backlog item (for example R5 or R6)
+
+```text
+Lies .specify/memory/constitution.md, AGENTS.md („Owner working rules“),
+docs/STATUS.md (Kopf und „Exact next action“) und aus
+specs/001-bewerbungs-mvp/spec.md nur den Backlog-Eintrag [ID]. Weitere
+Abschnitte aus Spec, Plan oder Code nur lesen, wenn ein Schritt sie braucht.
+
+EINTRAG: [Backlog-ID und Titel, z. B. R5 „Anschreiben-Vorlage je Projekt“]
+HINWEISE (optional): [was ich schon weiß, will oder ausschließe]
+
+1. Worktree und STATUS prüfen. main aktualisieren (git pull --ff-only); lokale
+   Commits auf main, die noch nicht auf origin sind, gehen mit dem nächsten PR
+   mit. Von main einen Branch anlegen, benannt nach dem neuen Spec-Kit-Feature.
+2. /speckit-specify für diesen Eintrag als neues Feature (Backlog-ID
+   verlinken), dann /speckit-clarify mit höchstens fünf blockierenden Fragen,
+   jede mit empfohlener Antwort.
+3. /speckit-plan. Wähle den Delivery Mode (Full, Light, Spike; Konstitution
+   „Delivery modes“), trage ihn mit Begründung in plan.md und STATUS ein und
+   nenne ihn mir in einem Satz.
+4. /speckit-tasks, /speckit-analyze, Befunde beheben, Planung committen.
+5. /speckit-implement Story für Story (ein Commit pro Story) bis zum nächsten
+   GATE, Übergabe durchführen, dann stopp.
+Wenn der Kontext über etwa 250k Tokens wächst: an der nächsten Story-Grenze mit
+einer „in progress“-Übergabe in STATUS anhalten und mir Bescheid geben.
+Sprich Deutsch mit mir.
+```
+
+### Plan and implement a new feature from a free-text brief
+
+Examples: deployment with a real database, comments in Markdown with links.
+
+```text
+Lies .specify/memory/constitution.md, AGENTS.md („Owner working rules“),
+docs/STATUS.md (Kopf und „Exact next action“) und die ADRs, die der Auftrag
+berührt (z. B. 001 Stack, 002/008 Speicher, 007 Ship-Ablauf). Frühere Specs nur
+gezielt nach dem durchsuchen, was dieses Feature ändert, nicht vollständig lesen.
+
+AUFTRAG: [was möglich sein soll, für wen und warum]
+RAHMEN (optional): [Budget, Datenschutz, Geräte, Termin, Dienste]
+
+1. Worktree und STATUS prüfen. main aktualisieren (git pull --ff-only); lokale
+   Commits auf main, die noch nicht auf origin sind, gehen mit dem nächsten PR
+   mit. Von main einen Branch anlegen, benannt nach dem neuen Spec-Kit-Feature.
+2. /speckit-specify mit dem Auftrag als neues Feature; Unklares als
+   [NEEDS CLARIFICATION] markieren. /speckit-clarify: höchstens fünf
+   blockierende Fragen, jede mit empfohlener Antwort; auf Antworten warten, die
+   Abnahme, Fachlogik, Datenschutz, Aufbewahrung, Kosten, externen Zugriff oder
+   Architektur ändern.
+3. /speckit-plan. Wähle den Delivery Mode (Full, Light, Spike), trage ihn mit
+   Begründung in plan.md und STATUS ein und nenne ihn mir in einem Satz. Weicht
+   der Plan von einer festgehaltenen Entscheidung ab (z. B. Backend oder
+   Datenbank, Daten verlassen den Browser, Konten, kostenpflichtiger Dienst):
+   ADR-Entwurf schreiben und vor /speckit-tasks auf meine Freigabe warten.
+4. /speckit-tasks, /speckit-analyze, Befunde beheben, Planung committen.
+5. /speckit-implement Story für Story (ein Commit pro Story) bis zum nächsten
+   GATE, Übergabe durchführen, dann stopp.
+Wenn der Kontext über etwa 250k Tokens wächst: an der nächsten Story-Grenze mit
+einer „in progress“-Übergabe in STATUS anhalten und mir Bescheid geben.
+Sprich Deutsch mit mir.
+```
 
 ## Ship and deploy
 

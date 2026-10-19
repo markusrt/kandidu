@@ -14,9 +14,13 @@ domain/boundary behavior and failure paths, plus Playwright coverage for the
 user journey. Tests are written alongside the code they prove, never deferred.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
-Story phases are grouped into delivery checkpoints (C1–C3). Each checkpoint ends
-with a **GATE** task: the implementing agent MUST stop there and wait for an
-explicit human decision recorded in `docs/STATUS.md`.
+Story phases are grouped into the delivery checkpoints of the feature's
+**Delivery Mode** (recorded in plan.md; constitution "Delivery modes"): Full =
+C1, C2, C3; Light = one C3 gate; Spike = one C1 gate. Each checkpoint ends with a
+**GATE** task: the implementing agent MUST stop there and wait for an explicit
+human decision recorded in `docs/STATUS.md`.
+
+**Delivery Mode**: [Full | Light | Spike, copied from plan.md]
 
 ## Format: `[ID] [P?] [Story] [ROUTINE?] Description`
 
@@ -54,14 +58,21 @@ explicit human decision recorded in `docs/STATUS.md`.
   - Tested independently
   - Delivered as an MVP increment
 
-  Checkpoint mapping (first product feature):
-  - C1 = P1 story, which MUST exercise the riskiest core assumption
-  - C2 = remaining stories needed for a useful workflow, plus reload,
-         invalid data, read/write failure, recovery, keyboard and device behavior
-  - C3 = polish and agreed acceptance
-  Later, smaller features may use a single GATE after their last story.
+  Checkpoint mapping by the Delivery Mode in plan.md:
+  - Full (always for the first product feature):
+    - C1 = P1 story, which MUST exercise the riskiest core assumption
+    - C2 = remaining stories needed for a useful workflow, plus reload,
+           invalid data, read/write failure, recovery, keyboard and device behavior
+    - C3 = polish and agreed acceptance
+  - Light: all stories, then the polish phase, then ONE GATE labeled C3 that
+    covers C1–C3 criteria for the feature's scope. Omit the C1 and C2 gates;
+    the C2 behavior of what changed is tested inside the story phases.
+  - Spike: the smallest end-to-end test of the open question, then ONE GATE
+    labeled C1 that records a go/no-go result with evidence. No polish phase.
+    Later work is added by /speckit-tasks after the human's decision.
 
-  Keep every GATE task verbatim apart from the checkpoint label and story IDs.
+  Keep every GATE task verbatim apart from the checkpoint label, the mode,
+  and story IDs (a Spike GATE adds: record the go/no-go result and evidence).
   DO NOT keep these sample tasks in the generated tasks.md file.
   ============================================================================
 -->
@@ -179,12 +190,17 @@ explicit human decision recorded in `docs/STATUS.md`.
 
 ## Implementation Strategy
 
-### Checkpointed MVP
+### Checkpointed MVP (Full)
 
 1. Complete Setup + Foundational
 2. Complete User Story 1 → C1 GATE: running app, evidence, **STOP**
 3. After approval (or requested changes folded into spec.md/tasks.md): User Story 2+ → C2 GATE, **STOP**
 4. After approval: Polish & Acceptance → C3 GATE, **STOP**
+
+### Light and Spike
+
+- Light: Setup/Foundational (only if needed) → stories in priority order → Polish → C3 GATE, **STOP**
+- Spike: the open question end to end → C1 GATE with go/no-go and evidence, **STOP**; the human decides whether it continues as Light or Full
 
 Human feedback at a gate updates spec.md (via `/speckit-clarify` or a direct
 edit with stable IDs), then `/speckit-tasks` or `/speckit-converge` refreshes

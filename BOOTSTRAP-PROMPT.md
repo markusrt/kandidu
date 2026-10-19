@@ -89,7 +89,8 @@ Record the human decision in docs/STATUS.md. Fold requested changes into
 spec.md with /speckit-clarify (stable IDs; never redefine accepted work
 silently), refresh remaining work with /speckit-tasks or /speckit-converge, then
 /speckit-implement to the next GATE. After C3 acceptance, each new capability is
-a new /speckit-specify feature with its own gate.
+a new /speckit-specify feature with the gates of its delivery mode (Full, Light,
+or Spike; constitution "Delivery modes"). The first feature is always Full.
 
 LIMITS
 Do not guess domain, privacy, identity, consent, retention, or authorization

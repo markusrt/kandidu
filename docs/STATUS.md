@@ -4,11 +4,20 @@
 
 - Updated: 2026-10-19.
 - Product: **Kandidu** (Bewerbungs-Assistent), repository `markusrt/kandidu`.
-- Branch: **`001-bewerbungs-mvp-c3-ship`** (local, from `origin/main` at
-  `b1f4523` after the C3 merge, no upstream, not pushed); it only carries
-  this C3 ship record. Spec Kit finds the feature through
-  `.specify/feature.json`, not the branch name. The C2 and C3 branches were
-  deleted locally and on GitHub by their merges.
+- Branch: **`main`** (local, ahead of `origin/main` at `b1f4523`, not
+  pushed). The C3 ship record `f3da0fb` was fast-forwarded from the local
+  branch `001-bewerbungs-mvp-c3-ship` (deleted) onto `main` on 2026-10-19 at
+  the owner's request; the delivery-modes amendment followed as one commit on
+  `main`, also at the owner's explicit instruction. Spec Kit finds the
+  feature through `.specify/feature.json`, not the branch name. The C2 and C3
+  branches were deleted locally and on GitHub by their merges.
+- Process change 2026-10-19 (owner decision): constitution v2.2.0 adds
+  "Delivery modes" (Full C1–C3, Light one C3 gate, Spike one C1 gate; the
+  agent chooses in `/speckit-plan`), [ADR 010](adr/010-delivery-modes.md);
+  the tasks override, AGENTS.md, BOOTSTRAP-PROMPT.md and ADR 003 follow it;
+  README has prompt templates for later features. Applied by hand from
+  mvp-starter (same text, its ADR 008), not through `/speckit-constitution`.
+  The MVP feature 001-bewerbungs-mvp is unaffected (it ran as Full).
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
@@ -824,16 +833,16 @@ it is gone: `pnpm install --frozen-lockfile`, then the same command.
 - Worktree: C1, C2 and C3 are merged into `main` (head `b1f4523`, PR #3)
   and live. The C3 commits got new hashes in the rebase merge (local
   `b20edb7` gate handoff → `b4700e4`, `6555159` acceptance → `b1f4523`).
-  This ship record is one local commit on `001-bewerbungs-mvp-c3-ship`
-  (not pushed); it reaches `main` with the next PR (rebase the next feature
-  branch onto it, or ship it on its own after the owner says so). Clean
+  The ship record `f3da0fb` and the delivery-modes commit are local commits
+  on `main`, not pushed; unless the owner pushes them, they reach
+  `origin/main` with the next feature PR (branch from local `main`). Clean
   after it. No stash, no `refs/backup/*`.
-- **Exact next action (state after the merge):** C3 is on `main` and live at
-  <https://markusrt.github.io/kandidu/>; the branch `001-bewerbungs-mvp-c3` is
-  deleted by the merge, and the MVP (001-bewerbungs-mvp) is complete. Start a
-  new branch from `origin/main` only for a follow-up feature: `/speckit-specify`
-  for R5 (cover letter template per project) and/or R6 (date in the PDF stays
-  fixed, spike), from the spec's "Backlog", after the owner confirms scope.
+- **Exact next action:** C3 is on `main` and live at
+  <https://markusrt.github.io/kandidu/>; the MVP (001-bewerbungs-mvp) is
+  complete. For a follow-up feature, use a README "Prompt templates for later
+  features" prompt: branch from local `main`, `/speckit-specify` for R5
+  (cover letter template per project) or R6 (date in the PDF stays fixed),
+  from the spec's "Backlog", and choose the delivery mode in `/speckit-plan`.
   Nothing of it is started.
 
 ## Subsequent handoff schema
