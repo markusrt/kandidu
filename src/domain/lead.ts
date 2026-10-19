@@ -51,9 +51,19 @@ export interface Company {
   readonly address?: Address;
 }
 
+/** A page the research is based on (FR-050, FR-051). */
+export interface LeadSource {
+  readonly title?: string;
+  readonly url: string;
+}
+
 /** Validated lead content as delivered by the LLM response parser. */
 export interface LeadDraft {
+  /** The entered project link this lead came from. */
   readonly sourceUrl?: string;
+  /** The company's own advertisement, found by the LLM (FR-051). */
+  readonly originalPostingUrl?: string;
+  readonly sources?: readonly LeadSource[];
   readonly position: Position;
   readonly company: Company;
   readonly contact?: Contact;
@@ -125,6 +135,8 @@ export interface Lead extends LeadDraft {
   readonly responseId: string;
   readonly responseIndex: number;
   readonly salutationOverride?: string;
+  /** Overrides the project's "Stelle" for `{Stelle}` (FR-049). */
+  readonly letterPosition?: string;
   readonly coverLetterPdf?: FileRef;
   readonly status: LeadStatus;
   readonly history: readonly StatusEntry[];
@@ -144,6 +156,9 @@ export const LEAD_LIMITS = {
   salutation: 200,
   notes: 2_000,
   url: 2_000,
+  sources: 20,
+  sourceTitle: 200,
+  letterPosition: 200,
 } as const;
 
 export type LeadErrorCode =

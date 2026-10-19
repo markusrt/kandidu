@@ -54,8 +54,28 @@
 
 Source: `specs/001-bewerbungs-mvp/feedback/C2.md`. Clarified with the owner on
 2026-10-19 via `/speckit-clarify` (4 questions, all answered with the
-recommended option; spec `## Clarifications` Session 2026-10-19). State:
-**planned**, nothing implemented yet.
+recommended option; spec `## Clarifications` Session 2026-10-19). State per
+slice below; nothing of C3 is human-accepted.
+
+### C3 progress (evidence per slice)
+
+- **Slice A, storage v2 (T074, T075): implemented and verified.**
+  `SCHEMA_VERSION = 2`; upgrade step in `openKandiduDb` (meta version +
+  revision only, no record rewrite; a failed step aborts the version-change
+  transaction, unhandled `done` rejection silenced); a broadcast after an
+  upgrade so an old-version tab shows its reload banner; IndexedDB
+  `VersionError` (database from a newer Kandidu) now maps to
+  `unsupported-version` instead of `read-failed`. Backup import already
+  accepted every data version ≤ current; now proven with the synthetic v1
+  fixture `src/storage/fixtures/backup-v1.json`. Tests: `indexeddb.test.ts`
+  new "migration 1 → 2" (9 tests: unchanged v1 data, new fields afterwards,
+  empty v1 database, damaged v1 record not rewritten, failed upgrade leaves
+  version 1, broadcast after upgrade only, newer database refused),
+  `schema.test.ts` (v2 field limits), `backup.test.ts` "backup versions" (4
+  tests). `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0 (Biome 118 files,
+  dependency-cruiser 111 modules / 389 dependencies, Vitest 26 files / 259
+  tests, Playwright 59 passed, 1 skipped). Browser proof of a seeded v1
+  database follows in T080.
 
 | Feedback | Timing | Spec | Tasks |
 | --- | --- | --- | --- |

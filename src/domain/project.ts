@@ -72,6 +72,8 @@ export interface Project {
   readonly title: string;
   readonly links: readonly ProjectLink[];
   readonly promptContext: string;
+  /** "Stelle (im Anschreiben)" for `{Stelle}`; leads may override it (FR-049). */
+  readonly position?: string;
   readonly promptState: PromptState;
   readonly promptCopiedAt?: string;
   /** Fingerprint of title, links and context at the last copy. */

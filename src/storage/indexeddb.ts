@@ -67,24 +67,62 @@ type Tx = IDBPTransaction<
 const META_KEY = "meta";
 const PROFILE_KEY = "profile";
 
-export function openKandiduDb(name = DB_NAME): Promise<Db> {
+/**
+ * Opens the database and runs the upgrade steps of data-model.md
+ * "Migrations" in the browser's version-change transaction: if any step
+ * fails, the browser aborts it and the old version stays untouched (FR-053).
+ * `onMigrated` hears about an upgrade of existing data (not a new database).
+ */
+export function openKandiduDb(
+  name = DB_NAME,
+  onMigrated?: (fromVersion: number) => void,
+): Promise<Db> {
   return openDB<KandiduDb>(name, SCHEMA_VERSION, {
-    upgrade(db) {
-      db.createObjectStore("meta");
-      db.createObjectStore("profile");
-      db.createObjectStore("templates");
-      db.createObjectStore("documents", { keyPath: "id" });
-      db.createObjectStore("projects", { keyPath: "id" });
-      const leads = db.createObjectStore("leads", { keyPath: "id" });
-      leads.createIndex("projectId", "projectId");
-      db.createObjectStore("files", { keyPath: "id" });
+    async upgrade(db, oldVersion, _newVersion, tx) {
+      if (oldVersion < 1) {
+        db.createObjectStore("meta");
+        db.createObjectStore("profile");
+        db.createObjectStore("templates");
+        db.createObjectStore("documents", { keyPath: "id" });
+        db.createObjectStore("projects", { keyPath: "id" });
+        const leads = db.createObjectStore("leads", { keyPath: "id" });
+        leads.createIndex("projectId", "projectId");
+        db.createObjectStore("files", { keyPath: "id" });
+        return;
+      }
+      try {
+        // 1 → 2: only optional fields were added, so no record is
+        // rewritten; the meta record gets the new version and a new
+        // revision, which makes a tab of the old version see a conflict.
+        const meta = tx.objectStore("meta");
+        const current: unknown = await meta.get(META_KEY);
+        const parsed = metaSchema.safeParse(current);
+        // A damaged meta record stays as it is; loading reports it.
+        if (parsed.success) {
+          await meta.put(
+            {
+              schemaVersion: SCHEMA_VERSION,
+              revision: parsed.data.revision + 1,
+            },
+            META_KEY,
+          );
+        }
+        onMigrated?.(oldVersion);
+      } catch {
+        // openDB rejects for the caller; `done` would reject unheard.
+        tx.done.catch(() => undefined);
+        tx.abort();
+      }
     },
   });
 }
 
 export interface IndexedDbStoreOptions {
   readonly name?: string;
-  readonly open?: (name: string) => Promise<Db>;
+  readonly open?: (
+    name: string,
+    onMigrated?: (fromVersion: number) => void,
+  ) => Promise<Db>;
   readonly storage?: Pick<StorageManager, "estimate" | "persist" | "persisted">;
   readonly channel?: () => BroadcastChannel | undefined;
 }
@@ -140,11 +178,21 @@ export function createIndexedDbStore(
 
   async function connection(): Promise<Db> {
     if (db) return db;
+    let migrated = false;
     try {
-      db = await open(name);
-    } catch {
+      db = await open(name, () => {
+        migrated = true;
+      });
+    } catch (cause) {
+      // The database was upgraded by a newer Kandidu version.
+      if ((cause as { name?: unknown } | null)?.name === "VersionError") {
+        throw new StoreError("unsupported-version");
+      }
       throw new StoreError("read-failed");
     }
+    // A tab still running the previous version shows its reload banner; its
+    // connection was closed by `versionchange` (FR-044, FR-053).
+    if (migrated) channel?.postMessage({ migrated: SCHEMA_VERSION });
     db.addEventListener("versionchange", () => {
       db?.close();
       db = undefined;
