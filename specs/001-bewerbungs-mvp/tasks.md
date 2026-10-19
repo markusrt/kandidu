@@ -191,7 +191,7 @@ in `docs/STATUS.md`.
 
 ### C2 GATE
 
-- [ ] T057 [GATE] C2 checkpoint: same procedure as T038 for US1–US5 (plus T071–T073); **STOP** for an explicit human decision. Covers: C2 (constitution).
+- [X] T057 [GATE] C2 checkpoint: same procedure as T038 for US1–US5 (plus T071–T073); **STOP** for an explicit human decision. Covers: C2 (constitution). (Approved by the owner on 2026-10-19 with follow-ups R1–R6, `feedback/C2.md`.)
 
 ---
 

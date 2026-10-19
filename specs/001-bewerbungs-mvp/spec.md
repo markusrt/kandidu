@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-18
 
-**Status**: C1 (US1) accepted by the owner on 2026-10-18 and shipped; C2 (US2–US5) implemented and verified, awaiting the owner's decision at GATE T057 (2026-10-19)
+**Status**: C1 (US1) accepted by the owner on 2026-10-18 and shipped; C2 (US2–US5) approved by the owner on 2026-10-19 with follow-ups R1–R6 (`feedback/C2.md`, GATE T057); C3 not started
 
 **Spec Language**: de-DE
 
