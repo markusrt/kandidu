@@ -633,9 +633,41 @@ Remaining (accepted for C1, noted for C2):
   emulation) only; Firefox/Safari are not tested. Quota and persistence are
   faked in e2e (`StorageManager`), write failures are injected; a real full
   disk was not produced.
-- Not yet built (C3): lifecycle beyond "ready", comments, overview with
-  filter/sort, deleting leads and projects (US6, US7); remaining review items
-  above.
+- The app cannot check what the LLM researched: the original posting,
+  researched address, website and sources are only as good as the LLM's web
+  access; the links block asks the person to check them (FR-050–FR-052).
+  The prompt asks for them but a model without web access will leave them
+  empty.
+- Dates in the cover letter and CV PDFs are fixed when the person creates
+  the PDF (R6, backlog spike); `{Datum}` is only current in the DOCX.
+- Data migration: stored data and backups of version 1 are upgraded
+  automatically (FR-053, FR-054); a C2 tab that stays open during the
+  upgrade can no longer save and shows its reload banner. There is no
+  downgrade: after opening C3 once, an older Kandidu build refuses the data
+  as "newer version" (only relevant for local builds; Pages always serves the
+  latest build).
+- SC-001 (≤ 15 minutes for a first-time person) and SC-002's Word/
+  LibreOffice round trip need a person; they are not measured by automation.
+- On narrow screens the lead table is shown as one card per lead with CSS
+  `display` changes; some screen readers (older Safari) may then announce it
+  less as a table. The header labels are repeated per cell, so content stays
+  understandable.
+
+### Restart and resume (T069)
+
+- Use the app: open <https://markusrt.github.io/kandidu/> (public build of
+  `main`) or a local server. Everything is stored in the browser profile
+  that was used; reopening the same browser resumes where the person left
+  (projects open at the step of their prompt state, FR-017).
+- Local server after a session ended: `pnpm install --frozen-lockfile`, then
+  `pnpm dev --host 127.0.0.1 --port 5173 --strictPort`, open
+  `http://127.0.0.1:5173/` on the same machine (loopback only). Port taken →
+  pick another `--port`; the data is per origin, so a different port starts
+  with empty data (export a backup on the old origin and import it).
+- Checks: `KANDIDU_E2E_PORT=4174 pnpm verify` on this machine (VS Code holds
+  4173); `pnpm test:e2e` alone needs `pnpm build` first.
+- Lost browser data or a new device: "Daten" → "Sicherung importieren" with
+  the latest `JJJJ-MM-TT_Kandidu_Sicherung.zip`.
 - Agent environment: drive C: was 100 % full during part of this session (tests
   ran with TMP/TEMP on D:), and the owner's PC crashed (bluescreen) before the
   first feature commit. After the crash: `git fsck` clean, no empty/NUL files,
