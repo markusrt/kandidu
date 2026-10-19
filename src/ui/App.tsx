@@ -178,7 +178,7 @@ function Recovery({ cause }: { cause: unknown }) {
       <p>{m.backup.recoveryHint}</p>
       <BackupImport hasData />
       {confirming && (
-        <fieldset className="confirm">
+        <fieldset className="confirm" role="alert">
           <legend>{m.recovery.resetStart}</legend>
           <p>{m.recovery.resetPrompt}</p>
           <div className="actions">

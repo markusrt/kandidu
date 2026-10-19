@@ -142,7 +142,7 @@ export function DataPage() {
         <h2 id="data-reset">{m.data.resetHeading}</h2>
         <p>{m.data.resetIntro}</p>
         {confirmingReset ? (
-          <fieldset className="confirm">
+          <fieldset className="confirm" role="alert">
             <legend>{m.recovery.resetStart}</legend>
             <p>{m.recovery.resetPrompt}</p>
             <div className="actions">

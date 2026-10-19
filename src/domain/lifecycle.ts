@@ -130,11 +130,15 @@ export function undoLast(lead: Lead, now: string): Lead {
   return { ...lead, history, status: currentStatus(history), updatedAt: now };
 }
 
-/** The earliest interview at or after `nowLocal` (`YYYY-MM-DDTHH:mm`). */
+/**
+ * The earliest interview at or after `nowLocal` (`YYYY-MM-DDTHH:mm`). A lead
+ * in a terminal state has no upcoming interview (US6 scenario 6).
+ */
 export function nextInterview(
   lead: Lead,
   nowLocal: string,
 ): Interview | undefined {
+  if (TERMINAL_STATUSES.includes(lead.status)) return undefined;
   return lead.history
     .filter((entry) => !entry.undoneAt && entry.interview)
     .map((entry) => entry.interview as Interview)

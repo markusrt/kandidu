@@ -295,6 +295,12 @@ describe("lifecycle transitions (FR-034)", () => {
       nextInterview(undoLast(lead, NOW), "2026-11-05T00:00")?.dateTime,
     ).toBe(undefined);
     expect(nextInterview(lead, "2027-01-01T00:00")).toBeUndefined();
+    // A finished lead has no upcoming interview, even with a future date.
+    for (const status of ["accepted", "rejected", "withdrawn"] as const) {
+      expect(
+        nextInterview(go(lead, dated(status)), "2026-10-25T00:00"),
+      ).toBeUndefined();
+    }
   });
 });
 

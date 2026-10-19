@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { findCvDocument } from "../../domain/documents";
 import { type Lead, setCoverLetterPdf } from "../../domain/lead";
 import { backToReview, confirmGate, gateMissing } from "../../domain/lifecycle";
@@ -26,6 +26,16 @@ export function GateStep({ lead }: { lead: Lead }) {
   const errorId = useId();
   const [askBack, setAskBack] = useState(false);
   const backFocus = useReturnFocus(askBack);
+  // Releasing or going back swaps the whole view; the clicked button is
+  // gone, so focus moves to the heading of the new view (FR-047).
+  const heading = useRef<HTMLHeadingElement>(null);
+  const focusHeading = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs after the status change re-rendered the view
+  useEffect(() => {
+    if (!focusHeading.current) return;
+    focusHeading.current = false;
+    heading.current?.focus();
+  }, [lead.status]);
   const checkId = useId();
   const cv = findCvDocument(snapshot.documents);
   const toPackage = {
@@ -85,15 +95,19 @@ export function GateStep({ lead }: { lead: Lead }) {
       setError(errorMessage(cause, m));
       return;
     }
-    await commit(
+    // Set before the commit: the new status may render before it returns.
+    focusHeading.current = true;
+    const ok = await commit(
       (store) => store.saveLeads([next]),
       (s) => ({ ...s, leads: replaceLead(s.leads, next) }),
       m.gate.released,
     );
+    if (!ok) focusHeading.current = false;
   }
 
   async function back() {
     const next = backToReview(lead, nowIso());
+    focusHeading.current = true;
     const ok = await commit(
       (store) => store.saveLeads([next]),
       (s) => ({ ...s, leads: replaceLead(s.leads, next) }),
@@ -102,13 +116,17 @@ export function GateStep({ lead }: { lead: Lead }) {
     if (ok) {
       setAskBack(false);
       setConfirmed(false);
+    } else {
+      focusHeading.current = false;
     }
   }
 
   if (lead.status !== "review") {
     return (
       <>
-        <h1>{m.gate.heading}</h1>
+        <h1 ref={heading} tabIndex={-1}>
+          {m.gate.heading}
+        </h1>
         <section className="card">
           <p>{m.gate.releasedNotice}</p>
           {lead.coverLetterPdf && (
@@ -127,7 +145,7 @@ export function GateStep({ lead }: { lead: Lead }) {
           </p>
           {lead.status === "ready" &&
             (askBack ? (
-              <div className="confirm">
+              <div className="confirm" role="alert">
                 <p>{m.gate.backPrompt}</p>
                 <div className="actions">
                   <button
@@ -169,7 +187,9 @@ export function GateStep({ lead }: { lead: Lead }) {
 
   return (
     <>
-      <h1>{m.gate.heading}</h1>
+      <h1 ref={heading} tabIndex={-1}>
+        {m.gate.heading}
+      </h1>
       <p>{m.gate.intro}</p>
       <section className="card">
         <p>

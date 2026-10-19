@@ -114,6 +114,23 @@ describe("persisted schemas", () => {
     );
     expect(lead({ sources: [{ ...source(1), extra: 1 }] })).toBe(false);
     expect(lead({ originalPostingUrl: "x".repeat(2001) })).toBe(false);
+    // Untrusted data (backups): the new link fields must be http(s).
+    expect(lead({ originalPostingUrl: "javascript:alert(1)" })).toBe(false);
+    expect(lead({ sources: [{ url: "javascript:alert(1)" }] })).toBe(false);
+    const interview = (link: string) =>
+      lead({
+        history: [
+          { id: "h1", status: "review", at: "t" },
+          {
+            id: "h2",
+            status: "interview",
+            at: "t",
+            interview: { dateTime: "2026-11-03T10:00", mode: "online", link },
+          },
+        ],
+      });
+    expect(interview("https://meet.example.org/a")).toBe(true);
+    expect(interview("javascript:alert(1)")).toBe(false);
   });
 });
 

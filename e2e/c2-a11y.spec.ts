@@ -14,7 +14,9 @@ import {
 import {
   createProjectWithLeads,
   openLead,
+  PORTAL_LINK,
   profileLabel,
+  releaseLead,
   setupReleasedLead,
 } from "./flows";
 
@@ -230,7 +232,12 @@ test("C2 a11y: axe finds no critical or serious violations in the main views", a
 test("C3 a11y: the links block of the lead review, also with errors", async ({
   page,
 }) => {
-  await createProjectWithLeads(page, "valid-original-sources");
+  await createProjectWithLeads(
+    page,
+    "valid-original-sources",
+    undefined,
+    PORTAL_LINK,
+  );
   await openLead(page, "Beispiel GmbH");
   await expect(page.getByRole("group", { name: "Links" })).toBeVisible();
   await expectNoSeriousViolations(page, "links block");
@@ -264,6 +271,10 @@ test("C3 keyboard: Verlauf, comments and every removal keep the focus", async ({
     .click();
   await activate(page, page.getByRole("button", { name: "Versendet" }));
   await expect(status(page)).toContainText("Status geändert: Versendet.");
+  // The pressed button is not offered any more; focus is on the new state.
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Aktueller Stand" }),
+  ).toBeFocused();
   await tabTo(page, page.getByLabel("Kommentar", { exact: true }));
   await page.keyboard.type("Per Tastatur notiert");
   await activate(
@@ -305,6 +316,13 @@ test("C3 keyboard: Verlauf, comments and every removal keep the focus", async ({
   await expect(page.getByRole("button", { name: "Abbrechen" })).toBeFocused();
   await page.getByRole("button", { name: "Abbrechen" }).click();
   await expect(back).toBeFocused();
+  // Confirming swaps the view; focus goes to its heading, also after a new
+  // release.
+  await back.click();
+  await page.getByRole("button", { name: "Ja, zurück in den Review" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+  await releaseLead(page, await pdfFile("Anschreiben.pdf", 1));
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
 
   // Package: removing an item and a whole package.
   await page.goto(leadUrl.replace(/\/[a-z]+$/, "/paket"));

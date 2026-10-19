@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { DOCUMENT_NAME_MAX } from "../domain/documents";
 import { LEAD_LIMITS, LEAD_STATUSES } from "../domain/lead";
+import { isHttpUrl } from "../domain/profile";
 import {
   LINK_MAX,
   LINKS_MAX,
@@ -23,6 +24,10 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const shortText = z.string().max(LEAD_LIMITS.shortText);
 const optionalShort = shortText.optional();
 const url = z.string().max(LINK_MAX);
+// Only for fields new in C3 (v2) and interview links: C1/C2 stored other
+// link fields without this check, so refining them could turn existing data
+// into a recovery case.
+const httpUrl = url.refine(isHttpUrl);
 
 export const metaSchema = z.strictObject({
   schemaVersion: z.number().int().positive(),
@@ -84,14 +89,14 @@ const address = z.strictObject({
 
 const leadSource = z.strictObject({
   title: z.string().max(LEAD_LIMITS.sourceTitle).optional(),
-  url,
+  url: httpUrl,
 });
 
 const position = z.string().min(1).max(LEAD_LIMITS.letterPosition);
 
 const leadDraftShape = {
   sourceUrl: url.optional(),
-  originalPostingUrl: url.optional(),
+  originalPostingUrl: httpUrl.optional(),
   sources: z
     .array(leadSource)
     .max(LEAD_LIMITS.sources)
@@ -149,7 +154,7 @@ const statusEntry = z.strictObject({
       dateTime: z.string().min(1).max(40),
       mode: z.enum(["onsite", "online"]),
       location: optionalShort,
-      link: url.optional(),
+      link: httpUrl.optional(),
     })
     .optional(),
   undoneAt: timestamp.optional(),

@@ -395,8 +395,8 @@ gespeichert sind.
   gelten die eingegebenen Links (FR-051).
 - Das LLM gibt als eingegebenen Link eine Adresse zurück, die nicht zu den
   Projektlinks gehört, oder lässt sie weg: Hat das Projekt genau einen Link, gilt
-  dieser; sonst bleibt der vom LLM gelieferte Wert stehen und ist im Review
-  änderbar (FR-051).
+  dieser, und ein abweichender Link des LLM bleibt als Quelle erhalten; sonst
+  bleibt der vom LLM gelieferte Wert stehen und ist im Review änderbar (FR-051).
 - Vom LLM recherchierte Anschrift oder Website ist falsch: Sie steht in denselben
   änderbaren Feldern wie Angaben aus der Anzeige; der Links-Block weist darauf
   hin, gefundene Angaben vor dem Versand zu prüfen (FR-050, FR-052).
@@ -475,8 +475,9 @@ gespeichert sind.
   Vergütung) denen von Jobportalen vorzuziehen und die Original-Ausschreibung nur
   bei sicherem Fund zu nennen. Kandidu MUSS je Lead alle Links speichern: den
   eingegebenen Link, die Original-Ausschreibung, das Bewerbungsportal, die
-  Unternehmens-Website und die Quellen der Recherche (Titel optional, URL). Liefert
-  das LLM keinen eingegebenen Link und hat das Projekt genau einen Link, gilt dieser.
+  Unternehmens-Website und die Quellen der Recherche (Titel optional, URL). Hat das
+  Projekt genau einen Link, ist dieser der eingegebene Link jedes Leads; ein davon
+  abweichender Link des LLM bleibt als Quelle erhalten.
   Die Projektlinks bleiben die vom Nutzer eingegebenen. (C2-Feedback R2)
 - **FR-052**: Nennt eine Ausschreibung nur Firmenname und Ort, MUSS der Prompt das
   LLM anweisen, Anschrift und Website des Unternehmens zu recherchieren (z. B. über

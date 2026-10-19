@@ -181,7 +181,7 @@ function TemplateCard({ kind }: { kind: TemplateKind }) {
             </ul>
           )}
           {confirmRemove ? (
-            <div className="confirm">
+            <div className="confirm" role="alert">
               <p>{m.templates.removePrompt}</p>
               <div className="actions">
                 <button

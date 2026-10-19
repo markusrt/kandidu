@@ -123,7 +123,7 @@ again for a new round.
 | text | string | raw paste, ≤ 500 000 chars, stored before parsing |
 | receivedAt | timestamp | |
 | result | `ParseResult` | see contracts/llm-response.md |
-| importedLeadIds | string[] | leads created from this response; non-empty → re-import asks first |
+| importedLeadIds | string[] | leads created from this response; non-empty → re-import asks first. Deleting a lead keeps its id here on purpose (C3): pasting the same answer again still asks first instead of silently recreating a deleted lead (FR-021). The id is an opaque key, no lead data or file remains (SC-011). |
 
 ### Lead (FR-022–FR-035)
 
@@ -131,7 +131,7 @@ again for a new round.
 | --- | --- | --- |
 | id, projectId | string | |
 | responseId, responseIndex | string, number | origin (duplicate guard, FR-021) |
-| sourceUrl | string \| undefined | http(s); the entered project link this lead came from; on import, if absent and the project has exactly one link, that link (FR-051) |
+| sourceUrl | string \| undefined | http(s); the entered project link this lead came from; on import with exactly one project link, that link (an absent or different LLM value is replaced; a different one is kept in `sources` while there is room) (FR-051) |
 | originalPostingUrl | string \| undefined | http(s) ≤ 2 000; the company's own advertisement found by the LLM (FR-051, v2) |
 | sources | `{ title?, url }[]` \| undefined | research sources; ≤ 20, url http(s) ≤ 2 000 unique, title ≤ 200; absent = none (FR-050, FR-051, v2) |
 | letterPosition | string \| undefined | overrides `Project.position` for `{Stelle}`, trimmed, ≤ 200, empty = absent; editable in review (FR-049, v2) |

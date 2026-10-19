@@ -385,7 +385,7 @@ function DeleteConfirm({
   }
 
   return (
-    <div className="confirm">
+    <div className="confirm" role="alert">
       <p>{m.evidence.deleteHeading(document.name)}</p>
       {usage.length === 0 ? (
         <p>{m.evidence.notUsed}</p>

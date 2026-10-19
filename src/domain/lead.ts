@@ -294,9 +294,33 @@ export function assertNotImported(response: ImportedResponse): void {
 }
 
 /**
+ * With exactly one project link, that is the entered link of every lead
+ * (spec edge case, FR-051). A different link from the LLM is not dropped
+ * but kept as a source, since Kandidu keeps every link (C2 feedback R2).
+ */
+function withEnteredLink(
+  draft: LeadDraft,
+  onlyLink: string | undefined,
+): LeadDraft {
+  if (!onlyLink || draft.sourceUrl === onlyLink) return draft;
+  const sources = draft.sources ?? [];
+  const other = draft.sourceUrl;
+  const keep =
+    other &&
+    !sources.some((source) => source.url === other) &&
+    sources.length < LEAD_LIMITS.sources
+      ? [...sources, { url: other }]
+      : sources;
+  return {
+    ...draft,
+    sourceUrl: onlyLink,
+    ...(keep.length > 0 ? { sources: keep } : {}),
+  };
+}
+
+/**
  * Creates leads in review from parsed drafts; `newId` supplies unique ids.
- * A draft without `sourceUrl` gets the project's link when there is exactly
- * one, so every lead knows the advertisement it came from (FR-051).
+ * Every lead knows the advertisement it came from (`withEnteredLink`).
  */
 export function createLeadsFromDrafts(
   drafts: readonly LeadDraft[],
@@ -310,8 +334,7 @@ export function createLeadsFromDrafts(
   return drafts.map((draft, index) => {
     validateLeadDraft(draft);
     return {
-      ...(onlyLink ? { sourceUrl: onlyLink } : {}),
-      ...draft,
+      ...withEnteredLink(draft, onlyLink),
       id: newId(),
       projectId,
       responseId,

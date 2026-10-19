@@ -1,4 +1,4 @@
-import { useId, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import {
   LEAD_LIMITS,
   type LeadLinkField,
@@ -98,10 +98,21 @@ export function LeadLinks({
     onChange({ sources: [...form.sources, { key, title: "", url: "" }] });
   }
 
+  // The removed row's button is gone; after the re-render focus goes to
+  // "Quelle hinzufügen" (enabled again by then) or to the sources group.
+  const focusAfterRemove = useRef(false);
+  const sourcesGroup = useRef<HTMLFieldSetElement>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs after a removal re-rendered the rows
+  useEffect(() => {
+    if (!focusAfterRemove.current) return;
+    focusAfterRemove.current = false;
+    const add = addButton.current;
+    (add && !add.disabled ? add : sourcesGroup.current)?.focus();
+  }, [form.sources.length]);
+
   function removeRow(index: number) {
+    focusAfterRemove.current = true;
     onChange({ sources: form.sources.filter((_, i) => i !== index) });
-    // The removed row's button is gone; keep focus in the block.
-    addButton.current?.focus();
   }
 
   if (locked) {
@@ -168,7 +179,7 @@ export function LeadLinks({
         );
       })}
 
-      <fieldset>
+      <fieldset ref={sourcesGroup} tabIndex={-1}>
         <legend>{t.sourcesHeading}</legend>
         {form.sources.length === 0 && <p>{t.noSources}</p>}
         <ol className="source-list">

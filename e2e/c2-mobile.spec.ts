@@ -4,6 +4,7 @@ import {
   addProjectLink,
   createProjectWithLeads,
   openLead,
+  PORTAL_LINK,
   setupReleasedLead,
 } from "./flows";
 
@@ -76,7 +77,12 @@ test("C2 mobile: home, project, lead list and lead status fit 360 px", async ({
 test("C3 mobile: the links block fits 360 px with a long URL", async ({
   page,
 }) => {
-  await createProjectWithLeads(page, "valid-original-sources");
+  await createProjectWithLeads(
+    page,
+    "valid-original-sources",
+    undefined,
+    PORTAL_LINK,
+  );
   await openLead(page, "Beispiel GmbH");
   await page.getByRole("button", { name: "Quelle hinzufügen" }).click();
   await page

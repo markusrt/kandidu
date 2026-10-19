@@ -82,8 +82,10 @@ Tolerance rules:
   kept once; more than 20 sources → the first 20 are kept with warning
   `sources-truncated`. A `sources` value that is not an array is dropped with
   warning `sources-invalid`, never an error.
-- Lead creation (not the parser): if `sourceUrl` is absent and the project has
-  exactly one link, the lead gets that link (FR-051).
+- Lead creation (not the parser): if the project has exactly one link, the
+  lead's `sourceUrl` is that link; an LLM value that differs is added to
+  `sources` (unless already there or the list is full) so no link is lost
+  (FR-051). With several project links the LLM's value is kept as is.
 
 ## ParseResult
 
