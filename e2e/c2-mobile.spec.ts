@@ -9,6 +9,12 @@ test.use({ viewport: { width: 360, height: 740 } });
 
 async function expectNoHorizontalScroll(page: Page, view: string) {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  // The file picker's text width depends on the platform's fonts: on the
+  // Linux CI runner it was 20 px wider than on Windows and overflowed. Widen
+  // it here so the check does not depend on the machine it runs on.
+  await page.addStyleTag({
+    content: 'input[type="file"] { letter-spacing: 2px; }',
+  });
   const overflow = await page.evaluate(() => {
     const root = document.documentElement;
     const wide = Array.from(document.querySelectorAll<HTMLElement>("body *"))

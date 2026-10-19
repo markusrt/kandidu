@@ -159,6 +159,17 @@ conflict); its open points (UI, `persistenceState()` test, backup-specific
 
 ### Checks (2026-10-19, Node 24.21.0, pnpm 10.34.7)
 
+- **First C2 ship attempt failed in CI** (PR #2, run 39208732654, job
+  `verify`): `C2 mobile …` found 380 px width on `#/einrichtung/vorlagen` on
+  the Linux runner (desktop and Pixel 7); nothing was merged. Cause: `.field`
+  is a grid whose column grew to the file picker's minimum width, which
+  depends on the platform's fonts (narrower on Windows, so the local gate run
+  passed). Fix: `.field` column `minmax(0, 1fr)` and `max-width: 100%` on file
+  inputs; the mobile e2e now widens the file picker text itself, so it fails
+  without the fix on Windows too (checked: 2 failed without, passed with).
+  Then **`KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0** (Vitest 26 files / 245
+  tests; Playwright 59 passed, 1 skipped). Ship rerun on the same open PR.
+
 - **Gate run, after the C2 review fixes: `KANDIDU_E2E_PORT=4174 pnpm verify`:
   exit 0.** Biome 117 files; `tsc -b` ok; dependency-cruiser 111 modules /
   388 dependencies, no violations; Vitest **26 files / 245 tests**; build ok;
