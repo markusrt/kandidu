@@ -3,6 +3,7 @@ import {
   checkTemplateTags,
   PLACEHOLDERS,
   placeholdersFor,
+  splitMissing,
   suggestPlaceholder,
   type TemplateTag,
   usedPlaceholderNames,
@@ -114,5 +115,29 @@ describe("helpers", () => {
         block("Motivation", [text("Absatz"), text("Vorname")]),
       ]),
     ).toEqual(["Vorname", "Motivation", "Absatz"]);
+  });
+
+  it("marks exactly the optional profile fields as optional", () => {
+    expect(PLACEHOLDERS.filter((p) => p.optional).map((p) => p.name)).toEqual([
+      "Geburtsdatum",
+      "Geburtsort",
+      "Staatsangehoerigkeit",
+      "Website",
+    ]);
+  });
+
+  it("splits empty placeholders into required and optional ones", () => {
+    expect(splitMissing(["Geburtsort", "Telefon", "Website", "EMail"])).toEqual(
+      {
+        required: ["Telefon", "EMail"],
+        optional: ["Geburtsort", "Website"],
+      },
+    );
+    expect(splitMissing(["Website"])).toEqual({
+      required: [],
+      optional: ["Website"],
+    });
+    // Unknown names stay on the safe side.
+    expect(splitMissing(["Unbekannt"]).required).toEqual(["Unbekannt"]);
   });
 });

@@ -137,7 +137,7 @@ in `docs/STATUS.md`.
 
 ### C1 feedback (owner, 2026-10-19)
 
-- [ ] T071 [US1] CV download notice vs. confirmation (spec Clarifications 2026-10-19): mark the optional profile placeholders (`Geburtsdatum`, `Geburtsort`, `Staatsangehoerigkeit`, `Website`) in src/domain/placeholders.ts and add `splitMissing(names)` → `{ required, optional }`; src/ui/setup/CvStep.tsx shows empty optional placeholders as an informational notice (no "Trotzdem herunterladen", normal download button) and keeps the warning plus "Trotzdem herunterladen" only when required placeholders are empty; the cover letter step is unchanged; unit tests in src/domain/placeholders.test.ts and an e2e check in e2e/c1-lead-journey.spec.ts (profile without optional fields → notice, normal button). Covers: FR-024, FR-025.
+- [X] T071 [US1] CV download notice vs. confirmation (spec Clarifications 2026-10-19): mark the optional profile placeholders (`Geburtsdatum`, `Geburtsort`, `Staatsangehoerigkeit`, `Website`) in src/domain/placeholders.ts and add `splitMissing(names)` → `{ required, optional }`; src/ui/setup/CvStep.tsx shows empty optional placeholders as an informational notice (no "Trotzdem herunterladen", normal download button) and keeps the warning plus "Trotzdem herunterladen" only when required placeholders are empty; the cover letter step is unchanged; unit tests in src/domain/placeholders.test.ts and an e2e check in e2e/c1-lead-journey.spec.ts (profile without optional fields → notice, normal button). Covers: FR-024, FR-025.
 
 ### User Story 2 tasks
 
