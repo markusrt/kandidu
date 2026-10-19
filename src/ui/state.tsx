@@ -9,10 +9,19 @@ import {
   useState,
 } from "react";
 import type { AppSnapshot, KandiduStore } from "../storage/port";
-import { errorMessage, useMessages } from "./i18n";
+import { errorCode, errorMessage, useMessages } from "./i18n";
+import type { ErrorCode } from "./i18n/messages";
+import { navigate } from "./router";
 
 // App state: the validated snapshot from the store. Every change is written
 // first and applied to the snapshot only after the write succeeded (FR-040).
+
+/** Write failures worth retrying as they are; others need a reload or a fix. */
+const RETRYABLE: ReadonlySet<ErrorCode> = new Set([
+  "save-failed",
+  "quota-exceeded",
+  "delete-failed",
+]);
 
 export type LoadState =
   | { readonly kind: "loading" }
@@ -25,18 +34,29 @@ export interface Notice {
   readonly id: number;
 }
 
+/** A failed write waiting for the person to retry it or give up (FR-040). */
+export interface WriteFailure {
+  readonly text: string;
+  readonly id: number;
+  retry(): void;
+  dismiss(): void;
+}
+
 interface AppContextValue {
   readonly state: LoadState;
   readonly store: KandiduStore;
   readonly busy: boolean;
   readonly stale: boolean;
   readonly notice: Notice | undefined;
+  readonly failure: WriteFailure | undefined;
   reload(): Promise<void>;
   reset(): Promise<void>;
   /**
    * Runs `write` against the store and, only if it succeeds, applies `update`
    * to the snapshot and announces `success`. Returns whether it succeeded;
    * failures are announced and leave the snapshot (and form input) untouched.
+   * A retryable failure keeps the promise (and the write queue) open until
+   * the person retries, which resolves with the retry's outcome, or cancels.
    */
   commit(
     write: (store: KandiduStore) => Promise<void>,
@@ -62,6 +82,7 @@ export function AppProvider({
   const [busy, setBusy] = useState(false);
   const [stale, setStale] = useState(false);
   const [notice, setNotice] = useState<Notice>();
+  const [failure, setFailure] = useState<WriteFailure>();
   const locked = useRef(false);
   const counter = useRef(0);
 
@@ -96,6 +117,8 @@ export function AppProvider({
       const snapshot = await store.load();
       setState({ kind: "ready", snapshot });
       setStale(false);
+      // The current route may point at data that no longer exists.
+      navigate({ name: "home" });
       show("status", m.recovery.resetDone);
     } catch (cause) {
       show("error", errorMessage(cause, m));
@@ -114,19 +137,46 @@ export function AppProvider({
     (write, update, success) => {
       pending.current += 1;
       setBusy(true);
-      const run = async () => {
+      const attempt = async (): Promise<boolean> => {
         try {
           await write(store);
-          setState((current) =>
-            current.kind === "ready"
-              ? { kind: "ready", snapshot: update(current.snapshot) }
-              : current,
-          );
-          if (success) show("status", success);
-          return true;
         } catch (cause) {
-          show("error", errorMessage(cause, m));
-          return false;
+          const code = errorCode(cause);
+          // Another tab wrote first: only a reload helps (FR-044).
+          if (code === "conflict") setStale(true);
+          if (!RETRYABLE.has(code)) {
+            show("error", errorMessage(cause, m));
+            return false;
+          }
+          // Nothing may look saved while the failure is open.
+          setNotice(undefined);
+          return new Promise<boolean>((resolve) => {
+            counter.current += 1;
+            setFailure({
+              text: errorMessage(cause, m),
+              id: counter.current,
+              retry: () => {
+                setFailure(undefined);
+                resolve(attempt());
+              },
+              dismiss: () => {
+                setFailure(undefined);
+                resolve(false);
+              },
+            });
+          });
+        }
+        setState((current) =>
+          current.kind === "ready"
+            ? { kind: "ready", snapshot: update(current.snapshot) }
+            : current,
+        );
+        if (success) show("status", success);
+        return true;
+      };
+      const run = async () => {
+        try {
+          return await attempt();
         } finally {
           pending.current -= 1;
           if (pending.current === 0) setBusy(false);
@@ -152,6 +202,7 @@ export function AppProvider({
       busy,
       stale,
       notice,
+      failure,
       reload,
       reset,
       commit,
@@ -159,7 +210,19 @@ export function AppProvider({
       fail,
       clearNotice: () => setNotice(undefined),
     }),
-    [state, store, busy, stale, notice, reload, reset, commit, announce, fail],
+    [
+      state,
+      store,
+      busy,
+      stale,
+      notice,
+      failure,
+      reload,
+      reset,
+      commit,
+      announce,
+      fail,
+    ],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

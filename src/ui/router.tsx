@@ -10,6 +10,7 @@ export type Route =
   | { readonly name: "home" }
   | { readonly name: "setup"; readonly step: SetupStep }
   | { readonly name: "placeholders" }
+  | { readonly name: "data" }
   | {
       readonly name: "project";
       readonly projectId: string;
@@ -76,6 +77,7 @@ export function parseRoute(hash: string): Route {
   if (first === "platzhalter" && parts.length === 1) {
     return { name: "placeholders" };
   }
+  if (first === "daten" && parts.length === 1) return { name: "data" };
   if (first === "projekte" && second) {
     if (parts.length === 2) {
       return { name: "project", projectId: second, step: undefined };
@@ -109,6 +111,8 @@ export function href(route: Route): string {
       return `#/einrichtung/${route.step}`;
     case "placeholders":
       return "#/platzhalter";
+    case "data":
+      return "#/daten";
     case "project":
       return route.step
         ? `#/projekte/${enc(route.projectId)}/${route.step}`

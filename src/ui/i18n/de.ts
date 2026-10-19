@@ -24,6 +24,10 @@ const timestampFormat = new Intl.DateTimeFormat("de-DE", {
 const numberFormat = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 1,
 });
+const percentFormat = new Intl.NumberFormat("de-DE", {
+  style: "percent",
+  maximumFractionDigits: 0,
+});
 
 const isoToDate = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00Z`);
 
@@ -45,6 +49,7 @@ export const de = {
     shortDate: (iso: string) => shortDateFormat.format(isoToDate(iso)),
     timestamp: (iso: string) => timestampFormat.format(new Date(iso)),
     bytes,
+    percent: (ratio: number) => percentFormat.format(ratio),
     pages: (n: number) => plural(n, "Seite", "Seiten"),
   },
 
@@ -89,6 +94,39 @@ export const de = {
     home: "Start",
     setup: "Einrichtung",
     placeholders: "Platzhalter",
+    data: "Daten",
+  },
+
+  data: {
+    heading: "Daten und Speicher",
+    localHeading: "Wo deine Daten liegen",
+    localText:
+      "Kandidu speichert alles nur in diesem Browser auf diesem Gerät, nichts liegt auf einem Server. Wenn du die Browserdaten löschst, einen anderen Browser nutzt oder der Browser bei Speichermangel aufräumt, sind die Daten weg. Lege deshalb regelmäßig eine Sicherung an.",
+    usageHeading: "Speicherstand",
+    usage: (used: string, quota: string, percent: string) =>
+      `Belegt: ${used} von ${quota} (${percent}).`,
+    usageUnknown: "Dieser Browser meldet keinen Speicherstand.",
+    usageWarning:
+      "Der Speicher ist fast voll. Lege eine Sicherung an und lösche nicht mehr benötigte Dateien, bevor du weitere Dateien hochlädst.",
+    persistenceHeading: "Dauerhafter Speicher",
+    persistenceGranted:
+      "Dauerhafter Speicher ist aktiv: Der Browser löscht die Kandidu-Daten nicht von sich aus, wenn der Speicher knapp wird.",
+    persistenceDenied:
+      "Der Browser darf die Kandidu-Daten bei Speichermangel von sich aus löschen.",
+    persistenceUnsupported:
+      "Dieser Browser bietet keinen dauerhaften Speicher an. Lege regelmäßig eine Sicherung an.",
+    persistenceExplain:
+      "Mit „Speicher dauerhaft anfordern“ bittest du den Browser, die Kandidu-Daten nicht von sich aus zu löschen. Manche Browser fragen dich dann, andere entscheiden selbst. Dabei wird nichts übertragen.",
+    persistenceRequest: "Speicher dauerhaft anfordern",
+    persistenceGrantedNow: "Der Browser hat dauerhaften Speicher gewährt.",
+    persistenceDeniedNow:
+      "Der Browser hat dauerhaften Speicher abgelehnt. Deine Daten können bei Speichermangel verloren gehen, lege regelmäßig eine Sicherung an.",
+    resetHeading: "Alle Kandidu-Daten löschen",
+    resetIntro:
+      "Löscht alle Kandidu-Daten in diesem Browser. Lege vorher eine Sicherung an, wenn du sie noch brauchst.",
+    uploadWarning: (percent: string) =>
+      `Der Speicher dieses Browsers ist zu ${percent} belegt. Lege eine Sicherung an oder räume auf, bevor du weitere Dateien hochlädst.`,
+    toData: "Zu „Daten und Speicher“",
   },
 
   recovery: {
@@ -447,6 +485,7 @@ export const de = {
     linkListLabel: (n: number) => `Link ${n}`,
     addLink: "Link hinzufügen",
     removeLink: (url: string) => `Link entfernen: ${url}`,
+    remove: "Entfernen",
     edit: "Bearbeiten",
     editLink: (url: string) => `Link bearbeiten: ${url}`,
     editLinkLabel: (n: number) => `Link ${n} bearbeiten`,
@@ -795,9 +834,9 @@ export const de = {
     "data-invalid":
       "Die gespeicherten Daten sind beschädigt oder unvollständig.",
     "save-failed":
-      "Speichern ist fehlgeschlagen. Deine Eingaben sind noch da – bitte versuche es erneut.",
+      "Nicht gespeichert: Speichern ist fehlgeschlagen. Deine Eingaben sind noch da, bitte versuche es erneut.",
     "quota-exceeded":
-      "Der Speicher dieses Browsers ist voll. Lösche nicht mehr benötigte Dateien oder lege eine Sicherung an.",
+      "Nicht gespeichert: Der Speicher dieses Browsers ist voll. Deine Eingaben sind noch da. Lösche nicht mehr benötigte Dateien oder lege eine Sicherung an, dann versuche es erneut.",
     conflict:
       "Kandidu wurde in einem anderen Tab geändert. Bitte lade die Seite neu und wiederhole die Änderung.",
     "file-missing": "Eine benötigte Datei fehlt im Speicher.",

@@ -247,7 +247,7 @@ export function LinksStep({ project }: { project: Project }) {
                         )
                       }
                     >
-                      {m.common.delete}
+                      {m.project.remove}
                     </button>
                   </span>
                 </li>

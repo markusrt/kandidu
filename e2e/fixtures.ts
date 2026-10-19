@@ -23,21 +23,29 @@ import { unzipFiles } from "../src/files/zip";
 
 const APP_ORIGIN = `http://127.0.0.1:${process.env.KANDIDU_E2E_PORT ?? 4173}`;
 
-/** Fails the test if the app requests anything but its own origin (SC-008). */
+/** Records every request of `page` outside the app origin into `foreign`. */
+export function watchRequests(page: Page, foreign: string[]): void {
+  page.on("request", (request) => {
+    const url = request.url();
+    if (
+      !url.startsWith(APP_ORIGIN) &&
+      !url.startsWith("data:") &&
+      !url.startsWith("blob:")
+    ) {
+      foreign.push(url);
+    }
+  });
+}
+
+/**
+ * Fails the test if the app requests anything but its own origin (SC-008).
+ * Extra pages and contexts register with `watchRequests(page, networkGuard)`.
+ */
 export const test = base.extend<{ networkGuard: string[] }>({
   networkGuard: [
     async ({ page }, use) => {
       const foreign: string[] = [];
-      page.on("request", (request) => {
-        const url = request.url();
-        if (
-          !url.startsWith(APP_ORIGIN) &&
-          !url.startsWith("data:") &&
-          !url.startsWith("blob:")
-        ) {
-          foreign.push(url);
-        }
-      });
+      watchRequests(page, foreign);
       await use(foreign);
       expect(foreign, "requests to foreign origins").toEqual([]);
     },

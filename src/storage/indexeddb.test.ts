@@ -270,6 +270,52 @@ describe("IndexedDB store", () => {
     expect((await tabB.load()).projects).toHaveLength(1);
   });
 
+  it("tells other instances about a committed write, not a failed one", async () => {
+    const channels: BroadcastChannel[] = [];
+    // Both tabs use one channel name, as in the browser.
+    const shared = () => {
+      const created = new BroadcastChannel("kandidu-test-changes");
+      channels.push(created);
+      return created;
+    };
+    const tabA = createIndexedDbStore({ channel: shared });
+    const tabB = createIndexedDbStore({ channel: shared });
+    try {
+      await tabA.load();
+      await tabB.load();
+      let seen = 0;
+      let notify: () => void = () => undefined;
+      const unsubscribe = tabB.onExternalChange(() => {
+        seen += 1;
+        notify();
+      });
+      const settle = () => new Promise((resolve) => setTimeout(resolve, 30));
+
+      // A transaction that aborts midway is not announced.
+      await expectCode(
+        tabA.saveDocument({ ...cvDocument("new", "f9"), role: "evidence" }),
+        "file-missing",
+      );
+      await settle();
+      expect(seen).toBe(0);
+
+      const changed = new Promise<void>((resolve) => {
+        notify = resolve;
+      });
+      await tabA.saveProject(sampleProject());
+      await changed;
+      await settle();
+      expect(seen).toBe(1);
+
+      unsubscribe();
+      await tabA.saveProfile(sampleProfile());
+      await settle();
+      expect(seen).toBe(1);
+    } finally {
+      for (const created of channels) created.close();
+    }
+  });
+
   it("aborts the whole transaction when a write fails midway", async () => {
     const s = store();
     await s.load();
