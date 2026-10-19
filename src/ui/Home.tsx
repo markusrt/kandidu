@@ -1,10 +1,12 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { findCvDocument } from "../domain/documents";
+import { nextDate, statusCounts } from "../domain/overview";
 import { createProject, PROJECT_TITLE_MAX } from "../domain/project";
+import { focusOnMount } from "./focus";
 import { errorMessage, useMessages } from "./i18n";
 import { Link, navigate } from "./router";
 import { useApp, useSnapshot } from "./state";
-import { newId, nowIso } from "./time";
+import { localNow, newId, nowIso } from "./time";
 
 export function Home() {
   const m = useMessages();
@@ -24,6 +26,41 @@ export function Home() {
   const projects = [...snapshot.projects].sort((a, b) =>
     b.updatedAt.localeCompare(a.updatedAt),
   );
+  const now = localNow();
+  const [deleting, setDeleting] = useState<string>();
+  const projectsHeading = useRef<HTMLHeadingElement>(null);
+  const deleteButtons = useRef(new Map<string, HTMLButtonElement>());
+
+  // After a cancelled delete, focus returns to the project's button once it
+  // is rendered and enabled again (after the re-render).
+  const returnFocus = useRef<string>(undefined);
+  useEffect(() => {
+    if (deleting !== undefined || !returnFocus.current) return;
+    deleteButtons.current.get(returnFocus.current)?.focus();
+    returnFocus.current = undefined;
+  }, [deleting]);
+
+  function cancelDelete(id: string) {
+    returnFocus.current = id;
+    setDeleting(undefined);
+  }
+
+  // FR-037: the project with its responses, leads and their files.
+  async function remove(id: string, projectTitle: string) {
+    const ok = await commit(
+      (store) => store.deleteProject(id),
+      (s) => ({
+        ...s,
+        projects: s.projects.filter((p) => p.id !== id),
+        leads: s.leads.filter((lead) => lead.projectId !== id),
+      }),
+      m.home.deleted(projectTitle),
+    );
+    if (ok) {
+      setDeleting(undefined);
+      projectsHeading.current?.focus();
+    }
+  }
 
   async function create() {
     setError("");
@@ -75,32 +112,99 @@ export function Home() {
       </section>
 
       <section className="card" aria-labelledby="projects-heading">
-        <h2 id="projects-heading">{m.home.projectsHeading}</h2>
+        <h2 id="projects-heading" ref={projectsHeading} tabIndex={-1}>
+          {m.home.projectsHeading}
+        </h2>
         {projects.length === 0 ? (
           <p>{m.home.noProjects}</p>
         ) : (
-          <ul className="item-list">
+          <ul className="item-list project-list">
             {projects.map((project) => {
-              const count = snapshot.leads.filter(
+              const leads = snapshot.leads.filter(
                 (lead) => lead.projectId === project.id,
-              ).length;
+              );
+              const next = nextDate(leads, now);
               return (
                 <li key={project.id}>
-                  <Link
-                    to={{
-                      name: "project",
-                      projectId: project.id,
-                      step: undefined,
-                    }}
-                  >
-                    {project.title}
-                  </Link>
-                  <span className="meta">
-                    {m.home.leadCount(count)}
-                    {project.promptState === "copied" && (
-                      <span className="badge">{m.home.pendingResponse}</span>
+                  <div className="project-summary">
+                    <Link
+                      to={{
+                        name: "project",
+                        projectId: project.id,
+                        step: undefined,
+                      }}
+                    >
+                      {project.title}
+                    </Link>
+                    <span className="meta">
+                      {m.home.leadCount(leads.length)}
+                      {project.promptState === "copied" && (
+                        <span className="badge">{m.home.pendingResponse}</span>
+                      )}
+                    </span>
+                    {leads.length > 0 && (
+                      <ul
+                        className="status-counts"
+                        aria-label={m.home.statusCountsLabel(project.title)}
+                      >
+                        {statusCounts(leads).map(({ status, count }) => (
+                          <li key={status}>
+                            {m.home.statusCount(m.leads.status[status], count)}
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                  </span>
+                    {next && (
+                      <p className="meta">
+                        {m.home.nextInterview(m.format.dateTime(next))}
+                      </p>
+                    )}
+                  </div>
+                  {deleting === project.id ? (
+                    <div className="confirm" role="alert">
+                      <p>
+                        {m.home.deletePrompt(
+                          project.title,
+                          leads.length,
+                          project.responses.length,
+                        )}
+                      </p>
+                      <div className="actions">
+                        <button
+                          type="button"
+                          className="danger"
+                          disabled={busy}
+                          onClick={() => void remove(project.id, project.title)}
+                        >
+                          {m.home.deleteConfirm}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary"
+                          // The project's own button is disabled now.
+                          ref={focusOnMount}
+                          onClick={() => cancelDelete(project.id)}
+                        >
+                          {m.common.cancel}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="secondary small"
+                      disabled={busy || deleting !== undefined}
+                      aria-label={m.home.deleteLabel(project.title)}
+                      ref={(element) => {
+                        if (element)
+                          deleteButtons.current.set(project.id, element);
+                        else deleteButtons.current.delete(project.id);
+                      }}
+                      onClick={() => setDeleting(project.id)}
+                    >
+                      {m.common.delete}
+                    </button>
+                  )}
                 </li>
               );
             })}

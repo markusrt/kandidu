@@ -10,6 +10,12 @@ export function todayIso(date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+/** The local date and time as `YYYY-MM-DDTHH:mm`, like `datetime-local`. */
+export function localNow(date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${todayIso(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function newId(): string {
   return crypto.randomUUID();
 }

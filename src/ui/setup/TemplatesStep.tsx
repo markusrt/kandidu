@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { TEMPLATE_KINDS, type TemplateKind } from "../../domain/documents";
 import type { TemplateIssue } from "../../domain/placeholders";
 import { MAX_DOCX_BYTES } from "../../files/errors";
@@ -6,6 +6,7 @@ import { DOCX_MIME } from "../../files/mime";
 import { downloadBytes } from "../download";
 import { FileField } from "../FileField";
 import { loadDemo, loadDocx, readPicked } from "../files";
+import { focusOnMount } from "../focus";
 import { type Messages, useMessages } from "../i18n";
 import { Link } from "../router";
 import { useApp, useSnapshot, useTask } from "../state";
@@ -44,6 +45,14 @@ function TemplateCard({ kind }: { kind: TemplateKind }) {
   const { running, run } = useTask();
   const [issues, setIssues] = useState<readonly TemplateIssue[]>([]);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const removeButton = useRef<HTMLButtonElement>(null);
+
+  function cancelRemove() {
+    setConfirmRemove(false);
+    // Runs after the button is back in the DOM.
+    requestAnimationFrame(() => removeButton.current?.focus());
+  }
   const record = snapshot.templates[kind];
   const kindLabel = m.templates.kinds[kind];
   const headingId = `template-${kind}`;
@@ -96,12 +105,18 @@ function TemplateCard({ kind }: { kind: TemplateKind }) {
       },
       m.templates.removed,
     );
-    if (ok) setConfirmRemove(false);
+    if (ok) {
+      setConfirmRemove(false);
+      // The demo is active again; the remove button is gone.
+      heading.current?.focus();
+    }
   }
 
   return (
     <section className="card" aria-labelledby={headingId}>
-      <h2 id={headingId}>{kindLabel}</h2>
+      <h2 id={headingId} ref={heading} tabIndex={-1}>
+        {kindLabel}
+      </h2>
       <p>
         {record
           ? m.templates.activeOwn(
@@ -180,7 +195,8 @@ function TemplateCard({ kind }: { kind: TemplateKind }) {
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() => setConfirmRemove(false)}
+                  ref={focusOnMount}
+                  onClick={cancelRemove}
                 >
                   {m.common.cancel}
                 </button>
@@ -191,6 +207,7 @@ function TemplateCard({ kind }: { kind: TemplateKind }) {
               type="button"
               className="secondary"
               disabled={busy}
+              ref={removeButton}
               onClick={() => setConfirmRemove(true)}
             >
               {m.templates.removeOwn}

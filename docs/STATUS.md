@@ -149,6 +149,32 @@ slice below; nothing of C3 is human-accepted.
   `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0 (Biome 122 files,
   dependency-cruiser 113 modules / 410 dependencies, Vitest 309 tests,
   Playwright 91 passed, 1 skipped).
+- **US7, overview, management and deletion (T062–T064 main session, T065
+  delegated): implemented and verified.** T062: the cascades existed since
+  C1; now proven in `indexeddb.test.ts` (+3: lead delete removes only its
+  record and cover letter file, project delete removes responses, leads and
+  files but keeps profile/CV, a failing second delete inside the transaction
+  leaves everything as before). T063: pure `src/domain/overview.ts`
+  (`statusCounts`, `nextDate`, `queryLeads` filter + sort by last activity or
+  next interview; 5 tests); Home shows per project the counts per status, the
+  next interview and "Antwort ausstehend"; the lead list has a status filter,
+  two sort orders, columns "Nächster Termin" and "Letzte Aktivität", and turns
+  into one card per lead below 30 rem; lead pages link back to their
+  project's lead list (the observation from slice B). T064: delete lead (lead
+  list) and project (Home) with confirmations naming what is removed and what
+  stays; focus goes to "Abbrechen" when a confirmation opens, back to the
+  opening button after cancelling, and to the list heading after deleting;
+  the same focus handling for evidence delete and own template removal
+  (closes part of the C2 review item "focus falls to body"). A stable
+  `focusOnMount` ref callback avoids refocusing on every re-render. The
+  delegated T065 found a real defect (cancel did not return focus on Home and
+  the lead list: the focus call ran before the re-render); fixed in the main
+  session with an effect after the render, then all 12 runs passed. e2e
+  `c3-manage.spec.ts` (6 tests: counts/filter/sort, lead delete + IndexedDB
+  check, project delete + IndexedDB check, back link, focus after evidence and
+  template deletion, 360 px). `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0
+  (Biome 126 files, dependency-cruiser 116 modules / 426 dependencies, Vitest
+  27 files / 317 tests, Playwright 103 passed, 1 skipped).
 
 | Feedback | Timing | Spec | Tasks |
 | --- | --- | --- | --- |
@@ -174,7 +200,8 @@ session appends its table and delegated task IDs here.
 - Session 1 (2026-10-19, C2 ship, C3 planning, C3 Phase A): routing probe
   before the first task (`pnpm models:check --require-agent`: exit 0, main
   `claude-opus-5-5`, speckit-implementer `claude-sonnet-5-5`). Delegated:
-  **T080, T060, T061**. Final table of this session follows at the gate.
+  **T080, T060, T061, T065**. Final table of this session follows at the
+  gate.
 
 ## C2 ship result (2026-10-19)
 

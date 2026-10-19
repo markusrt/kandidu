@@ -1,6 +1,6 @@
 import { useMessages } from "../i18n";
 import { NotFound } from "../NotFound";
-import type { LeadStep } from "../router";
+import { type LeadStep, Link } from "../router";
 import { Stepper } from "../Stepper";
 import { useSnapshot } from "../state";
 import { CoverLetterStep } from "./CoverLetterStep";
@@ -36,6 +36,11 @@ export function LeadView({
     <>
       <p className="eyebrow">
         {m.lead.eyebrow(project.title, lead.company.name)}
+      </p>
+      <p>
+        <Link to={{ name: "project", projectId, step: "leads" }}>
+          {m.lead.backToProject(project.title)}
+        </Link>
       </p>
       <p className="status-line">
         {m.lead.statusLine(m.leads.status[lead.status])}

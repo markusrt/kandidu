@@ -232,10 +232,10 @@ in `docs/STATUS.md`.
 
 **Independent Test**: two projects with leads; filter; delete one lead and one project; IndexedDB holds no related records or files.
 
-- [ ] T062 [US7] Store cascades: `deleteLead` and `deleteProject` in src/storage/indexeddb.ts remove leads, responses, cover letter PDFs and their file bytes in one transaction; template deletion falls back to demo; tests assert no orphaned `files` entries. Covers: FR-037, FR-038, SC-011.
-- [ ] T063 [US7] Overview: Home shows per project title, lead counts per status, pending response, next interview; LeadList adds status filter and sort by last activity/next date (src/ui/Home.tsx, src/ui/project/LeadList.tsx). Covers: FR-036.
-- [ ] T064 [US7] Delete UI: confirmation dialogs naming what will be removed for lead, project, template and evidence (with usage list), focus returns sensibly after deletion. Covers: FR-037, FR-038.
-- [ ] T065 [US7] [ROUTINE] Playwright journey e2e/c3-manage.spec.ts (`C3 manage …`): filter/sort, cancel vs confirm deletion, then inspect IndexedDB via `page.evaluate` for leftover records/files (SC-011). Covers: FR-036, FR-037, SC-011.
+- [X] T062 [US7] Store cascades: `deleteLead` and `deleteProject` in src/storage/indexeddb.ts remove leads, responses, cover letter PDFs and their file bytes in one transaction; template deletion falls back to demo; tests assert no orphaned `files` entries. Covers: FR-037, FR-038, SC-011.
+- [X] T063 [US7] Overview: Home shows per project title, lead counts per status, pending response, next interview; LeadList adds status filter and sort by last activity/next date (src/ui/Home.tsx, src/ui/project/LeadList.tsx). Covers: FR-036.
+- [X] T064 [US7] Delete UI: confirmation dialogs naming what will be removed for lead, project, template and evidence (with usage list), focus returns sensibly after deletion. Covers: FR-037, FR-038.
+- [X] T065 [US7] [ROUTINE] Playwright journey e2e/c3-manage.spec.ts (`C3 manage …`): filter/sort, cancel vs confirm deletion, then inspect IndexedDB via `page.evaluate` for leftover records/files (SC-011). Covers: FR-036, FR-037, SC-011.
 
 ---
 

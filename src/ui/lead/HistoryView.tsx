@@ -23,16 +23,10 @@ import { isHttpUrl } from "../../domain/profile";
 import { errorMessage, type Messages, useMessages } from "../i18n";
 import { Link } from "../router";
 import { useApp } from "../state";
-import { newId, nowIso, todayIso } from "../time";
+import { localNow, newId, nowIso, todayIso } from "../time";
 
 function replaceLead(leads: readonly Lead[], next: Lead) {
   return leads.map((lead) => (lead.id === next.id ? next : lead));
-}
-
-function localNow(): string {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${todayIso(now)}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
 function InterviewDetail({
