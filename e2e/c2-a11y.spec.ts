@@ -11,7 +11,12 @@ import {
   type UploadFile,
   zipEntries,
 } from "./fixtures";
-import { profileLabel, setupReleasedLead } from "./flows";
+import {
+  createProjectWithLeads,
+  openLead,
+  profileLabel,
+  setupReleasedLead,
+} from "./flows";
 
 // C2 keyboard and accessibility proof (User Story 4, SC-009): the US1 path
 // without a mouse, and axe scans of the main views.
@@ -219,4 +224,22 @@ test("C2 a11y: axe finds no critical or serious violations in the main views", a
   await page.getByRole("button", { name: "Antwort einlesen" }).click();
   await expect(page.getByRole("alert")).toContainText("Eintrag 1");
   await expectNoSeriousViolations(page, "parse errors");
+});
+
+test("C3 a11y: the links block of the lead review, also with errors", async ({
+  page,
+}) => {
+  await createProjectWithLeads(page, "valid-original-sources");
+  await openLead(page, "Beispiel GmbH");
+  await expect(page.getByRole("group", { name: "Links" })).toBeVisible();
+  await expectNoSeriousViolations(page, "links block");
+
+  await page
+    .getByLabel("Original-Ausschreibung des Unternehmens", { exact: true })
+    .fill("kaputt");
+  await page.getByRole("button", { name: "Quelle hinzufügen" }).click();
+  await page.getByLabel("Link der Quelle 4").fill("auch kaputt");
+  await page.getByRole("button", { name: "Lead speichern" }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expectNoSeriousViolations(page, "links block with errors");
 });

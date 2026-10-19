@@ -190,10 +190,55 @@ function checkText(value: string | undefined, max: number, required = false) {
   if (text.length > max) invalid();
 }
 
-/** A link field is empty or an http(s) URL within the limit (FR-050). */
-function checkUrl(value: string | undefined) {
-  if (value === undefined || value === "") return;
-  if (value.length > LEAD_LIMITS.url || !isHttpUrl(value)) invalid();
+/** A link field of the review's "Links" block (FR-050). */
+export type LeadLinkField =
+  | "sourceUrl"
+  | "originalPostingUrl"
+  | "companyWebsite"
+  | "portalUrl";
+
+export interface LeadLinkIssue {
+  /** A fixed link field, or a source by its 0-based position. */
+  readonly field: LeadLinkField | { readonly source: number };
+  readonly code: "link-invalid" | "link-duplicate" | "too-long";
+}
+
+function urlProblem(value: string | undefined): LeadLinkIssue["code"] | null {
+  if (value === undefined || value === "") return null;
+  if (value.length > LEAD_LIMITS.url) return "too-long";
+  return isHttpUrl(value) ? null : "link-invalid";
+}
+
+/**
+ * Field-level problems of the links: each link empty or http(s) within the
+ * limit; every source has a link, a short title and a link no other source
+ * has (FR-050). An empty list means the links are valid.
+ */
+export function leadLinkIssues(draft: LeadDraft): LeadLinkIssue[] {
+  const issues: LeadLinkIssue[] = [];
+  const fixed: [LeadLinkField, string | undefined][] = [
+    ["sourceUrl", draft.sourceUrl],
+    ["originalPostingUrl", draft.originalPostingUrl],
+    ["companyWebsite", draft.company.website],
+    ["portalUrl", draft.application.portalUrl],
+  ];
+  for (const [field, value] of fixed) {
+    const code = urlProblem(value);
+    if (code) issues.push({ field, code });
+  }
+  const seen = new Set<string>();
+  (draft.sources ?? []).forEach((source, index) => {
+    const field = { source: index };
+    const code = source.url ? urlProblem(source.url) : "link-invalid";
+    if (code) issues.push({ field, code });
+    else if (seen.has(source.url))
+      issues.push({ field, code: "link-duplicate" });
+    else if ((source.title?.length ?? 0) > LEAD_LIMITS.sourceTitle) {
+      issues.push({ field, code: "too-long" });
+    }
+    seen.add(source.url);
+  });
+  return issues;
 }
 
 /** Validates editable lead content against data-model.md limits. */
@@ -216,22 +261,8 @@ export function validateLeadDraft(draft: LeadDraft): void {
   ]) {
     checkText(value, LEAD_LIMITS.shortText);
   }
-  for (const url of [
-    draft.sourceUrl,
-    draft.originalPostingUrl,
-    draft.company.website,
-    draft.application.portalUrl,
-  ]) {
-    checkUrl(url);
-  }
-  const sources = draft.sources ?? [];
-  if (sources.length > LEAD_LIMITS.sources) invalid();
-  if (new Set(sources.map((s) => s.url)).size !== sources.length) invalid();
-  for (const source of sources) {
-    if (!source.url) invalid();
-    checkUrl(source.url);
-    checkText(source.title, LEAD_LIMITS.sourceTitle);
-  }
+  if ((draft.sources?.length ?? 0) > LEAD_LIMITS.sources) invalid();
+  if (leadLinkIssues(draft).length > 0) invalid();
   checkText(draft.application.notes, LEAD_LIMITS.notes);
   checkText(draft.process, LEAD_LIMITS.process);
   checkText(draft.research, LEAD_LIMITS.research);
@@ -329,6 +360,8 @@ export function reviseLead(
     ...(letterPosition ? { letterPosition } : {}),
     ...rest,
     sourceUrl: draft.sourceUrl,
+    originalPostingUrl: draft.originalPostingUrl,
+    sources: draft.sources,
     position: draft.position,
     company: draft.company,
     contact: draft.contact,

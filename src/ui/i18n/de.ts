@@ -720,6 +720,33 @@ export const de = {
     startDate: "Beginn",
     employmentType: "Art der Anstellung",
     sourceUrl: "Link zur Anzeige",
+    links: {
+      heading: "Links",
+      checkNotice:
+        "Prüfe vom Sprachmodell gefundene Links und Angaben wie die Firmenanschrift, bevor du die Bewerbung versendest.",
+      sourceUrl: "Eingegebener Link zur Anzeige",
+      originalPostingUrl: "Original-Ausschreibung des Unternehmens",
+      portalUrl: "Bewerbungsportal",
+      companyWebsite: "Website des Unternehmens",
+      open: "Öffnen",
+      openLabel: (label: string) => `Öffnen: ${label} (neuer Tab)`,
+      none: "Keine Links vorhanden.",
+      sourcesHeading: "Quellen der Recherche",
+      noSources: "Noch keine Quellen.",
+      sourceTitle: (n: number) => `Titel der Quelle ${n} (optional)`,
+      sourceRowUrl: (n: number) => `Link der Quelle ${n}`,
+      sourceLabel: (n: number) => `Quelle ${n}`,
+      remove: "Entfernen",
+      removeSource: (n: number) => `Entfernen: Quelle ${n}`,
+      addSource: "Quelle hinzufügen",
+      sourcesHint: (max: number) => `Höchstens ${max} Quellen.`,
+      errors: {
+        "link-invalid":
+          "Bitte gib einen vollständigen Link ein, der mit https:// oder http:// beginnt.",
+        "link-duplicate": "Diese Quelle steht schon in der Liste.",
+        "too-long": "Das ist zu lang.",
+      },
+    },
     letterPosition: "Stelle im Anschreiben ({Stelle})",
     letterPositionHint: (inherited: string) =>
       `Nur ausfüllen, wenn es für diesen Lead anders heißen soll. Leer gelassen steht im Anschreiben: „${inherited}“.`,
