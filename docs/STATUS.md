@@ -127,6 +127,28 @@ slice below; nothing of C3 is human-accepted.
   `--repeat-each 5` (10 passed). `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0
   (dependency-cruiser 112 modules / 399 dependencies, Vitest 279 tests,
   Playwright 77 passed, 1 skipped). **C3 Phase A (R1–R4) complete.**
+- **US6, lifecycle and comments (T058, T059 main session; T060, T061
+  delegated): implemented and verified.** Domain (`lifecycle.ts`):
+  `allowedTransitions` exactly per data-model.md, `applyTransition` (dated
+  entries `YYYY-MM-DD`; interview `YYYY-MM-DDTHH:mm`, onsite place or online
+  http(s) link), `undoableEntry`/`undoLast` (also from terminal states; the
+  initial review never; undoing "ready" = "Zurück in den Review" without the
+  cover letter PDF), `nextInterview` (for the US7 overview). `lead.ts`:
+  `addComment`/`editComment`/`deleteComment` (1–2 000 chars, valid date; new
+  codes `comment-invalid`, `comment-not-found`). UI: lead step "Verlauf"
+  (`…/verlauf`, `HistoryView.tsx`) with current state and next interview,
+  only the allowed transitions, interview form, undo with confirmation
+  (focus to the history heading), chronological history with undone entries
+  struck through plus text, comment CRUD with inline confirmation and focus
+  return. Delegated work reviewed in the main session; no changes needed.
+  Tests: `lifecycle.test.ts` (+30: every allowed and 8 forbidden
+  transitions, validation, undo cases, next interview), `lead.test.ts` (+2
+  comments); e2e `c3-lifecycle.spec.ts` (7 tests: main path, undo incl.
+  cover letter PDF, withdrawn, forbidden not offered, comments, invalid
+  online link, 360 px), `…/verlauf` added to the axe and 360 px loops.
+  `KANDIDU_E2E_PORT=4174 pnpm verify`: exit 0 (Biome 122 files,
+  dependency-cruiser 113 modules / 410 dependencies, Vitest 309 tests,
+  Playwright 91 passed, 1 skipped).
 
 | Feedback | Timing | Spec | Tasks |
 | --- | --- | --- | --- |
@@ -152,7 +174,7 @@ session appends its table and delegated task IDs here.
 - Session 1 (2026-10-19, C2 ship, C3 planning, C3 Phase A): routing probe
   before the first task (`pnpm models:check --require-agent`: exit 0, main
   `claude-opus-5-5`, speckit-implementer `claude-sonnet-5-5`). Delegated:
-  **T080**. Final table of this session follows at the gate.
+  **T080, T060, T061**. Final table of this session follows at the gate.
 
 ## C2 ship result (2026-10-19)
 

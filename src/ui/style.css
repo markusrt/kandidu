@@ -492,6 +492,31 @@ legend {
   font-weight: 700;
   padding-inline: 0.3rem;
 }
+.history-list,
+.comment-list {
+  padding-left: 1.25rem;
+  margin: 0;
+}
+.history-list li,
+.comment-list li {
+  margin-block: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.history-list p,
+.comment-list p {
+  margin-block: 0.15rem;
+}
+.comment-text {
+  white-space: pre-wrap;
+}
+.history-list li.undone p:not(.undone-note) {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.undone-note {
+  font-style: italic;
+  color: var(--muted);
+}
 @media (max-width: 30rem) {
   .item-list > li {
     align-items: flex-start;

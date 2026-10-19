@@ -210,6 +210,7 @@ test("C2 a11y: axe finds no critical or serious violations in the main views", a
     `${lead}/anschreiben`,
     `${lead}/freigabe`,
     `${lead}/paket`,
+    `${lead}/verlauf`,
   ]) {
     await page.goto(route);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

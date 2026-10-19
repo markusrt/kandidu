@@ -21,6 +21,14 @@ const timestampFormat = new Intl.DateTimeFormat("de-DE", {
   dateStyle: "medium",
   timeStyle: "short",
 });
+const dateTimeFormat = new Intl.DateTimeFormat("de-DE", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "UTC",
+});
 const numberFormat = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 1,
 });
@@ -48,6 +56,9 @@ export const de = {
     date: (iso: string) => dateFormat.format(isoToDate(iso)),
     shortDate: (iso: string) => shortDateFormat.format(isoToDate(iso)),
     timestamp: (iso: string) => timestampFormat.format(new Date(iso)),
+    /** A local `YYYY-MM-DDTHH:mm` value, shown as typed (no zone shift). */
+    dateTime: (local: string) =>
+      dateTimeFormat.format(new Date(`${local}:00Z`)),
     bytes,
     percent: (ratio: number) => percentFormat.format(ratio),
     pages: (n: number) => plural(n, "Seite", "Seiten"),
@@ -703,6 +714,7 @@ export const de = {
       coverLetter: "Anschreiben",
       gate: "Freigabe",
       package: "Paket",
+      history: "Verlauf",
     },
     headingFallback: "Lead",
     eyebrow: (project: string, company: string) => `${project} · ${company}`,
@@ -901,6 +913,68 @@ export const de = {
     toCv: "Lebenslauf-PDF hochladen",
   },
 
+  history: {
+    heading: "Verlauf und Kommentare",
+    currentHeading: "Aktueller Stand",
+    current: (status: string) => `Aktuell: ${status}`,
+    nextInterview: (when: string, where: string) =>
+      `Nächste Einladung: ${when} (${where})`,
+    changeHeading: "Status ändern",
+    inReview:
+      "Im Review kannst du den Lead nur zurückziehen. Bereit zum Versenden wird er über die Freigabe.",
+    toGate: "Zur Freigabe",
+    terminal:
+      "Dieser Status ist abgeschlossen. Du kannst nur den letzten Statuswechsel rückgängig machen.",
+    dateLabel: "Datum des Statuswechsels",
+    newStatus: "Neuer Status",
+    interviewHeading: "Einladung zum Gespräch eintragen",
+    interviewDateTime: "Datum und Uhrzeit",
+    modeLegend: "Art des Gesprächs",
+    modeOnsite: "Vor Ort",
+    modeOnline: "Online",
+    location: "Ort",
+    linkOptional: "Link zum Online-Gespräch (optional)",
+    interviewSubmit: "Einladung eintragen",
+    changed: (status: string) => `Status geändert: ${status}.`,
+    interviewDetail: {
+      onsite: (place: string) => (place ? `Vor Ort: ${place}` : "Vor Ort"),
+      online: "Online",
+      openLink: "Link öffnen (neuer Tab)",
+    },
+    errors: {
+      dateRequired: "Bitte gib ein Datum an.",
+      dateTimeRequired: "Bitte gib Datum und Uhrzeit an.",
+      linkInvalid:
+        "Bitte gib einen vollständigen Link ein, der mit https:// oder http:// beginnt.",
+    },
+    undo: "Letzten Statuswechsel rückgängig machen",
+    undoPrompt: (status: string, when: string) =>
+      `Den Eintrag „${status}“ (${when}) rückgängig machen? Er bleibt im Verlauf als rückgängig gemacht stehen.`,
+    undoPromptReady: (status: string, when: string) =>
+      `Den Eintrag „${status}“ (${when}) rückgängig machen? Der Lead geht zurück in den Review, das hochgeladene Anschreiben-PDF wird entfernt und muss danach neu hochgeladen werden.`,
+    undoConfirm: "Ja, rückgängig machen",
+    undone: "Statuswechsel rückgängig gemacht.",
+    listHeading: "Verlauf",
+    entryUndone: (when: string) => `rückgängig gemacht am ${when}`,
+    commentsHeading: "Kommentare",
+    noComments: "Noch keine Kommentare.",
+    commentDate: "Datum",
+    commentText: "Kommentar",
+    commentCount: (used: number, max: number) =>
+      `${numberFormat.format(used)} von ${numberFormat.format(max)} Zeichen`,
+    addComment: "Kommentar hinzufügen",
+    commentAdded: "Kommentar hinzugefügt.",
+    commentSaved: "Kommentar gespeichert.",
+    commentDeleted: "Kommentar gelöscht.",
+    edit: "Bearbeiten",
+    editLabel: (n: number) => `Kommentar ${n} bearbeiten`,
+    editDateLabel: (n: number) => `Datum von Kommentar ${n}`,
+    editTextLabel: (n: number) => `Text von Kommentar ${n}`,
+    deleteLabel: (n: number) => `Kommentar ${n} löschen`,
+    deletePrompt: "Diesen Kommentar wirklich löschen?",
+    deleteConfirm: "Ja, löschen",
+  },
+
   markdown: {
     empty: "Noch kein Text.",
   },
@@ -953,6 +1027,9 @@ export const de = {
     "nothing-to-undo": "Es gibt nichts rückgängig zu machen.",
     "lead-invalid": "Bitte prüfe die Angaben des Leads.",
     "already-imported": "Aus dieser Antwort wurden bereits Leads angelegt.",
+    "comment-invalid":
+      "Bitte gib ein gültiges Datum und einen Text mit höchstens 2 000 Zeichen ein.",
+    "comment-not-found": "Diesen Kommentar gibt es nicht mehr.",
     unexpected: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
 
