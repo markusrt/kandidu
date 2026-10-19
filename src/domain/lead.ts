@@ -1,5 +1,5 @@
 import type { FileRef } from "./documents";
-import { isHttpUrl } from "./profile";
+import { isHttpUrl, isIsoDate } from "./profile";
 
 export interface Address {
   readonly street?: string;
@@ -168,7 +168,9 @@ export type LeadErrorCode =
   | "transition-not-allowed"
   | "nothing-to-undo"
   | "lead-invalid"
-  | "already-imported";
+  | "already-imported"
+  | "comment-invalid"
+  | "comment-not-found";
 
 export class LeadError extends Error {
   readonly code: LeadErrorCode;
@@ -378,4 +380,66 @@ export function reviseLead(
 export function setCoverLetterPdf(lead: Lead, pdf: FileRef, now: string): Lead {
   assertReview(lead);
   return { ...lead, coverLetterPdf: pdf, updatedAt: now };
+}
+
+export const COMMENT_MAX = 2000;
+
+export interface CommentInput {
+  /** `YYYY-MM-DD`. */
+  readonly date: string;
+  readonly text: string;
+}
+
+function validComment(input: CommentInput): CommentInput {
+  const text = input.text.trim();
+  if (!text || text.length > COMMENT_MAX || !isIsoDate(input.date)) {
+    throw new LeadError("comment-invalid");
+  }
+  return { date: input.date, text };
+}
+
+/** Dated comments in any status (FR-035). */
+export function addComment(
+  lead: Lead,
+  input: CommentInput,
+  id: string,
+  now: string,
+): Lead {
+  const comment: Comment = {
+    id,
+    ...validComment(input),
+    createdAt: now,
+    updatedAt: now,
+  };
+  return { ...lead, comments: [...lead.comments, comment], updatedAt: now };
+}
+
+export function editComment(
+  lead: Lead,
+  id: string,
+  input: CommentInput,
+  now: string,
+): Lead {
+  if (!lead.comments.some((comment) => comment.id === id)) {
+    throw new LeadError("comment-not-found");
+  }
+  const valid = validComment(input);
+  return {
+    ...lead,
+    comments: lead.comments.map((comment) =>
+      comment.id === id ? { ...comment, ...valid, updatedAt: now } : comment,
+    ),
+    updatedAt: now,
+  };
+}
+
+export function deleteComment(lead: Lead, id: string, now: string): Lead {
+  if (!lead.comments.some((comment) => comment.id === id)) {
+    throw new LeadError("comment-not-found");
+  }
+  return {
+    ...lead,
+    comments: lead.comments.filter((comment) => comment.id !== id),
+    updatedAt: now,
+  };
 }

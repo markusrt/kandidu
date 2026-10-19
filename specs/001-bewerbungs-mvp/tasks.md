@@ -219,10 +219,10 @@ in `docs/STATUS.md`.
 
 **Independent Test**: move a lead through all main states with dates, undo once, add two comments.
 
-- [ ] T058 [US6] Lifecycle in src/domain/lifecycle.ts: `allowedTransitions(status)` and `applyTransition` exactly per data-model.md "StatusEntry and lifecycle" (incl. terminal states, `failed` only from ready/sent, interview → interview, undo of the latest non-undone entry, initial review not undoable); tests in src/domain/lifecycle.test.ts for every allowed and a sample of forbidden transitions. Covers: FR-034.
-- [ ] T059 [US6] Comments in src/domain/lead.ts (`addComment`, `editComment`, `deleteComment`; text 1–2 000, date `YYYY-MM-DD`); tests. Covers: FR-035.
-- [ ] T060 [US6] [ROUTINE] History view src/ui/lead/HistoryView.tsx at `…/verlauf`: current status, buttons/forms only for allowed transitions (sent date; interview date-time, onsite location or online link), undo with confirmation, chronological history incl. undone marks, comments CRUD; dates via `Intl.DateTimeFormat("de-DE")`. Covers: FR-029, FR-034, FR-035, FR-048.
-- [ ] T061 [US6] [ROUTINE] Playwright journey e2e/c3-lifecycle.spec.ts (`C3 lifecycle …`): ready → sent → interview ×2 → accepted, undo, withdrawn path, comments, mobile project. Covers: FR-034, FR-035, SC-010.
+- [X] T058 [US6] Lifecycle in src/domain/lifecycle.ts: `allowedTransitions(status)` and `applyTransition` exactly per data-model.md "StatusEntry and lifecycle" (incl. terminal states, `failed` only from ready/sent, interview → interview, undo of the latest non-undone entry, initial review not undoable); tests in src/domain/lifecycle.test.ts for every allowed and a sample of forbidden transitions. Covers: FR-034.
+- [X] T059 [US6] Comments in src/domain/lead.ts (`addComment`, `editComment`, `deleteComment`; text 1–2 000, date `YYYY-MM-DD`); tests. Covers: FR-035.
+- [X] T060 [US6] [ROUTINE] History view src/ui/lead/HistoryView.tsx at `…/verlauf`: current status, buttons/forms only for allowed transitions (sent date; interview date-time, onsite location or online link), undo with confirmation, chronological history incl. undone marks, comments CRUD; dates via `Intl.DateTimeFormat("de-DE")`. Covers: FR-029, FR-034, FR-035, FR-048.
+- [X] T061 [US6] [ROUTINE] Playwright journey e2e/c3-lifecycle.spec.ts (`C3 lifecycle …`): ready → sent → interview ×2 → accepted, undo, withdrawn path, comments, mobile project. Covers: FR-034, FR-035, SC-010.
 
 ---
 

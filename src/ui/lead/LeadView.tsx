@@ -5,6 +5,7 @@ import { Stepper } from "../Stepper";
 import { useSnapshot } from "../state";
 import { CoverLetterStep } from "./CoverLetterStep";
 import { GateStep } from "./GateStep";
+import { HistoryView } from "./HistoryView";
 import { PackageStep } from "./PackageStep";
 import { ReviewStep } from "./ReviewStep";
 
@@ -51,12 +52,14 @@ export function LeadView({
           },
           { key: "freigabe", label: m.lead.steps.gate, to: to("freigabe") },
           { key: "paket", label: m.lead.steps.package, to: to("paket") },
+          { key: "verlauf", label: m.lead.steps.history, to: to("verlauf") },
         ]}
       />
       {step === "pruefen" && <ReviewStep lead={lead} />}
       {step === "anschreiben" && <CoverLetterStep lead={lead} />}
       {step === "freigabe" && <GateStep lead={lead} />}
       {step === "paket" && <PackageStep lead={lead} />}
+      {step === "verlauf" && <HistoryView lead={lead} />}
     </>
   );
 }

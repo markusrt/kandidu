@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  addComment,
   assertNotImported,
   createLeadsFromDrafts,
   currentStatus,
+  deleteComment,
+  editComment,
   type LeadDraft,
   LeadError,
   leadLinkIssues,
@@ -316,5 +319,70 @@ describe("currentStatus", () => {
         { id: "2", status: "ready", at: NOW, undoneAt: NOW },
       ]),
     ).toBe("review");
+  });
+});
+
+describe("comments (FR-035)", () => {
+  const LATER = "2026-10-19T09:00:00.000Z";
+
+  it("adds, edits and deletes dated comments in any status", () => {
+    const sent = sampleLead({ status: "sent" });
+    const one = addComment(
+      sent,
+      { date: "2026-10-18", text: "  Bestätigungs-E-Mail erhalten  " },
+      "c1",
+      NOW,
+    );
+    expect(one.comments).toEqual([
+      {
+        id: "c1",
+        date: "2026-10-18",
+        text: "Bestätigungs-E-Mail erhalten",
+        createdAt: NOW,
+        updatedAt: NOW,
+      },
+    ]);
+    const two = addComment(
+      one,
+      { date: "2026-10-19", text: "Anruf" },
+      "c2",
+      NOW,
+    );
+    const edited = editComment(
+      two,
+      "c1",
+      { date: "2026-10-17", text: "Eingangsbestätigung" },
+      LATER,
+    );
+    expect(edited.comments[0]).toMatchObject({
+      id: "c1",
+      date: "2026-10-17",
+      text: "Eingangsbestätigung",
+      createdAt: NOW,
+      updatedAt: LATER,
+    });
+    expect(edited.updatedAt).toBe(LATER);
+    const deleted = deleteComment(edited, "c1", LATER);
+    expect(deleted.comments.map((c) => c.id)).toEqual(["c2"]);
+  });
+
+  it("refuses empty or too long text, bad dates and unknown ids", () => {
+    const lead = sampleLead();
+    const add = (input: { date: string; text: string }) =>
+      code(() => addComment(lead, input, "c", NOW));
+    expect(add({ date: "2026-10-18", text: "   " })).toBe("comment-invalid");
+    expect(add({ date: "2026-10-18", text: "x".repeat(2001) })).toBe(
+      "comment-invalid",
+    );
+    expect(add({ date: "18.10.2026", text: "x" })).toBe("comment-invalid");
+    expect(add({ date: "2026-10-18", text: "x".repeat(2000) })).toBeUndefined();
+    expect(
+      code(() =>
+        editComment(lead, "nope", { date: "2026-10-18", text: "x" }, NOW),
+      ),
+    ).toBe("comment-not-found");
+    expect(code(() => deleteComment(lead, "nope", NOW))).toBe(
+      "comment-not-found",
+    );
   });
 });

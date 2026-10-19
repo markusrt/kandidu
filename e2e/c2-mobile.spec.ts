@@ -64,6 +64,7 @@ test("C2 mobile: home, project, lead list and lead status fit 360 px", async ({
     `${lead}/anschreiben`,
     `${lead}/freigabe`,
     `${lead}/paket`,
+    `${lead}/verlauf`,
   ]) {
     await page.goto(route);
     await expectNoHorizontalScroll(page, route);

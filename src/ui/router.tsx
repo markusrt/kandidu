@@ -4,7 +4,12 @@ import { type ReactNode, useEffect, useState } from "react";
 
 export type SetupStep = "profil" | "vorlagen" | "lebenslauf" | "nachweise";
 export type ProjectStep = "links" | "prompt" | "antwort" | "leads";
-export type LeadStep = "pruefen" | "anschreiben" | "freigabe" | "paket";
+export type LeadStep =
+  | "pruefen"
+  | "anschreiben"
+  | "freigabe"
+  | "paket"
+  | "verlauf";
 
 export type Route =
   | { readonly name: "home" }
@@ -41,6 +46,7 @@ const LEAD_STEPS: readonly LeadStep[] = [
   "anschreiben",
   "freigabe",
   "paket",
+  "verlauf",
 ];
 
 function oneOf<T extends string>(
