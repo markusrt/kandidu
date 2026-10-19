@@ -69,10 +69,20 @@ export function ResponseStep({ project }: { project: Project }) {
     const value = textRef.current;
     if (value === saved.current || value.length > RESPONSE_MAX) return;
     saved.current = value;
-    const next = setResponseDraft(latest.current, value, nowIso());
+    // Built when the write runs, from the state after earlier writes: a
+    // response import queued before it must not be undone (FR-020).
+    let next: Project | undefined;
     void commit(
-      (s) => s.saveProject(next),
-      (s) => ({ ...s, projects: replaceProject(s.projects, next) }),
+      (s, snapshot) => {
+        const id = latest.current.id;
+        const base =
+          snapshot?.projects.find((p) => p.id === id) ?? latest.current;
+        next = setResponseDraft(base, value, nowIso());
+        return s.saveProject(next);
+      },
+      (s) => (next ? { ...s, projects: replaceProject(s.projects, next) } : s),
+      undefined,
+      { background: true },
     ).then((ok) => {
       if (!ok) {
         // Allow the next attempt (blur, navigation, typing) to retry.

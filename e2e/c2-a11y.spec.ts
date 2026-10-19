@@ -1,8 +1,8 @@
-import AxeBuilder from "@axe-core/playwright";
 import type { Locator, Page } from "@playwright/test";
 import {
   downloadBytes,
   expect,
+  expectNoSeriousViolations,
   PROFILE,
   pdfFile,
   pdfPageCount,
@@ -154,21 +154,6 @@ test("C2 keyboard: the whole US1 path works without a mouse", async ({
   expect(entries).toHaveLength(1);
   expect(await pdfPageCount(entries[0] ?? new Uint8Array())).toBe(3);
 });
-
-async function expectNoSeriousViolations(page: Page, view: string) {
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .analyze();
-  const serious = results.violations
-    .filter((v) => v.impact === "critical" || v.impact === "serious")
-    .map(
-      (v) =>
-        `${v.id} (${v.impact}): ${v.help} → ${v.nodes
-          .map((node) => node.target.join(" "))
-          .join(", ")}`,
-    );
-  expect(serious, `axe violations on ${view}`).toEqual([]);
-}
 
 test("C2 a11y: axe finds no critical or serious violations in the main views", async ({
   page,

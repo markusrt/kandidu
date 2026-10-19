@@ -80,7 +80,7 @@ export function DataPage() {
         <div className="actions">
           <button
             type="button"
-            disabled={busy || running}
+            disabled={running}
             onClick={() => void exportBackup()}
           >
             {running ? m.backup.exporting : m.backup.export}

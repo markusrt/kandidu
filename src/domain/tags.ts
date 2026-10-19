@@ -49,9 +49,14 @@ export function suggestTags(
   inUse: readonly string[],
   exclude: readonly string[] = [],
 ): string[] {
-  // While typing, an over-long input simply matches nothing.
-  if (input.trim().length > TAG_MAX) return [];
-  const query = normalizeTag(input);
+  // While typing, an over-long input simply matches nothing. Lower-casing
+  // can lengthen text ("İ" → "i̇"), so the check follows normalization.
+  let query: string;
+  try {
+    query = normalizeTag(input);
+  } catch {
+    return [];
+  }
   const excluded = new Set(normalizeTags(exclude));
   const predefined: readonly string[] = PREDEFINED_TAGS;
   const candidates = normalizeTags([...PREDEFINED_TAGS, ...inUse]).filter(
