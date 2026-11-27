@@ -43,8 +43,17 @@
   Pages. Next work starts on a new branch from the updated `main`.
   Ship result: PR #5 merged by rebase as `cd7e0e2` after green CI; issue #4
   closed; Pages run 45959095932 deployed to https://markusrt.github.io/kandidu/
-  and the live bundle contains the new prompt rule. This record is on the
-  local branch `fix-4-ship-record` and reaches `main` with the next PR.
+  and the live bundle contains the new prompt rule. The remote branch was
+  already deleted by the merge.
+- CI maintenance 2026-11-27 (owner request after the issue #4 ship, which
+  showed GitHub's Node 20 deprecation warning): `ci.yml` pins
+  actions/checkout v7.0.1, pnpm/action-setup v6.1.1, actions/setup-node
+  v7.1.0, and actions/upload-artifact v7.0.2, all `runs.using: node24`. Release
+  notes checked: no breaking change applies (cache stays explicit `cache:
+  pnpm`; pnpm comes from `packageManager`). The Pages actions were already
+  current. Shipped together with the issue #4 ship record on branch
+  `ci-node24-actions` via `pnpm ship --mode auto-merge`; the PR's CI run is
+  the proof. Next work starts on a new branch from the updated `main`.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
