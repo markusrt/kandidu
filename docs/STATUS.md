@@ -41,6 +41,10 @@
   PR, and auto-merge after green CI on 2026-11-27 ("Ja"); shipped with
   `pnpm ship --mode auto-merge`, so once merged the fix is live on GitHub
   Pages. Next work starts on a new branch from the updated `main`.
+  Ship result: PR #5 merged by rebase as `cd7e0e2` after green CI; issue #4
+  closed; Pages run 45959095932 deployed to https://markusrt.github.io/kandidu/
+  and the live bundle contains the new prompt rule. This record is on the
+  local branch `fix-4-ship-record` and reaches `main` with the next PR.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich
