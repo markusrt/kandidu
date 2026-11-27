@@ -1,0 +1,99 @@
+/* Spike only: direction "Geführt" (specs/002-visual-design, FR-004). It may
+   only change layout and use tokens; removed or merged after the C1 decision. */
+html[data-direction="guided"] .app-header {
+  background: var(--accent);
+}
+html[data-direction="guided"] .app-header-inner {
+  padding-block: var(--space-2);
+}
+/* The header follows the content width of pages with a step column. */
+@media (min-width: 48rem) {
+  html[data-direction="guided"]:has(main > .stepper) .app-header-inner {
+    max-width: var(--content-width-wide);
+  }
+}
+html[data-direction="guided"] .app-header .brand,
+html[data-direction="guided"] .app-header nav a {
+  color: var(--accent-ink);
+}
+html[data-direction="guided"] .app-header :focus-visible {
+  outline-color: var(--accent-ink);
+}
+@media (hover: hover) {
+  html[data-direction="guided"] .app-header nav a:hover {
+    color: var(--accent-ink);
+    text-decoration-color: var(--accent-ink);
+  }
+}
+
+/* Steps as a vertical path; done steps are joined by an accent line. */
+html[data-direction="guided"] .stepper ol {
+  border-bottom: 0;
+}
+html[data-direction="guided"] .stepper a {
+  border-bottom: 0;
+  margin-bottom: 0;
+  border-radius: var(--radius);
+  padding-right: var(--space-3);
+}
+html[data-direction="guided"] .stepper a[aria-current="step"] {
+  background: var(--paper);
+  box-shadow: 0 0 0 var(--border-width) var(--line);
+}
+
+@media (min-width: 48rem) {
+  html[data-direction="guided"] main:has(> .stepper) {
+    max-width: var(--content-width-wide);
+    display: flow-root;
+  }
+  html[data-direction="guided"] .stepper {
+    float: left;
+    width: 13rem;
+    margin-top: var(--space-5);
+  }
+  html[data-direction="guided"] .stepper ~ * {
+    margin-left: 15rem;
+  }
+  html[data-direction="guided"] .stepper ol {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+  }
+  html[data-direction="guided"] .stepper li {
+    position: relative;
+  }
+  html[data-direction="guided"] .stepper li + li::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--space-1) + 0.8rem - 1px);
+    top: calc(-1 * var(--space-2) - 0.4rem);
+    height: calc(var(--space-2) + 0.8rem);
+    border-left: 2px solid var(--line);
+  }
+  html[data-direction="guided"] .stepper li.done + li::before {
+    border-left-color: var(--accent);
+  }
+}
+
+/* Narrow screens: one compact row; only the current step shows its name.
+   The other names stay in the accessibility tree (FR-006). */
+@media (max-width: 47.99rem) {
+  html[data-direction="guided"] .stepper ol {
+    flex-wrap: nowrap;
+    gap: var(--space-1);
+  }
+  html[data-direction="guided"] .stepper li {
+    flex: 0 0 auto;
+  }
+  html[data-direction="guided"] .stepper li:not(.current) a {
+    padding-right: var(--space-1);
+  }
+  html[data-direction="guided"] .stepper li:not(.current) a > span:last-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

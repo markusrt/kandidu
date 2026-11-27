@@ -31,8 +31,51 @@
   models:check` reads Claude Code transcripts and does not apply. All tasks
   run in the main session; `design-critic` runs as an Amp subagent with the
   instructions of `.claude/agents/design-critic.md`.
-- **Exact next action:** `/speckit-implement` T001–T010, then the C1 GATE
-  T011 (stop for the owner's direction decision).
+- **C1 spike (US1) implemented and verified 2026-11-27, GATE T011 pending.**
+  T001–T010 ticked. Files: `src/ui/tokens.css` (all color literals),
+  `src/ui/style.css` ("Ruhig", tokens only), `src/ui/direction-guided.css`
+  (spike layer), `src/main.tsx` (font import, `?design=guided` switch),
+  `src/ui/tokens.test.ts`, `e2e/design.spec.ts`,
+  `scripts/capture-design.mjs`, `@fontsource/atkinson-hyperlegible-next`
+  5.3.0 (exact). Build bundles only the latin 400/700 WOFF2/WOFF files from
+  `/assets/` (12.1 + 12.7 KB WOFF2); no foreign URL in the CSS.
+- Checks (Node 24.21.0, pnpm 10.34.7): `KANDIDU_E2E_PORT=4191 pnpm verify`
+  exit 0 — lint, typecheck, architecture, unit 29 files / 371 tests, build,
+  e2e 117 passed / 1 skipped (as on main). `e2e/design.spec.ts`: 8 passed
+  (calm/guided × default/360 px × chromium/mobile; axe zero violations of
+  any impact, scrollWidth ≤ innerWidth, focus outline ≥ 2 px and ≥ 3:1).
+  Negative probes: a color literal in a non-token CSS file fails
+  `tokens.test.ts`; `--focus: #f0d0c0` fails the focus check (ratio 1.36).
+  An earlier run found an axe `scrollable-region-focusable` regression on
+  `/#/platzhalter` (mobile) caused by a global `th { overflow-wrap: normal }`;
+  fixed by scoping it to `.lead-table th`.
+- SC-001/SC-002: `git diff main -- src/domain src/storage src/ui/i18n
+  src/llm src/files e2e/c1-* e2e/c2-* e2e/c3-* e2e/fixtures.ts e2e/flows.ts`
+  is empty.
+- design-critic (Amp subagent, instructions of
+  `.claude/agents/design-critic.md`): round 1 → 0 blocker, 4 should-fix
+  (checklist pill jumping sides at 360 px, secondary vs disabled button
+  look-alike, Geführt header misaligned with content, top space above
+  "Links"), 5 nits; all should-fix and 3 nits fixed. Round 2 → 0 blocker,
+  0 should-fix (SC-008 met). Gap above "Neues Projekt" fixed after round 2.
+  Open nits on the gate page: dangling colon after checklist labels (text
+  unchanged on purpose), footer rule wider than text (pre-existing on main),
+  Geführt home differs from Ruhig only by the header.
+- Gate page: `specs/002-visual-design/review/C1.md` with 18 screenshots in
+  `review/img/` (before from `main` `0a90efd`, after both directions,
+  desktop 1280 px and 360 px @2x, lead review cropped, PNG8).
+- Preview: Amp orb service `kandidu-preview` (vite preview of the current
+  build, port 4182, `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.onamp.dev`),
+  portal <https://t-03hb8ajt4bi1nwl4wvcn69zwf-p27112.onamp.dev/> answered
+  200; reachable for the owner via Amp only while this orb runs. Restart
+  locally: `pnpm build && pnpm preview --host 127.0.0.1 --port 4173`.
+- Limits: forced-colors and reduced-motion rules only reviewed in CSS, not
+  rendered; screenshots and e2e Chromium only; other screens (US2) and lead
+  list cards (US3) untouched beyond shared styles.
+- **Exact next action:** wait for the owner's C1 decision (Go "Ruhig" /
+  Go "Geführt" / No-Go, Light afterwards, confirm ADR 011). Then: record it
+  here, tick T011, remove the losing layer and the `?design=` switch,
+  `/speckit-tasks` for US2, US3 and the Light C3 gate, `/speckit-analyze`.
 
 ## Checkpoint and authorization
 

@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: Draft
+**Status**: Spike C1 (US1) implemented and verified on 2026-11-27; waiting for the owner's direction decision (GATE T011)
 
 **Spec Language**: de-DE
 
