@@ -99,6 +99,7 @@ export const de = {
       `Schritt ${numberFormat.format(current)} von ${numberFormat.format(total)}`,
     localNotice:
       "Deine Daten liegen nur in diesem Browser auf diesem Gerät. Wer die Browserdaten löscht, löscht auch Kandidu.",
+    version: (version: string) => `Version ${version}`,
   },
 
   nav: {

@@ -106,6 +106,7 @@ function Shell() {
       </main>
       <footer className="app-footer">
         <p>{m.common.localNotice}</p>
+        <p>{m.common.version(__APP_VERSION__)}</p>
       </footer>
     </>
   );

@@ -54,6 +54,14 @@
   current. Shipped together with the issue #4 ship record on branch
   `ci-node24-actions` via `pnpm ship --mode auto-merge`; the PR's CI run is
   the proof. Next work starts on a new branch from the updated `main`.
+- Footer version 2026-11-27 (owner request): local branch `footer-version`.
+  The footer shows "Version 1.0.<yyMM>.<ddHH>", the date-based scheme of
+  markusrt/NRZMyk (`VersionPrefix` there): UTC build time, each part a
+  number, so leading zeros drop (5 Nov 2025 07:00 UTC -> `1.0.2511.507`).
+  `vite.config.ts` computes it into `__APP_VERSION__`; text in `de.ts`
+  (`common.version`). Kept clear of `style.css` because the parallel
+  `002-visual-design` branch restyles it. New e2e check in
+  `c1-lead-journey.spec.ts`. Not pushed; shipping needs the owner's go.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich

@@ -234,6 +234,16 @@ test("C1 journey: profile → templates → CV → project → prompt → answer
   );
 });
 
+test("footer shows the date-based build version 1.0.<yyMM>.<ddHH>", async ({
+  page,
+}) => {
+  await openHome(page);
+  // Leading zeros drop: 5 Nov 2025, 07:00 UTC builds as 1.0.2511.507.
+  await expect(page.getByRole("contentinfo")).toContainText(
+    /Version 1\.0\.\d{2}(0[1-9]|1[0-2])\.[1-9]\d{0,1}\d{2}(?!\d)/,
+  );
+});
+
 test("C1 CV download: empty required data needs an explicit download anyway", async ({
   page,
 }) => {
