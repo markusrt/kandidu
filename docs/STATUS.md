@@ -1,5 +1,39 @@
 # Current handoff
 
+## 002-visual-design (active feature, started 2026-11-27)
+
+- Branch: **`002-visual-design`** (local, from local `main` at `0a90efd`,
+  which equals `origin/main` after the fetch of 2026-11-27). Not pushed.
+- Spec: `specs/002-visual-design/` (spec, plan, research, data-model,
+  contracts/design-tokens.md, quickstart, tasks). `.specify/feature.json`
+  points to it. Spec language de-DE.
+- **Delivery Mode: Spike (C1), then Light (C3)**. Reason: which direction
+  fits ("Ruhig" or "Geführt") is open and decided by the owner from
+  screenshots; afterwards the rollout extends a proven workflow without
+  behavior change. Matches the owner's brief. tasks.md holds the spike only;
+  US2, US3 and the C3 gate follow after the C1 decision.
+- Owner decisions (chat 2026-11-27, recorded in spec `## Clarifications`):
+  directions "Ruhig" and "Geführt"; goal "Ruhiger und Moderner"; "Ich würde
+  hier gerne ein paar Vorschläge sehen bevor ich entscheide. Gerne mit
+  Webfonts" → four rendered font/palette packages, owner answer "Paket D"
+  (Atkinson Hyperlegible Next, palette Waldgrün); lead table as cards on
+  narrow widths: "Ja nur per CSS".
+- Assumption (not asked): the webfont is self-hosted (ADR 011, proposed),
+  because Kandidu sends no foreign requests and the E2E network guard
+  enforces it. To be confirmed at C1.
+- Analyze (2026-11-27, by hand): every spike task cites FR/SC IDs. Coverage
+  gaps by design (later Light phase): FR-011 and US3 (lead list cards), US2
+  (all other screens), FR-014 only for the two spike screens. No
+  constitution conflict; one new dependency covered by ADR 011.
+- Environment: the orb ships Node 26; Node 24.21.0 was installed under
+  `~/.local/node` and put first on `PATH` for all checks.
+- Model routing: this session runs in Amp, not Claude Code; `pnpm
+  models:check` reads Claude Code transcripts and does not apply. All tasks
+  run in the main session; `design-critic` runs as an Amp subagent with the
+  instructions of `.claude/agents/design-critic.md`.
+- **Exact next action:** `/speckit-implement` T001–T010, then the C1 GATE
+  T011 (stop for the owner's direction decision).
+
 ## Checkpoint and authorization
 
 - Updated: 2026-10-19.
