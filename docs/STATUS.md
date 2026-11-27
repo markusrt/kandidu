@@ -237,11 +237,32 @@
   `origin/main` empty. Shipped with `pnpm ship --mode auto-merge` (PR,
   green CI, rebase merge, Pages deploy); the PR number and run follow in the
   first commit of the next branch.
-- **Exact next action:** 002-visual-design is on `main` and live at
-  https://markusrt.github.io/kandidu/. Record the ship result (PR, merge
-  commit, Pages run) as the first commit of a new branch from the updated
-  `main`; then wait for the owner's next feature. Node 24.21.0: put
-  `~/.local/node/bin` first on `PATH`.
+- **Ship result (2026-11-27):** CI on PR #7 first failed in the new T026
+  check (it counted the lead stepper's links before the navigation rendered,
+  0 instead of 5); fixed with a waiting assertion in `6c1d059` (20 local
+  repetitions green). Second CI run green; PR #7 merged by rebase as
+  `74182df`; Pages run 45965871524 deployed to
+  https://markusrt.github.io/kandidu/. The live CSS contains the status chip
+  tokens, the placeholder cards and the status chip; the live home renders
+  the green header and the "Moos" chips. Remote branch deleted by the merge.
+  002-visual-design is done.
+- Wrap-up (2026-11-27, owner request "aktualisiere noch den Status und
+  stoppe die Vorschau"): orb services `kandidu-preview` and `kandidu-main`
+  stopped, the portal URLs above no longer answer; the `main` worktree
+  `/tmp/main-wt` removed. Local `main` fast-forwarded to `origin/main`
+  `74182df`; local branch `002-visual-design` deleted (merged). The live site
+  https://markusrt.github.io/kandidu/ is the review URL from now on.
+- Open follow-ups (not scheduled, owner decides): design nits from
+  `specs/002-visual-design/review/C3.md` (footer rule wider than text, "Nicht
+  gefunden" inside a card, home project rows, Lebenslauf code chips at
+  360 px, hint gap in "Bewerbungsprozess", Leads step without a card on
+  desktop, column shift when the delete question opens); test nits
+  (`tokens.test.ts` ignores named colors and subfolders).
+- **Exact next action:** this ship record is on branch
+  `002-visual-design-ship` (from `origin/main` `74182df`), pushed as its own
+  PR at the owner's request (2026-11-27, "Mache bitte einen PR, der den
+  Status aktualisiert"); it reaches `main` once that PR is merged. Wait for the owner's next feature. Node
+  24.21.0: put `~/.local/node/bin` first on `PATH`.
 
 ## Checkpoint and authorization
 
