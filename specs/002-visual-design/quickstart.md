@@ -5,10 +5,12 @@ pnpm install --frozen-lockfile
 pnpm build && pnpm preview --host 127.0.0.1 --port 4173 --strictPort
 ```
 
-- "Ruhig" (default): `http://127.0.0.1:4173/#/`
-- "Geführt" (spike only): `http://127.0.0.1:4173/?design=guided#/`
+Open `http://127.0.0.1:4173/#/`. The direction "Geführt" is the only style
+(the spike's `?design=` switch was removed after C1).
 
-Screenshots for the gate page (preview must be running):
+Screenshots of all screens for the gate page (preview must be running; the
+script seeds synthetic data through the UI). Optional last argument: a comma
+list of screen names to write.
 
 ```sh
 node scripts/capture-design.mjs http://127.0.0.1:4173 specs/002-visual-design/review/img after

@@ -88,8 +88,8 @@ tokens only, without changing roles, labels, texts or behavior.
 
 ## Phase 7: Polish & Acceptance (C3)
 
-- [ ] T023 [P] Rendered checks for the edge cases: forced colors (`page.emulateMedia({ forcedColors: "active" })`), reduced motion, 200 % zoom and WCAG 1.4.12 text spacing on home and "Lead prüfen", webfont blocked → system font; add to e2e/design.spec.ts where stable (FR-002, FR-013)
-- [ ] T024 [P] Update quickstart.md, README (screenshots command) and the design-tokens contract to the final token set
+- [x] T023 [P] Rendered checks for the edge cases: forced colors (`page.emulateMedia({ forcedColors: "active" })`), reduced motion, 200 % zoom and WCAG 1.4.12 text spacing on home and "Lead prüfen", webfont blocked → system font; add to e2e/design.spec.ts where stable (FR-002, FR-013)
+- [x] T024 [P] Update quickstart.md, README (screenshots command) and the design-tokens contract to the final token set
 - [ ] T025 [GATE] C3 checkpoint (Light, US1–US3): run `pnpm verify`; confirm `git diff main -- src/domain src/storage src/ui/i18n` and the existing test files are unchanged (SC-001, SC-002); start the preview and confirm the URL responds; update docs/STATUS.md (checkpoint, spec IDs, commands and outcomes, URL and who can reach it, critic rounds, questions, next action) and the spec in the same commit; write the human gate page specs/002-visual-design/review/C3.md from docs/templates/gate-review.md with before/after screenshots of every restyled screen (desktop and 360 px), the status chip variants and open nits; commit; then **STOP** and request explicit acceptance. Never mark accepted without a recorded human decision.
 
 ---

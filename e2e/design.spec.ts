@@ -221,3 +221,147 @@ for (const width of [undefined, 360]) {
     }
   });
 }
+
+// Edge cases (T023, FR-002, FR-010, FR-013): forced colors, reduced motion,
+// zoom, WCAG 1.4.12 text spacing and a blocked webfont, on home and on
+// "Lead prüfen".
+async function openHomeAndLead(page: Page): Promise<{ lead: string }> {
+  await createProjectWithLeads(page, "valid-plain");
+  await openLead(page, "Beispiel GmbH");
+  await expect(
+    page.getByRole("heading", { name: "Lead prüfen und bearbeiten" }),
+  ).toBeVisible();
+  return { lead: new URL(page.url()).hash };
+}
+
+async function eachView(
+  page: Page,
+  lead: string,
+  check: (view: string) => Promise<void>,
+) {
+  for (const [view, hash] of [
+    ["home", "#/"],
+    ["lead review", lead],
+  ] as const) {
+    await page.goto(`/${hash}`);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await check(view);
+  }
+}
+
+test("design: forced colors keep focus, field borders and chips visible", async ({
+  page,
+}) => {
+  const { lead } = await openHomeAndLead(page);
+  await page.emulateMedia({ forcedColors: "active" });
+  await eachView(page, lead, async (view) => {
+    const fields = await page
+      .locator("input:not([type=checkbox]):not([type=file]), select, textarea")
+      .evaluateAll((els) =>
+        els.map((el) => getComputedStyle(el).borderTopStyle),
+      );
+    expect(fields.length, view).toBeGreaterThan(0);
+    expect(
+      fields.filter((s) => s === "none"),
+      `${view}: field borders`,
+    ).toEqual([]);
+    const chips = await page
+      .locator(".checklist strong, .badge, .status-chip")
+      .evaluateAll((els) =>
+        els.map((el) => getComputedStyle(el).borderTopStyle),
+      );
+    expect(
+      chips.filter((s) => s !== "solid"),
+      `${view}: chips`,
+    ).toEqual([]);
+    await page.locator("body").click({ position: { x: 1, y: 1 } });
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press("Tab");
+      const outline = await page.evaluate(() => {
+        const el = document.activeElement;
+        if (!el || el === document.body) return null;
+        const s = getComputedStyle(el);
+        return {
+          style: s.outlineStyle,
+          width: Number.parseFloat(s.outlineWidth),
+        };
+      });
+      if (!outline) continue;
+      expect(outline.style, `${view}: focus`).not.toBe("none");
+      expect(outline.width, `${view}: focus`).toBeGreaterThanOrEqual(2);
+    }
+  });
+});
+
+test("design: reduced motion leaves no animation or transition", async ({
+  page,
+}) => {
+  const { lead } = await openHomeAndLead(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await eachView(page, lead, async (view) => {
+    const moving = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("*"))
+        .filter((el) => {
+          const s = getComputedStyle(el);
+          return (
+            s.animationName !== "none" ||
+            s.transitionDuration
+              .split(",")
+              .some((d) => Number.parseFloat(d) > 0)
+          );
+        })
+        .map((el) => el.tagName),
+    );
+    expect(moving, view).toEqual([]);
+  });
+});
+
+test("design: 200 % zoom and WCAG 1.4.12 text spacing do not clip content", async ({
+  page,
+}) => {
+  const { lead } = await openHomeAndLead(page);
+  // 200 % zoom of a 1280 px window reflows like a 640 px window.
+  await page.setViewportSize({ width: 640, height: 800 });
+  await eachView(page, lead, async (view) => {
+    await page.addStyleTag({
+      content: `* { line-height: 1.5 !important; letter-spacing: 0.12em !important;
+        word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }`,
+    });
+    await expectNoHorizontalScroll(page, `${view} (640 px, text spacing)`);
+    const clipped = await page
+      .locator(
+        "button, .button, label, legend, h1, h2, .badge, .checklist strong",
+      )
+      .evaluateAll((els) =>
+        els
+          .filter(
+            (el) =>
+              el.scrollWidth > el.clientWidth + 1 ||
+              el.scrollHeight > el.clientHeight + 1,
+          )
+          .map((el) => el.textContent?.trim().slice(0, 30)),
+      );
+    expect(clipped, `${view}: clipped text`).toEqual([]);
+  });
+});
+
+test("design: a blocked webfont falls back to the system font", async ({
+  page,
+}) => {
+  await page.route(/\.woff2?$/, (route) => route.abort());
+  await page.goto("/#/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Deine Bewerbungen",
+  );
+  await page.evaluate(() => document.fonts.ready);
+  expect(
+    await page.evaluate(() =>
+      document.fonts.check('16px "Atkinson Hyperlegible Next"'),
+    ),
+    "webfont loaded although blocked",
+  ).toBe(false);
+  expect(
+    await page.evaluate(() => getComputedStyle(document.body).fontFamily),
+  ).toContain("system-ui");
+  await checkView(page, "home without webfont");
+});

@@ -91,6 +91,18 @@ Playwright starts and waits for its own production-preview server on port 4173
 tests the last build, so run `pnpm build` after source changes.
 Unit and browser runners fail when no tests are found.
 
+Screenshots of every screen (desktop 1280 px and 360 px) for design reviews,
+from a running preview (`pnpm build && pnpm preview --host 127.0.0.1 --port
+4173 --strictPort`):
+
+```sh
+node scripts/capture-design.mjs http://127.0.0.1:4173 <out-dir> <prefix>
+```
+
+Colors, type, spacing and shapes come from the design tokens in
+`src/ui/tokens.css` (`specs/002-visual-design/contracts/design-tokens.md`);
+`src/ui/tokens.test.ts` fails on a color literal anywhere else.
+
 To restart after a session ends, run `pnpm dev --host 127.0.0.1 --port 5173 --strictPort`.
 Only if your environment offers authenticated forwarding, bind with
 `pnpm dev --host 0.0.0.0 --port 5173 --strictPort` and forward port 5173;
