@@ -171,8 +171,53 @@
   quickstart, README (capture command, tokens) and the token contract
   updated. `KANDIDU_E2E_PORT=4191 pnpm verify` exit 0 — unit 374, e2e 129
   passed / 1 skipped.
-- **Exact next action:** C3 GATE T025. Node 24.21.0: put `~/.local/node/bin` first on
-  `PATH`.
+- **C3 GATE T025 (Light, US1–US3) prepared 2026-11-27; awaiting the owner.**
+  Not ticked.
+  - Local review (`speckit-reviewer` instructions as Amp subagent, diff
+    `main...b2f4b9c`): 0 blocker, 4 should-fix. Fixed: (1) card labels from
+    `td::before` were part of the cells' accessible names (Platzhalter new,
+    lead table already on `main`) → `content: attr(data-label) / ""` on both;
+    aria snapshot at 360 px now shows the cell names of `main` (e.g. `cell
+    "Dein Vorname"`); (4) the webfont check now waits for
+    `document.fonts.ready`. Nits fixed: forced-colors check also on the lead
+    list, `label` dropped from the clipping check, the always-true
+    `system-ui` assertion removed. The extended lead-list edge check found a
+    US3 regression: the `nowrap` status chip made the table 672 px wide in a
+    640 px window with WCAG 1.4.12 spacing (`main`: 640); the chip now wraps
+    below 48rem. Open as owner decisions on the gate page: (2) compact
+    stepper hides the other steps' visible names on phones (WCAG 2.5.3 for
+    speech input; owner's C1 choice); (3) FR-008 "Zustandsmarken ≥ 3:1" vs
+    decorative chip rings (word carries the state at ≥ 4.5:1) — spec text
+    unchanged until the owner decides. Nits not fixed: `tokens.test.ts`
+    ignores named colors and subfolders; reduced-motion check guards only
+    future animations.
+  - Gate checks: `KANDIDU_E2E_PORT=4191 pnpm verify` exit 0 — lint,
+    typecheck, architecture, unit 29 files / 374 tests, build, e2e 129 passed
+    / 1 skipped (as on main plus the design spec).
+  - `pnpm models:check`: not applicable (Amp thread, no Claude Code
+    transcripts); all tasks ran in the main session, critics and reviewer as
+    Amp subagents.
+  - SC-001/SC-002: `git diff main -- src/domain src/storage src/ui/i18n
+    src/llm src/files e2e/c1-* e2e/c2-* e2e/c3-* e2e/fixtures.ts
+    e2e/flows.ts` empty. Markup changes (no text, roles unchanged):
+    `PlaceholderHelp.tsx` (class, `data-label`), `LeadList.tsx` (status
+    `span`).
+  - Gate page `specs/002-visual-design/review/C3.md`: chip variants A/B/C and
+    before/after of 20 views, desktop 1280 px and 360 px (1x), PNG8, cropped
+    at 2200/2400 px, in `review/img/c3/` (before from `main` `0a90efd`). The
+    page exceeds 30 lines only by the screen table the owner asked for.
+  - Preview: orb service `kandidu-preview` (build of the gate commit's
+    code), portal <https://t-03hb8nlytmwblc3uq27hhvcor-p27647.onamp.dev/>
+    answered 200 with title "Kandidu"; reachable via Amp only while this
+    orb runs. `kandidu-main` (port 4183, `/tmp/main-wt`) serves `main` for
+    before shots. Restart: `pnpm build && pnpm preview --host 127.0.0.1
+    --port 4173 --strictPort`.
+  - Branch `002-visual-design` local only, not pushed; ship mode for this
+    feature not yet recorded (asked on the gate page).
+- **Exact next action:** wait for the owner's C3 decision (chip variant,
+  FR-008 wording, phone stepper, ship mode); triage it per AGENTS.md step 8.
+  Do not tick T025 before it is recorded here. Node 24.21.0: put
+  `~/.local/node/bin` first on `PATH`.
 
 ## Checkpoint and authorization
 

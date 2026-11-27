@@ -94,6 +94,7 @@ for (const width of [undefined, 360]) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Deine Bewerbungen",
     );
+    await page.evaluate(() => document.fonts.ready);
     expect(
       await page.evaluate(() =>
         document.fonts.check('16px "Atkinson Hyperlegible Next"'),
@@ -223,8 +224,8 @@ for (const width of [undefined, 360]) {
 }
 
 // Edge cases (T023, FR-002, FR-010, FR-013): forced colors, reduced motion,
-// zoom, WCAG 1.4.12 text spacing and a blocked webfont, on home and on
-// "Lead prüfen".
+// zoom, WCAG 1.4.12 text spacing and a blocked webfont, on home, "Lead
+// prüfen" and the lead list.
 async function openHomeAndLead(page: Page): Promise<{ lead: string }> {
   await createProjectWithLeads(page, "valid-plain");
   await openLead(page, "Beispiel GmbH");
@@ -242,6 +243,7 @@ async function eachView(
   for (const [view, hash] of [
     ["home", "#/"],
     ["lead review", lead],
+    ["lead list", lead.slice(0, lead.lastIndexOf("/leads/")) + "/leads"],
   ] as const) {
     await page.goto(`/${hash}`);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -330,7 +332,7 @@ test("design: 200 % zoom and WCAG 1.4.12 text spacing do not clip content", asyn
     await expectNoHorizontalScroll(page, `${view} (640 px, text spacing)`);
     const clipped = await page
       .locator(
-        "button, .button, label, legend, h1, h2, .badge, .checklist strong",
+        "button, .button, legend, h1, h2, .badge, .checklist strong, .status-chip",
       )
       .evaluateAll((els) =>
         els
@@ -360,8 +362,5 @@ test("design: a blocked webfont falls back to the system font", async ({
     ),
     "webfont loaded although blocked",
   ).toBe(false);
-  expect(
-    await page.evaluate(() => getComputedStyle(document.body).fontFamily),
-  ).toContain("system-ui");
   await checkView(page, "home without webfont");
 });
