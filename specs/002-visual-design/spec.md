@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: C1 spike accepted on 2026-11-27 with Go for „Geführt“ (GATE T011); Light phase (US2, US3, C3) planned
+**Status**: C1 spike accepted on 2026-11-27 with Go for „Geführt“ (GATE T011); Light phase (US2, US3) implemented and verified 2026-11-27, C3 GATE T025 awaiting the owner's decision
 
 **Spec Language**: de-DE
 

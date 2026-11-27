@@ -719,7 +719,9 @@ ol.item-list {
     font-size: var(--text-base);
   }
   .placeholder-table td::before {
-    content: attr(data-label);
+    /* Visible only: the column header already names the cell for screen
+       readers, so the label gets empty alternative text. */
+    content: attr(data-label) / "";
     font-weight: var(--weight-bold);
     color: var(--muted);
   }
@@ -758,7 +760,9 @@ td {
 .lead-table td {
   vertical-align: middle;
 }
-@media (max-width: 30rem) {
+/* Below the step-column layout the table has no room to spare (200 % zoom,
+   WCAG 1.4.12 text spacing): the chip may wrap. */
+@media (max-width: 47.99rem) {
   .status-chip {
     white-space: normal;
   }
@@ -942,7 +946,9 @@ fieldset:has(> legend):has(+ :not(fieldset)) {
     overflow-wrap: anywhere;
   }
   .lead-table td::before {
-    content: attr(data-label);
+    /* Visible only: the column header already names the cell for screen
+       readers, so the label gets empty alternative text. */
+    content: attr(data-label) / "";
     font-weight: var(--weight-bold);
     color: var(--muted);
   }
