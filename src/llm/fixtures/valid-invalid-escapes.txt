@@ -1,0 +1,22 @@
+{
+  "leads": [
+    {
+      "sourceUrl": "https\://example.org/stellen/123",
+      "position": {
+        "title": "Ausbildung zum Industriekaufmann \(m/w/d\)",
+        "location": "Beispielstadt"
+      },
+      "company": {
+        "name": "Beispiel GmbH",
+        "website": "https\:\/\/example.org"
+      },
+      "application": {
+        "channel": "portal",
+        "portalUrl": "https\://example.org/karriere"
+      },
+      "process": "Online\-Bewerbung, danach Vorstellungsgespräch.",
+      "research": "Familienunternehmen \"seit 1950\". [Website](https\://example.org)",
+      "motivation": "Mich reizt die Ausbildung bei der Beispiel GmbH\, weil …"
+    }
+  ]
+}

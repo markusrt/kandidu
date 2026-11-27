@@ -601,6 +601,7 @@ export const de = {
         "",
         "Regeln für deine Antwort:",
         "- Antworte ausschließlich mit einem einzigen JSON-Objekt, das dem Schema unten entspricht. Kein Text davor oder danach.",
+        '- Escape in den Werten nur, was JSON verlangt: \\", \\\\ und Zeilenumbrüche als \\n. Schreibe alle anderen Zeichen wie : / ( ) - und Umlaute direkt, ohne Backslash davor, zum Beispiel "https://example.org".',
         '- Lege in "leads" für jede Stellenanzeige genau einen Eintrag an.',
         "- Schreibe auf Deutsch.",
         '- "sourceUrl": der Link der Stellenanzeige aus der Liste oben, genau so, wie er dort steht.',

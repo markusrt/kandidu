@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { ParseResult } from "../domain/project";
-import { balancedSpans, jsonCandidates, removeTrailingCommas } from "./extract";
+import {
+  balancedSpans,
+  jsonCandidates,
+  removeInvalidEscapes,
+  removeTrailingCommas,
+} from "./extract";
 import { parseResponse } from "./parse";
 
 const files = import.meta.glob("./fixtures/*.txt", {
@@ -35,6 +40,7 @@ describe("LLM response corpus (SC-004)", () => {
     ["valid-minimal", 1],
     ["valid-trailing-commas", 1],
     ["valid-typographic-quotes", 1],
+    ["valid-invalid-escapes", 1],
     ["valid-two-blocks", 1],
     ["valid-warnings", 1],
     ["valid-three-leads", 3],
@@ -220,6 +226,20 @@ describe("extract helpers", () => {
     expect(removeTrailingCommas('{"a": [1, 2,], "b": ",]",}')).toBe(
       '{"a": [1, 2], "b": ",]"}',
     );
+  });
+
+  it("drops invalid escapes inside strings and keeps valid ones (#4)", () => {
+    const input = String.raw`{"u": "https\://x.de\/a", "q": "\"\\\n\u00e4", "k\:": 1} \:`;
+    expect(removeInvalidEscapes(input)).toBe(
+      String.raw`{"u": "https://x.de\/a", "q": "\"\\\n\u00e4", "k:": 1} \:`,
+    );
+    const lead = leads(parseResponse(fixture("valid-invalid-escapes")))[0];
+    expect(lead?.sourceUrl).toBe("https://example.org/stellen/123");
+    expect(lead?.company.website).toBe("https://example.org");
+    expect(lead?.position.title).toBe(
+      "Ausbildung zum Industriekaufmann (m/w/d)",
+    );
+    expect(lead?.research).toContain('"seit 1950"');
   });
 
   it("orders candidates: whole text, fences, spans", () => {

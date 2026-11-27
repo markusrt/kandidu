@@ -108,7 +108,8 @@ type ParseWarning = { entry: number; kind: "motivation-too-long" | "url-dropped"
 
 `src/llm/fixtures/` holds ≥ 10 synthetic responses: plain JSON; ```json fence;
 fence without language; prose before/after; single object; root array; missing
-optional fields; trailing commas; typographic quotes as delimiters; two JSON
+optional fields; trailing commas; typographic quotes as delimiters; invalid
+escapes such as `https\:` (issue #4); two JSON
 blocks (first valid wins); C3: original posting with sources (bare URL,
 duplicate, non-http, missing URL) and messy sources (not a list, 22 entries,
 unusable original posting); invalid: no JSON, truncated JSON, missing
