@@ -31,6 +31,16 @@
   names the gate page in the GATE task. README: "At a gate and while the agent
   works". Template code fixes (E2E port, e2e build, models:check path) were
   not ported; kandidu already has `KANDIDU_E2E_PORT`.
+- Bug fix 2026-11-27, issue #4 (some LLMs escape characters such as `:` in
+  links, so `JSON.parse` failed): local branch `fix-4-json-escaping`. The
+  prompt (`de.ts`) now asks for only the escapes JSON requires, and
+  `repairVariants` in `src/llm/extract.ts` also tries a variant without
+  invalid backslash escapes inside strings (FR-018/FR-019, research R5). New
+  fixture `valid-invalid-escapes.txt`; without the repair it fails. `pnpm
+  verify` passed on Node 24.21.0 (354 unit, 109 e2e). Owner authorized push,
+  PR, and auto-merge after green CI on 2026-11-27 ("Ja"); shipped with
+  `pnpm ship --mode auto-merge`, so once merged the fix is live on GitHub
+  Pages. Next work starts on a new branch from the updated `main`.
 - Active feature: `specs/001-bewerbungs-mvp/` (spec, plan, research, data-model,
   contracts, quickstart, tasks). Spec language de-DE, UI default locale de-DE.
 - Checkpoint: **C1 – Risky core: accepted by the owner on 2026-10-18** ("Okay ich

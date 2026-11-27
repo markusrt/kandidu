@@ -369,7 +369,7 @@ gespeichert sind.
   oder ist beschädigt.
 - LLM-Antwort enthält Code-Fences mit Sprachangabe, Text davor/danach, mehrere
   JSON-Blöcke, ein einzelnes Objekt statt einer Liste, abschließende Kommas,
-  typografische Anführungszeichen, unbekannte Zusatzfelder, fehlende optionale Felder,
+  typografische Anführungszeichen, unnötig escapte Zeichen (z. B. `https\:`), unbekannte Zusatzfelder, fehlende optionale Felder,
   zu lange Motivation (mehr als 2 Absätze).
 - Sehr lange eingefügte Antwort (z. B. > 200 000 Zeichen).
 - Ansprechpartner unbekannt: Anschreiben nutzt eine neutrale Anrede.

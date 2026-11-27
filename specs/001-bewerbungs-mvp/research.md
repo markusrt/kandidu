@@ -101,7 +101,8 @@ dependencies` on that date. All choices are free/open-source (owner budget rule)
   balanced top-level `{…}`/`[…]` span found by a string-aware bracket scanner.
   Each candidate is tried with `JSON.parse`, then with conservative repairs
   (remove trailing commas before `}`/`]`; replace typographic double quotes used
-  as JSON delimiters). The first candidate whose root is an array of objects, an
+  as JSON delimiters; drop backslashes that start no valid JSON escape inside
+  strings, such as `https\:`, issue #4). The first candidate whose root is an array of objects, an
   object with `leads`, or a single lead-like object wins. `src/llm/schema.ts`
   defines the Zod schema (non-strict: unknown keys stripped; `""`/`null` →
   absent); `z.toJSONSchema()` (Zod 4) renders the JSON Schema embedded in the

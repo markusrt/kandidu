@@ -75,12 +75,43 @@ export function replaceTypographicQuotes(json: string): string {
   return json.replace(/[“”„‟″]/g, '"');
 }
 
+/**
+ * Drops backslashes that start no valid JSON escape inside strings, such as
+ * `https\:` or `\'`, which some LLMs emit (issue #4).
+ */
+export function removeInvalidEscapes(json: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < json.length; i++) {
+    const char = json[i] ?? "";
+    if (inString && char === "\\") {
+      const next = json[i + 1] ?? "";
+      if ('"\\/bfnrtu'.includes(next) && next !== "") {
+        out += char + next;
+        i++;
+      }
+      continue;
+    }
+    if (char === '"') inString = !inString;
+    out += char;
+  }
+  return out;
+}
+
 /** Variants to try for one candidate: as is, then conservative repairs. */
 export function repairVariants(candidate: string): string[] {
   const noCommas = removeTrailingCommas(candidate);
   const quotes = replaceTypographicQuotes(candidate);
+  const escapes = removeInvalidEscapes(candidate);
   return [
-    ...new Set([candidate, noCommas, quotes, removeTrailingCommas(quotes)]),
+    ...new Set([
+      candidate,
+      noCommas,
+      quotes,
+      removeTrailingCommas(quotes),
+      escapes,
+      removeTrailingCommas(removeInvalidEscapes(quotes)),
+    ]),
   ];
 }
 
