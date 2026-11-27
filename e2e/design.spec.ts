@@ -380,7 +380,8 @@ test("design: the stepper shows every step name at 360 px", async ({
       );
     }
     const links = page.getByRole("navigation", { name: nav }).getByRole("link");
-    expect(await links.count(), nav).toBeGreaterThan(3);
+    // Wait for the step navigation to render before reading its links.
+    await expect(links, nav).toHaveCount(nav === "Schritte des Leads" ? 5 : 4);
     for (const link of await links.all()) {
       const name = (await link.textContent())?.replace(/^\d+/, "").trim();
       expect(name, nav).toBeTruthy();
