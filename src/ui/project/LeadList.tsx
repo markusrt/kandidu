@@ -134,7 +134,9 @@ export function LeadList({ project }: { project: Project }) {
                           {lead.position.title}
                         </td>
                         <td data-label={columns.status}>
-                          {m.leads.status[lead.status]}
+                          <span className="status-chip">
+                            {m.leads.status[lead.status]}
+                          </span>
                         </td>
                         <td data-label={columns.next}>
                           {next

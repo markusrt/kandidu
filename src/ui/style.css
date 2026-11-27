@@ -741,6 +741,28 @@ td {
 .lead-table th {
   overflow-wrap: normal;
 }
+/* Lead status as a neutral chip: the state is the word (FR-012, FR-015). */
+.status-chip {
+  display: inline-block;
+  background: var(--status-neutral-soft);
+  color: var(--status-neutral);
+  box-shadow: inset 0 0 0 var(--border-width) var(--status-neutral-line);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  overflow-wrap: normal;
+  white-space: nowrap;
+  justify-self: start;
+}
+.lead-table td {
+  vertical-align: middle;
+}
+@media (max-width: 30rem) {
+  .status-chip {
+    white-space: normal;
+  }
+}
 th {
   color: var(--muted);
   font-weight: var(--weight-bold);
@@ -891,7 +913,9 @@ fieldset:has(> legend):has(+ :not(fieldset)) {
   .item-list > li {
     align-items: flex-start;
   }
-  /* The lead table becomes one card per lead (SC-010). */
+  /* The lead table becomes one card per lead (FR-011): the company is the
+     card's title, each other value sits under its column name (data-label),
+     the delete button closes the card. Table roles stay (FR-006). */
   .lead-table thead {
     position: absolute;
     width: 1px;
@@ -901,15 +925,20 @@ fieldset:has(> legend):has(+ :not(fieldset)) {
   }
   .lead-table tr {
     display: block;
-    border-bottom: var(--border-width) solid var(--line);
-    padding-block: var(--space-2);
+    background: var(--paper);
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-3);
   }
   .lead-table td {
     display: grid;
     grid-template-columns: minmax(0, 8rem) minmax(0, 1fr);
+    align-items: baseline;
     gap: var(--space-2);
     border-bottom: 0;
-    padding: 0.2rem 0;
+    padding: var(--space-1) 0;
     overflow-wrap: anywhere;
   }
   .lead-table td::before {
@@ -917,11 +946,44 @@ fieldset:has(> legend):has(+ :not(fieldset)) {
     font-weight: var(--weight-bold);
     color: var(--muted);
   }
+  .lead-table td:first-child {
+    display: block;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    padding-bottom: var(--space-2);
+  }
+  .lead-table td:first-child::before,
+  .lead-table td:last-child::before {
+    content: none;
+  }
+  .lead-table td:last-child {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--space-2);
+    margin-top: var(--space-2);
+    border-top: var(--border-width) solid var(--line);
+  }
+  .lead-table .confirm-row {
+    border-color: var(--border-strong);
+  }
   .lead-table .confirm-row td {
     display: block;
+    border-top: 0;
+    margin: 0;
+    padding: 0;
+    font-size: var(--text-base);
+    font-weight: var(--weight-regular);
   }
-  .lead-table .confirm-row td::before {
-    content: none;
+  .lead-table .confirm-row .confirm {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .lead-table .confirm-row .confirm > :first-child {
+    margin-top: 0;
+  }
+  .lead-table .confirm-row .confirm > :last-child {
+    margin-bottom: 0;
   }
 }
 @media (forced-colors: active) {
@@ -930,6 +992,7 @@ fieldset:has(> legend):has(+ :not(fieldset)) {
   }
   .checklist strong,
   .badge,
+  .status-chip,
   .stepper a[aria-current="step"] {
     border: var(--border-width) solid CanvasText;
   }

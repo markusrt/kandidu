@@ -144,8 +144,24 @@
   gefunden"; home project rows unequal; Lebenslauf code chips indented at
   360 px; hint-to-textarea gap in "Bewerbungsprozess"/"Recherche"; card labels
   from `::before` may be read twice (same as the lead table on `main`).
-- **Exact next action:** US3 T020–T022 (lead list cards), commit; then Polish
-  T023–T024, C3 GATE T025. Node 24.21.0: put `~/.local/node/bin` first on
+- **US3 (T020–T022) done.** `e2e/design.spec.ts` checks the lead list with
+  three leads at default width and 360 px: table, six column headers (names
+  unchanged), 4 rows, 18 cells, axe zero, no horizontal scroll, focus; on
+  desktop no column header or button word spans two lines (probe: injected
+  `overflow-wrap: anywhere` makes the detector report the split words). At
+  ≤ 30rem each lead is a card: company as title, values under their
+  `data-label`, "Löschen" in a footer row, the delete question as its own
+  card. Markup: the status text in `LeadList.tsx` is wrapped in
+  `<span class="status-chip">` (neutral chip, tokens `--status-neutral*`,
+  pair in `tokens.test.ts`; forced-colors border like `.badge`).
+- design-critic US3 round 1 → 0 blocker, 0 should-fix (SC-008 met), 5 nits;
+  fixed: neutral chip tokens and `--text-sm`, forced-colors border, spacing
+  in the delete question card. Open nits for the gate page: at 360 px the
+  labels "Unternehmen" and "Aktionen" are no longer shown (company is the
+  title, button in the footer; thead still read); chip rings (≈ 1.2–1.7:1)
+  are decorative, the word carries the state; columns shift slightly when the
+  delete question opens on desktop.
+- **Exact next action:** Polish T023–T024, then C3 GATE T025. Node 24.21.0: put `~/.local/node/bin` first on
   `PATH`.
 
 ## Checkpoint and authorization

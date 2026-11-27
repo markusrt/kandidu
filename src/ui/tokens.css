@@ -32,6 +32,10 @@
   --status-done: #2a6a4c;
   --status-done-soft: #e5f0ea;
   --status-done-line: #b5d0c1;
+  /* Lead status in the lead list: neutral, the word carries the state. */
+  --status-neutral: #1d2721;
+  --status-neutral-soft: #f6f8f6;
+  --status-neutral-line: #dfe6e1;
   /* Focus */
   --focus: #b4530a;
   --focus-width: 3px;

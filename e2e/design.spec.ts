@@ -166,3 +166,58 @@ for (const width of [undefined, 360]) {
     }
   });
 }
+
+/** Words of `selector`'s elements that the layout splits across lines. */
+async function splitWords(page: Page, selector: string): Promise<string[]> {
+  return page.locator(selector).evaluateAll((elements) => {
+    const split: string[] = [];
+    for (const el of elements) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const text = node.textContent ?? "";
+        for (const match of text.matchAll(/\S+/g)) {
+          const range = document.createRange();
+          range.setStart(node, match.index);
+          range.setEnd(node, match.index + match[0].length);
+          const lines = new Set(
+            Array.from(range.getClientRects(), (r) => Math.round(r.top)),
+          );
+          if (lines.size > 1) split.push(match[0]);
+        }
+      }
+    }
+    return split;
+  });
+}
+
+// Lead list (US3, T020): cards on narrow screens with the table roles kept,
+// and no word broken inside on desktop (FR-011, SC-004).
+for (const width of [undefined, 360]) {
+  const label = width ? `${width} px` : "default width";
+
+  test(`design: lead list keeps table roles and whole words (${label})`, async ({
+    page,
+  }) => {
+    if (width) await page.setViewportSize({ width, height: 780 });
+    await createProjectWithLeads(page, "valid-three-leads");
+    const table = page.getByRole("table");
+    await expect(table).toBeVisible();
+    await expect(table.getByRole("columnheader")).toHaveText([
+      "Unternehmen",
+      "Stelle",
+      "Status",
+      "Nächster Termin",
+      "Letzte Aktivität",
+      "Aktionen",
+    ]);
+    await expect(table.getByRole("row")).toHaveCount(4);
+    await expect(table.getByRole("cell")).toHaveCount(18);
+    await checkView(page, `lead list (${label})`);
+    if (!width) {
+      expect(
+        await splitWords(page, ".lead-table th, .lead-table button"),
+        "words broken inside a column header or button",
+      ).toEqual([]);
+    }
+  });
+}
