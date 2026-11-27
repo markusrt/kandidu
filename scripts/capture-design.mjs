@@ -149,6 +149,28 @@ for (const size of sizes) {
   await go(`${lead}/verlauf`, "lead-verlauf");
   await go("#/gibt-es-nicht", "not-found");
 
+  // A project with three leads (lead list cards), then its delete question.
+  await createProject("Duales Studium", "https://example.org/jobs/3");
+  await page.getByRole("link", { name: "Weiter zur Antwort" }).click();
+  await page
+    .getByLabel("Antwort des Sprachmodells")
+    .fill(
+      await readFile(
+        new URL("../src/llm/fixtures/valid-three-leads.txt", import.meta.url),
+        "utf8",
+      ),
+    );
+  await page.getByRole("button", { name: "Antwort einlesen" }).click();
+  await page.getByRole("link", { name: "Zu den Leads" }).click();
+  await h1();
+  await shot("project-leads-3");
+  await page
+    .getByRole("button", { name: /^Löschen: Lead / })
+    .first()
+    .click();
+  await page.getByRole("alert").waitFor();
+  await shot("project-leads-3-confirm");
+
   // A second project whose answer is still pending (status chip).
   await createProject("Praktikum im Marketing", "https://example.org/jobs/7");
   await go("#/", "home");

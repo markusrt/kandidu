@@ -80,9 +80,9 @@ tokens only, without changing roles, labels, texts or behavior.
 
 **Independent Test**: project with three leads at 360 px and desktop; roles checked in e2e.
 
-- [ ] T020 [US3] Add to e2e/design.spec.ts: at 360 px the lead list keeps the roles table, columnheader (names unchanged) and cell; no horizontal scroll; on desktop no column header and no button wraps inside a word (FR-011, SC-004)
-- [ ] T021 [US3] Restyle the narrow-width lead cards in src/ui/style.css (card surface, column name from the existing `data-label`, status as chip, actions row) (FR-011, FR-015)
-- [ ] T022 [US3] design-critic loop for the lead list (desktop and 360 px, 1 and 3 leads), max 3 rounds; commit US3
+- [x] T020 [US3] Add to e2e/design.spec.ts: at 360 px the lead list keeps the roles table, columnheader (names unchanged) and cell; no horizontal scroll; on desktop no column header and no button wraps inside a word (FR-011, SC-004)
+- [x] T021 [US3] Restyle the narrow-width lead cards in src/ui/style.css (card surface, column name from the existing `data-label`, status as chip, actions row) (FR-011, FR-015)
+- [x] T022 [US3] design-critic loop for the lead list (desktop and 360 px, 1 and 3 leads), max 3 rounds; commit US3
 
 ---
 
