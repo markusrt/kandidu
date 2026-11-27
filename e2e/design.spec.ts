@@ -364,3 +364,36 @@ test("design: a blocked webfont falls back to the system font", async ({
   ).toBe(false);
   await checkView(page, "home without webfont");
 });
+
+// C3 decision (T026, FR-010, WCAG 2.5.3): on narrow screens every step of
+// the stepper shows its name, so the visible label matches the link name.
+test("design: the stepper shows every step name at 360 px", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await createProjectWithLeads(page, "valid-plain");
+  await openLead(page, "Beispiel GmbH");
+  for (const nav of ["Schritte des Leads", "Schritte des Projekts"]) {
+    if (nav === "Schritte des Projekts") {
+      await page.goto(
+        `/${new URL(page.url()).hash.replace(/\/leads\/.*$/, "/links")}`,
+      );
+    }
+    const links = page.getByRole("navigation", { name: nav }).getByRole("link");
+    expect(await links.count(), nav).toBeGreaterThan(3);
+    for (const link of await links.all()) {
+      const name = (await link.textContent())?.replace(/^\d+/, "").trim();
+      expect(name, nav).toBeTruthy();
+      await expect(
+        link.getByText(name as string, { exact: true }),
+      ).toBeVisible();
+      const box = await link
+        .getByText(name as string, { exact: true })
+        .boundingBox();
+      expect(box?.width ?? 0, `${nav}: ${name} visible width`).toBeGreaterThan(
+        8,
+      );
+    }
+    await expectNoHorizontalScroll(page, `${nav} (360 px)`);
+  }
+});

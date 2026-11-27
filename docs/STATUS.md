@@ -225,7 +225,14 @@
   done, no change; (3) → spec FR-008 + Clarifications session "C3 gate";
   (4) → spec Clarifications + FR-006/FR-010 scope, task T026 (show every
   step name on narrow screens, wrapped).
-- **Exact next action:** T026, verify, then `pnpm ship --mode auto-merge`. Node 24.21.0: put
+- **T026 done:** at ≤ 47.99rem the stepper is a wrapped row and every step
+  shows its name (the visually hidden names are gone). New e2e check: at
+  360 px every project and lead step link shows its name with a real width;
+  it fails on the old CSS ("Anschreiben visible width" 1 px) and passes
+  now. Spec: Clarifications session "C3 gate", FR-008 (non-text state marks
+  ≥ 3:1, chip rings decorative), FR-010 (stepper names visible).
+- **Exact next action:** rebase onto `origin/main`, verify, then
+  `pnpm ship --mode auto-merge`. Node 24.21.0: put
   `~/.local/node/bin` first on `PATH`.
 
 ## Checkpoint and authorization

@@ -653,26 +653,15 @@ ol.item-list {
     border-left-color: var(--accent);
   }
 }
-/* Narrow screens: one compact row; only the current step shows its name.
-   The other names stay in the accessibility tree (FR-006). */
+/* Narrow screens: a wrapped row in which every step shows its name, so
+   speech input finds it by what is visible (FR-010, WCAG 2.5.3). */
 @media (max-width: 47.99rem) {
   .stepper ol {
-    flex-wrap: nowrap;
-    gap: var(--space-1);
+    gap: 0 var(--space-1);
   }
-  .stepper li {
-    flex: 0 0 auto;
-  }
-  .stepper li:not(.current) a {
-    padding-right: var(--space-1);
-  }
-  .stepper li:not(.current) a > span:last-child {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+  .stepper a {
+    padding-right: var(--space-2);
+    overflow-wrap: normal;
   }
 }
 .table-wrap {

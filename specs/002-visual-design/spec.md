@@ -29,6 +29,13 @@
 - Q: Wie geht es weiter? → A: Light (US2, US3, ein C3-Gate).
 - Q: Selbst gehostete Schrift? → A: Ja, sofern sie mit GitHub Pages funktioniert (geprüft: Build mit `--base /kandidu/`, Schriftdateien laden vom selben Ursprung, CSP `font-src 'self'`).
 
+### Session 2026-11-27 (C3 gate)
+
+- Q: Welche Variante der Status-Plaketten? → A: A „Moos“ („offen“ Moosgrün, „erledigt“ Akzentgrün; Lead-Status als neutrale Plakette).
+- Q: Wie streng gilt 3 : 1 für Zustandsmarken? → A: Für Zustandsmarken ohne Text (Fokusanzeige, aktueller und erledigter Schritt der Schrittleiste, Fehlerrahmen von Feldern). Plaketten tragen ihren Zustand als Wort mit mindestens 4,5 : 1; ihr Ring ist Dekoration.
+- Q: Zeigt die Schrittleiste am Handy nur die Nummern? → A: Nein, alle Schrittnamen bleiben sichtbar (umbrechend), damit Sprachsteuerung sie findet (WCAG 2.5.3).
+- Q: Ship-Modus? → A: auto-merge.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Startseite und „Lead prüfen“ wirken ruhig und modern (Priority: P1)
@@ -98,9 +105,9 @@ Auf dem Handy erscheint die Lead-Liste als Liste von Karten statt als gequetscht
 - **FR-005**: Alle sichtbaren und für Screenreader bestimmten Texte MUST unverändert bleiben (Meldungskatalog unverändert).
 - **FR-006**: Rollen, zugängliche Namen, Beschriftungen, Überschriftenebenen, Landmarken und Reihenfolge der Bedienelemente MUST unverändert bleiben.
 - **FR-007**: Abläufe, gespeicherte Daten, Datenformat und Sicherungsdateien MUST unverändert bleiben; Daten aus früheren Versionen MUST weiter lesbar sein. Domain- und Speicherschicht werden nicht geändert.
-- **FR-008**: Text MUST mindestens 4,5 : 1 Kontrast haben (große Schrift 3 : 1); Rahmen von Eingabefeldern, Fokusanzeige und Zustandsmarken MUST mindestens 3 : 1 gegen ihre Umgebung haben (WCAG 2.1 AA, 1.4.3 und 1.4.11).
+- **FR-008**: Text MUST mindestens 4,5 : 1 Kontrast haben (große Schrift 3 : 1); Rahmen von Eingabefeldern, Fokusanzeige und Zustandsmarken ohne Text (aktueller und erledigter Schritt, Fehlerrahmen) MUST mindestens 3 : 1 gegen ihre Umgebung haben (WCAG 2.1 AA, 1.4.3 und 1.4.11); Plaketten, deren Zustand als Wort darin steht, brauchen 4,5 : 1 für den Text, ihr Ring ist Dekoration.
 - **FR-009**: Jedes bedienbare Element MUST bei Tastaturfokus eine deutlich sichtbare Fokusanzeige haben.
-- **FR-010**: Bei 360 px Breite MUST kein Bildschirm horizontal scrollen.
+- **FR-010**: Bei 360 px Breite MUST kein Bildschirm horizontal scrollen; die Schrittleiste MUST dabei jeden Schrittnamen sichtbar zeigen (C3-Entscheidung).
 - **FR-011**: Die Lead-Liste MUST auf schmalen Breiten als Kartenliste erscheinen, nur durch Gestaltung, mit erhaltener Tabellen-Semantik; auf dem Desktop MUST kein Spaltenkopf und keine Schaltfläche mitten im Wort umbrechen.
 - **FR-012**: Status und Meldungen (offen, erledigt, Fehler, Warnung) MUST außer durch Farbe auch durch Text erkennbar bleiben.
 - **FR-013**: Die Gestaltung MUST reduzierte Bewegung respektieren und im Modus „forced colors“ Fokus und Rahmen sichtbar lassen.
