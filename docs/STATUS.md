@@ -231,8 +231,16 @@
   it fails on the old CSS ("Anschreiben visible width" 1 px) and passes
   now. Spec: Clarifications session "C3 gate", FR-008 (non-text state marks
   ≥ 3:1, chip rings decorative), FR-010 (stepper names visible).
-- **Exact next action:** rebase onto `origin/main`, verify, then
-  `pnpm ship --mode auto-merge`. Node 24.21.0: put
+- Rebased onto `origin/main` `08daa7e` (issue #4 fix, CI Node 24 actions)
+  without conflicts; `KANDIDU_E2E_PORT=4191 pnpm verify` exit 0 — unit 29
+  files / 376 tests, e2e 131 passed / 1 skipped. SC-001/SC-002 diff against
+  `origin/main` empty. Shipped with `pnpm ship --mode auto-merge` (PR,
+  green CI, rebase merge, Pages deploy); the PR number and run follow in the
+  first commit of the next branch.
+- **Exact next action:** 002-visual-design is on `main` and live at
+  https://markusrt.github.io/kandidu/. Record the ship result (PR, merge
+  commit, Pages run) as the first commit of a new branch from the updated
+  `main`; then wait for the owner's next feature. Node 24.21.0: put
   `~/.local/node/bin` first on `PATH`.
 
 ## Checkpoint and authorization
