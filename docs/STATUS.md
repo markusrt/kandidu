@@ -161,7 +161,17 @@
   title, button in the footer; thead still read); chip rings (≈ 1.2–1.7:1)
   are decorative, the word carries the state; columns shift slightly when the
   delete question opens on desktop.
-- **Exact next action:** Polish T023–T024, then C3 GATE T025. Node 24.21.0: put `~/.local/node/bin` first on
+- **Polish (T023–T024) done.** `e2e/design.spec.ts` renders the edge cases on
+  home and "Lead prüfen": forced colors (field borders, chip borders and
+  focus outlines visible), reduced motion (no element with an animation or a
+  non-zero transition; the app has none today, so this guards regressions),
+  640 px window as 200 % zoom plus WCAG 1.4.12 text spacing (no horizontal
+  scroll, no clipped button/label/heading/chip), webfont files blocked
+  (`document.fonts.check` false, system font, axe/width/focus still pass).
+  quickstart, README (capture command, tokens) and the token contract
+  updated. `KANDIDU_E2E_PORT=4191 pnpm verify` exit 0 — unit 374, e2e 129
+  passed / 1 skipped.
+- **Exact next action:** C3 GATE T025. Node 24.21.0: put `~/.local/node/bin` first on
   `PATH`.
 
 ## Checkpoint and authorization
