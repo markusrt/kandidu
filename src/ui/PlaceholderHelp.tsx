@@ -24,7 +24,7 @@ export function PlaceholderHelp() {
       <section className="card" aria-labelledby="list-heading">
         <h2 id="list-heading">{h.listHeading}</h2>
         <div className="table-wrap">
-          <table>
+          <table className="placeholder-table">
             <thead>
               <tr>
                 <th scope="col">{h.columnName}</th>
@@ -48,9 +48,9 @@ export function PlaceholderHelp() {
                           : `{${placeholder.name}}`}
                       </code>
                     </th>
-                    <td>{meaning}</td>
-                    <td>{example}</td>
-                    <td>
+                    <td data-label={h.columnMeaning}>{meaning}</td>
+                    <td data-label={h.columnExample}>{example}</td>
+                    <td data-label={h.columnWhere}>
                       {placeholder.templates.includes("cv")
                         ? h.whereBoth
                         : h.whereCover}

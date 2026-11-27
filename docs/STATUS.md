@@ -119,8 +119,32 @@
 - Preview: Amp orb service `kandidu-preview` (port 4182), portal
   <https://t-03hb8nlytmwblc3uq27hhvcor-p27647.onamp.dev/> answered 200;
   reachable via Amp only while this orb runs.
-- **Exact next action:** US2 T016–T019 (restyle the remaining screens,
-  capture all screens, critic loop), commit; then US3 T020–T022, Polish
+- **US2 (T016–T019) done.** `scripts/capture-design.mjs` seeds profile, CV
+  PDF, a released lead and a second project with a pending answer, and
+  captures all 18 screens (desktop 1280 px, 360 px @2x). Before shots from a
+  `main` worktree (`/tmp/main-wt`, `0a90efd`) served as orb service
+  `kandidu-main` on port 4183. Changes in `style.css`: file picker button
+  styled as a secondary button; card and field-group children lose their
+  outer margins; legend sections followed by other content close with a
+  rule; `.inline-form` drops its rule when it opens a card or follows its
+  heading; the 30rem full-width `.actions` button rule is removed (natural
+  widths); tag input spacing; Platzhalter table: whole words on desktop and
+  one card per placeholder at ≤ 47.99rem. Markup: `PlaceholderHelp.tsx`
+  gets class `placeholder-table` and `data-label` on its three td cells with
+  the existing catalog column names (no new text, roles unchanged); CSS alone
+  could not label the cards, and a scrolling wrapper fails axe
+  `scrollable-region-focusable`.
+- design-critic US2, two screen groups: setup + info pages round 1 → 0
+  blocker, 2 should-fix (Platzhalter table unreadable at 360 px, already so on
+  `main`; card bottom spacing) + 1 borderline (tag spacing), all fixed; round 2
+  → 0/0. Project + lead steps round 1 → 0 blocker, 3 should-fix (nested
+  sections lost their closing edge on "Lead prüfen" and "Verlauf"; stray
+  `.inline-form` rules; inconsistent full-width buttons at 360 px), all fixed;
+  round 2 → 0/0 (SC-008 met). Open nits: h1 inside a card on "Nicht
+  gefunden"; home project rows unequal; Lebenslauf code chips indented at
+  360 px; hint-to-textarea gap in "Bewerbungsprozess"/"Recherche"; card labels
+  from `::before` may be read twice (same as the lead table on `main`).
+- **Exact next action:** US3 T020–T022 (lead list cards), commit; then Polish
   T023–T024, C3 GATE T025. Node 24.21.0: put `~/.local/node/bin` first on
   `PATH`.
 

@@ -155,8 +155,14 @@ a {
   padding: clamp(var(--space-4), 3vw, var(--space-6));
   margin-block: var(--space-4);
 }
-.card > :first-child {
+/* A card's inner space is its padding only, at the top and the bottom. */
+.card > :first-child,
+.card > :first-child > :first-child {
   margin-top: 0;
+}
+.card > :last-child,
+.card > :last-child > :last-child {
+  margin-bottom: 0;
 }
 .field {
   display: grid;
@@ -168,6 +174,31 @@ a {
 }
 input[type="file"] {
   max-width: 100%;
+}
+/* The file picker's own button looks like a secondary button. */
+input[type="file"]::file-selector-button {
+  font: inherit;
+  font-weight: var(--weight-bold);
+  min-height: var(--target-small);
+  margin-right: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--accent);
+  cursor: pointer;
+}
+@media (hover: hover) {
+  input[type="file"]:not(:disabled)::file-selector-button:hover {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+  }
+}
+input[type="file"]:disabled::file-selector-button {
+  background: var(--page);
+  border-color: var(--line);
+  color: var(--muted);
+  cursor: not-allowed;
 }
 .field-grid {
   display: grid;
@@ -317,6 +348,16 @@ button:disabled {
   border-top: var(--border-width) solid var(--line);
 }
 .inline-form > h3:first-child {
+  margin-top: 0;
+}
+/* A form that opens a card or follows its heading needs no rule. */
+.card > .inline-form:first-child,
+.card > :is(h2, .hint) + .inline-form {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: var(--space-4);
+}
+.card > .inline-form:first-child {
   margin-top: 0;
 }
 .check-field {
@@ -637,6 +678,52 @@ ol.item-list {
 .table-wrap {
   overflow-x: auto;
 }
+/* Wide screens have room for whole words in table cells ("{Geburtsdatu-m}");
+   narrow ones keep breaking anywhere so the table never scrolls. */
+@media (min-width: 48rem) {
+  .table-wrap :is(th, td) {
+    overflow-wrap: break-word;
+  }
+  .placeholder-table td:last-child {
+    min-width: 8rem;
+  }
+}
+/* Narrow screens: one card per placeholder, each value under its column
+   name (data-label); the table semantics stay (FR-006). */
+@media (max-width: 47.99rem) {
+  .placeholder-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .placeholder-table tr {
+    display: block;
+    border-bottom: var(--border-width) solid var(--line);
+    padding-block: var(--space-3);
+  }
+  .placeholder-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .placeholder-table :is(th, td) {
+    display: grid;
+    grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+    gap: var(--space-2);
+    border-bottom: 0;
+    padding: 0.2rem 0;
+  }
+  .placeholder-table tbody th {
+    display: block;
+    color: var(--ink);
+    font-size: var(--text-base);
+  }
+  .placeholder-table td::before {
+    content: attr(data-label);
+    font-weight: var(--weight-bold);
+    color: var(--muted);
+  }
+}
 table {
   border-collapse: collapse;
   width: 100%;
@@ -711,9 +798,34 @@ legend + * {
   padding: var(--space-3) var(--space-4);
   margin-block: var(--space-4);
 }
+/* Inner space is the padding only, whatever the first or last child is. */
+.field-group > :first-child {
+  margin-top: 0;
+}
+.field-group > :last-child {
+  margin-bottom: 0;
+}
+.field-group > legend:first-child {
+  padding-top: 0;
+}
+/* A section followed by more content in the same form ends with its own
+   rule, so that content does not read as part of it. */
+fieldset:has(> legend):has(+ :not(fieldset)) {
+  border-bottom: var(--border-width) solid var(--line);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+}
 .group-label {
   font-weight: var(--weight-bold);
   display: block;
+}
+/* Tag input: the chosen tags sit under their label; the next field keeps
+   the usual field gap. */
+.tag-input > :is(.group-label, .hint, .tag-list) {
+  margin: 0;
+}
+.tag-input > label {
+  margin-top: var(--space-3);
 }
 .history-list,
 .comment-list {
@@ -810,10 +922,6 @@ legend + * {
   }
   .lead-table .confirm-row td::before {
     content: none;
-  }
-  .actions > button,
-  .actions > .button {
-    flex: 1 1 100%;
   }
 }
 @media (forced-colors: active) {
