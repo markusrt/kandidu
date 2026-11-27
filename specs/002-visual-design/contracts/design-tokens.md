@@ -10,6 +10,7 @@ appears outside `tokens.css` (SC-006, `src/ui/tokens.test.ts`).
 | Color: surfaces | `--page`, `--paper`, `--line`, `--border-strong` |
 | Color: accent | `--accent`, `--accent-hover`, `--accent-ink`, `--accent-soft` |
 | Color: status | `--error`, `--error-soft`, `--warn`, `--warn-soft`, `--ok`, `--ok-soft` |
+| Color: status chips (FR-015) | `--status-open`, `--status-open-soft`, `--status-done`, `--status-done-soft` |
 | Focus | `--focus`, `--focus-width`, `--focus-offset` |
 | Type | `--font-sans`, `--text-sm`, `--text-base`, `--text-lg`, `--text-xl`, `--text-2xl`, `--leading`, `--weight-regular`, `--weight-bold` |
 | Space (4 px scale) | `--space-1` … `--space-8` |

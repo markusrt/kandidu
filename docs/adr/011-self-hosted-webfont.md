@@ -1,7 +1,10 @@
 # ADR 011: Self-hosted webfont for the visual design
 
-Status: proposed for 002-visual-design on 2026-11-27; font chosen by the owner
-("Paket D", 2026-11-27). Confirmed or revised at the C1 gate.
+Status: accepted by the owner at the C1 gate on 2026-11-27 ("Ja wenn das mit
+Github Pages auch geht"); font chosen by the owner ("Paket D", 2026-11-27).
+GitHub Pages checked: `vite build --base /kandidu/` (the CI command) emits
+`url(/kandidu/assets/…woff2)`; served under `/kandidu/`, both files load with
+200 and the CSP `font-src 'self'`.
 
 ## Context
 

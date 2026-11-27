@@ -31,7 +31,7 @@
   models:check` reads Claude Code transcripts and does not apply. All tasks
   run in the main session; `design-critic` runs as an Amp subagent with the
   instructions of `.claude/agents/design-critic.md`.
-- **C1 spike (US1) implemented and verified 2026-11-27, GATE T011 pending.**
+- **C1 spike (US1) implemented and verified 2026-11-27 (GATE T011 approved, below).**
   T001–T010 ticked. Files: `src/ui/tokens.css` (all color literals),
   `src/ui/style.css` ("Ruhig", tokens only), `src/ui/direction-guided.css`
   (spike layer), `src/main.tsx` (font import, `?design=guided` switch),
@@ -72,10 +72,25 @@
 - Limits: forced-colors and reduced-motion rules only reviewed in CSS, not
   rendered; screenshots and e2e Chromium only; other screens (US2) and lead
   list cards (US3) untouched beyond shared styles.
-- **Exact next action:** wait for the owner's C1 decision (Go "Ruhig" /
-  Go "Geführt" / No-Go, Light afterwards, confirm ADR 011). Then: record it
-  here, tick T011, remove the losing layer and the `?design=` switch,
-  `/speckit-tasks` for US2, US3 and the Light C3 gate, `/speckit-analyze`.
+- **C1 decision (owner, chat 2026-11-27, verbatim):** "1. Go für "Geführt"
+  aber bitte passe die Farben für die Status-Chips (z.B. "offen",
+  "erledigt") ensprechend dem neuen Farbdesign an. Das scheinen mir gerade
+  keine komplementären Farben zu sein. 2. Ja 3. Ja wenn das mit Github Pages
+  auch geht." No feedback file. GATE T011 ticked. Go/no-go result: **Go,
+  direction "Geführt"**, continue as **Light**.
+- Feedback triage: (1) direction → FR-004 (T012); chip colors → new FR-015
+  via spec Clarifications (T013, T021); (2) Light → tasks Phases 4–7, gate
+  T025; (3) ADR 011 accepted after a GitHub Pages check: `pnpm exec vite
+  build --base /kandidu/` (CI command) emits `url(/kandidu/assets/…woff2)`;
+  served from `/kandidu/` with the built CSP, both WOFF2 files load with 200
+  and `document.fonts` reports Atkinson Hyperlegible Next 400 and 700 loaded.
+- Analyze (by hand, 2026-11-27): every new task cites FR/SC IDs; FR-001–FR-015
+  and SC-001–SC-008 are covered (FR-007/SC-001/SC-002 at the gate T025);
+  no constitution conflict. SC-009 met at C1.
+- **Exact next action:** start a fresh session (AGENTS.md "Context budget":
+  after the planning commit), then `/speckit-implement` from T012 up to the
+  C3 GATE T025, one story at a time, each committed. Node 24.21.0: put
+  `~/.local/node/node-v24.21.0-linux-x64/bin` first on `PATH` in this orb.
 
 ## Checkpoint and authorization
 
