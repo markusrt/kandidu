@@ -214,9 +214,18 @@
     --port 4173 --strictPort`.
   - Branch `002-visual-design` local only, not pushed; ship mode for this
     feature not yet recorded (asked on the gate page).
-- **Exact next action:** wait for the owner's C3 decision (chip variant,
-  FR-008 wording, phone stepper, ship mode); triage it per AGENTS.md step 8.
-  Do not tick T025 before it is recorded here. Node 24.21.0: put
+- **C3 decision (owner, chat 2026-11-27, verbatim):** "1. Ok mit auto-merge
+  2. A 3. Empfehlung folgen 4. Okay". No feedback file. Mapping to the
+  gate page's questions: (1) C3 accepted, ship mode **auto-merge**; (2)
+  status chip variant A "Moos" (as implemented); (3) FR-008 reworded to
+  non-text state marks (spec edit, Clarifications); (4) "Okay" to the
+  recommendation "Namen am Handy wieder zeigen" (agent's reading of a terse
+  answer, stated to the owner) → new task T026.
+- Feedback triage: (1) → GATE T025 ticked, ship per ADR 007; (2) → FR-015
+  done, no change; (3) → spec FR-008 + Clarifications session "C3 gate";
+  (4) → spec Clarifications + FR-006/FR-010 scope, task T026 (show every
+  step name on narrow screens, wrapped).
+- **Exact next action:** T026, verify, then `pnpm ship --mode auto-merge`. Node 24.21.0: put
   `~/.local/node/bin` first on `PATH`.
 
 ## Checkpoint and authorization
