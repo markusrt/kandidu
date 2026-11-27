@@ -7,9 +7,8 @@
 **Tests**: MANDATORY (constitution VIII). Existing unit and E2E test files stay
 unchanged (SC-001); new checks go into new files.
 
-**Delivery Mode**: Spike (C1), then Light (C3) — this list holds the spike
-only. US2, US3 and the Light C3 gate are added by `/speckit-tasks` after the
-owner's C1 decision.
+**Delivery Mode**: Spike (C1), then Light (C3). C1 accepted on 2026-11-27 with
+Go for "Geführt" (docs/STATUS.md); Phases 4–7 below are the Light phase.
 
 ## Format: `[ID] [P?] [Story] [ROUTINE?] Description`
 
@@ -49,13 +48,57 @@ tokens only, without changing roles, labels, texts or behavior.
 
 ### C1 GATE
 
-- [ ] T011 [GATE] C1 checkpoint (Spike, US1): run `pnpm verify`; confirm `git diff main -- src/domain src/storage src/ui/i18n` and the existing test files are unchanged (SC-001, SC-002); start the preview and confirm the URL responds for both directions; update docs/STATUS.md (checkpoint, spec IDs, commands and outcomes, URL and who can reach it, critic rounds, questions, next action) and the spec in the same commit; write the human gate page specs/002-visual-design/review/C1.md from docs/templates/gate-review.md with before/after screenshots (desktop and 360 px, both directions) and open nits; record the go/no-go result and evidence; commit; then **STOP** and wait for an explicit human decision. Do not start later phases until docs/STATUS.md records approval.
+- [x] T011 [GATE] C1 checkpoint (Spike, US1): run `pnpm verify`; confirm `git diff main -- src/domain src/storage src/ui/i18n` and the existing test files are unchanged (SC-001, SC-002); start the preview and confirm the URL responds for both directions; update docs/STATUS.md (checkpoint, spec IDs, commands and outcomes, URL and who can reach it, critic rounds, questions, next action) and the spec in the same commit; write the human gate page specs/002-visual-design/review/C1.md from docs/templates/gate-review.md with before/after screenshots (desktop and 360 px, both directions) and open nits; record the go/no-go result and evidence; commit; then **STOP** and wait for an explicit human decision. Do not start later phases until docs/STATUS.md records approval.
+
+---
+
+## Phase 4: Apply the C1 decision (blocks US2 and US3)
+
+- [ ] T012 Make "Geführt" the default: move the rules of src/ui/direction-guided.css into src/ui/style.css without the `html[data-direction="guided"]` scope, delete direction-guided.css, its import and the `?design=` switch in src/main.tsx; reduce e2e/design.spec.ts and scripts/capture-design.mjs to the one direction (FR-004)
+- [ ] T013 Status chip tokens: add `--status-open`, `--status-open-soft`, `--status-done`, `--status-done-soft` to src/ui/tokens.css in colors that harmonize with Waldgrün; use them for `.checklist strong` and `.badge`; add their pairs (≥ 4.5:1) to src/ui/tokens.test.ts; render 2–3 chip variants for the owner on the C3 gate page with the chosen one marked (FR-015, FR-008, FR-012)
+- [ ] T014 Verify: `pnpm test`, `pnpm build && pnpm test:e2e e2e/design.spec.ts`; design-critic round on home and "Lead prüfen" (max 3 rounds, SC-008); commit
+
+---
+
+## Phase 5: User Story 2 - Alle übrigen Bildschirme folgen der gewählten Richtung (Priority: P2)
+
+**Goal**: every screen uses the tokens and the "Geführt" style.
+
+**Independent Test**: e2e/design.spec.ts covers every main screen at default width and 360 px; the existing suite stays unchanged and green.
+
+- [ ] T015 [US2] Extend e2e/design.spec.ts to every main screen: setup (profil, vorlagen, lebenslauf, nachweise), Platzhalter, Daten, project steps (links, prompt, antwort, leads), lead steps (anschreiben, freigabe, paket, verlauf) with a released lead, and "Seite nicht gefunden"; axe zero findings, no horizontal scroll at 360 px, visible focus (SC-003–SC-005)
+- [ ] T016 [US2] Restyle the setup screens and the tag input, the file fields and the document list (src/ui/style.css only) (FR-001, FR-005, FR-006, FR-010)
+- [ ] T017 [US2] Restyle Platzhalter (table, examples), Daten (backup/import, confirmations), "Seite nicht gefunden", the storage and failure banners and the recovery card (FR-001, FR-012)
+- [ ] T018 [US2] Restyle the project steps (links list, prompt text, response and issues) and the remaining lead steps (cover letter, gate, package editor, history and comments, Markdown preview) (FR-001, FR-012)
+- [ ] T019 [US2] Extend scripts/capture-design.mjs to all screens (before from `main`, after from the branch); design-critic loop per screen group (setup, info pages, project, lead), max 3 rounds, open nits to STATUS (SC-008, FR-014); commit US2
+
+---
+
+## Phase 6: User Story 3 - Lead-Liste ist auf schmalen Bildschirmen gut lesbar (Priority: P3)
+
+**Goal**: lead list as cards on narrow widths, no mid-word breaks on desktop.
+
+**Independent Test**: project with three leads at 360 px and desktop; roles checked in e2e.
+
+- [ ] T020 [US3] Add to e2e/design.spec.ts: at 360 px the lead list keeps the roles table, columnheader (names unchanged) and cell; no horizontal scroll; on desktop no column header and no button wraps inside a word (FR-011, SC-004)
+- [ ] T021 [US3] Restyle the narrow-width lead cards in src/ui/style.css (card surface, column name from the existing `data-label`, status as chip, actions row) (FR-011, FR-015)
+- [ ] T022 [US3] design-critic loop for the lead list (desktop and 360 px, 1 and 3 leads), max 3 rounds; commit US3
+
+---
+
+## Phase 7: Polish & Acceptance (C3)
+
+- [ ] T023 [P] Rendered checks for the edge cases: forced colors (`page.emulateMedia({ forcedColors: "active" })`), reduced motion, 200 % zoom and WCAG 1.4.12 text spacing on home and "Lead prüfen", webfont blocked → system font; add to e2e/design.spec.ts where stable (FR-002, FR-013)
+- [ ] T024 [P] Update quickstart.md, README (screenshots command) and the design-tokens contract to the final token set
+- [ ] T025 [GATE] C3 checkpoint (Light, US1–US3): run `pnpm verify`; confirm `git diff main -- src/domain src/storage src/ui/i18n` and the existing test files are unchanged (SC-001, SC-002); start the preview and confirm the URL responds; update docs/STATUS.md (checkpoint, spec IDs, commands and outcomes, URL and who can reach it, critic rounds, questions, next action) and the spec in the same commit; write the human gate page specs/002-visual-design/review/C3.md from docs/templates/gate-review.md with before/after screenshots of every restyled screen (desktop and 360 px), the status chip variants and open nits; commit; then **STOP** and request explicit acceptance. Never mark accepted without a recorded human decision.
 
 ---
 
 ## Dependencies & Execution Order
 
 - Setup (T001–T003) → Foundational (T004–T006) → US1 (T007–T010) → GATE T011.
+- T011 approved → Phase 4 (T012–T014) → US2 (T015–T019) → US3 (T020–T022) → Polish (T023–T024) → GATE T025.
+- One story at a time, each committed before the next (AGENTS.md).
 - T002/T003 and T005/T006 may run in parallel; T003 needs T002.
 - Never parallelize across the GATE.
 

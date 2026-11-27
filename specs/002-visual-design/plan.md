@@ -10,6 +10,10 @@ decided by the owner from screenshots; once decided, the work extends a proven
 workflow without behavior change, so the remaining screens fit one Light gate.
 Owner expectation stated in the brief (2026-11-27). Per the constitution, the
 Light phase is added by `/speckit-tasks` after the C1 decision.
+**C1 decision (2026-11-27):** Go for "Geführt", continue as **Light**; status
+chip colors to harmonize with Waldgrün (FR-015); self-hosted font confirmed
+(works on GitHub Pages). The "Geführt" layer becomes the default style; the
+`?design=` switch and the separate layer file are removed.
 
 ## Summary
 
@@ -92,6 +96,10 @@ Post-design re-check: unchanged, pass.
    (which would need markup such as `data-label`) is decided in the Light phase.
 5. **Contrast** — palette values checked with a script (research.md table);
    form field borders get `--border-strong` ≥ 3:1.
+   Status chips (FR-015) get their own tokens `--status-open`,
+   `--status-open-soft`, `--status-done`, `--status-done-soft` in a warm
+   earth tone and a green tint derived from the accent hue, replacing the
+   generic warn/ok pair on chips only; warnings keep `--warn`.
 6. **Focus** — keep the global `:focus-visible` outline, recolor to a token
    with ≥ 3:1 against paper and page; forced-colors uses `Highlight`.
 

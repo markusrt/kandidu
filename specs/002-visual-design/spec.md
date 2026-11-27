@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-27
 
-**Status**: Spike C1 (US1) implemented and verified on 2026-11-27; waiting for the owner's direction decision (GATE T011)
+**Status**: C1 spike accepted on 2026-11-27 with Go for „Geführt“ (GATE T011); Light phase (US2, US3, C3) planned
 
 **Spec Language**: de-DE
 
@@ -21,6 +21,13 @@
 - Q: Welche Schrift und Farben? → A: Paket D: Schrift „Atkinson Hyperlegible Next“ als Webfont, Farbpalette „Waldgrün“ (Akzent #2a6a4c). Gewählt aus vier gerenderten Paketen (A Inter/Schieferblau, B Plus Jakarta Sans/Petrol, C Figtree/Indigo, D Atkinson Hyperlegible Next/Waldgrün).
 - Q: Darf die Lead-Tabelle auf schmalen Breiten anders aussehen? → A: Ja, als Kartenliste, aber nur per CSS; die Tabellen-Semantik bleibt.
 - Q: Wie wird der Webfont geladen? → A: Selbst gehostet und mit der App ausgeliefert, keine Anfrage an fremde Server (Annahme aus „alles bleibt in diesem Browser“ und dem bestehenden Netzwerk-Schutz der E2E-Tests; die Owner-Wahl „gerne mit Webfonts“ sah die selbst gehosteten Pakete).
+
+### Session 2026-11-27 (C1 gate)
+
+- Q: Welche Richtung gilt? → A: „Geführt“ (Go). „Ruhig“ entfällt als eigene Richtung; seine Grundgestaltung bleibt die Basis, auf der „Geführt“ aufsetzt.
+- Q: Was ändert sich zusätzlich? → A: Die Farben der Status-Plaketten (z. B. „offen“, „erledigt“) passen sich der Palette „Waldgrün“ an; die bisherigen Amber/Grün-Töne wirkten nicht zusammengehörig.
+- Q: Wie geht es weiter? → A: Light (US2, US3, ein C3-Gate).
+- Q: Selbst gehostete Schrift? → A: Ja, sofern sie mit GitHub Pages funktioniert (geprüft: Build mit `--base /kandidu/`, Schriftdateien laden vom selben Ursprung, CSP `font-src 'self'`).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -87,7 +94,7 @@ Auf dem Handy erscheint die Lead-Liste als Liste von Karten statt als gequetscht
 - **FR-001**: Die Oberfläche MUST Farben, Abstände, Schriftgrößen, Schriftfamilie, Radien und Rahmen ausschließlich aus einem zentralen Satz benannter Design-Tokens beziehen; außerhalb der Token-Definition stehen keine festen Farbwerte.
 - **FR-002**: Die Oberfläche MUST die Schrift „Atkinson Hyperlegible Next“ verwenden, mit der App ausgeliefert und ohne Anfrage an fremde Server; fällt sie aus, MUST eine Systemschrift einspringen.
 - **FR-003**: Die Oberfläche MUST die Palette „Waldgrün“ verwenden (Paket D der Clarification vom 2026-11-27) und dabei die Kontrastregeln aus FR-008 einhalten.
-- **FR-004**: Im Spike MUST es zwei vollständige Gestaltungen der Startseite und von „Lead prüfen“ geben, „Ruhig“ und „Geführt“, die auf Desktop und 360 px verglichen werden können; nach der Owner-Entscheidung MUST nur die gewählte Richtung bleiben.
+- **FR-004**: Im Spike MUST es zwei vollständige Gestaltungen der Startseite und von „Lead prüfen“ geben, „Ruhig“ und „Geführt“, die auf Desktop und 360 px verglichen werden können; nach der Owner-Entscheidung MUST nur die gewählte Richtung bleiben (gewählt: „Geführt“, 2026-11-27).
 - **FR-005**: Alle sichtbaren und für Screenreader bestimmten Texte MUST unverändert bleiben (Meldungskatalog unverändert).
 - **FR-006**: Rollen, zugängliche Namen, Beschriftungen, Überschriftenebenen, Landmarken und Reihenfolge der Bedienelemente MUST unverändert bleiben.
 - **FR-007**: Abläufe, gespeicherte Daten, Datenformat und Sicherungsdateien MUST unverändert bleiben; Daten aus früheren Versionen MUST weiter lesbar sein. Domain- und Speicherschicht werden nicht geändert.
@@ -97,7 +104,8 @@ Auf dem Handy erscheint die Lead-Liste als Liste von Karten statt als gequetscht
 - **FR-011**: Die Lead-Liste MUST auf schmalen Breiten als Kartenliste erscheinen, nur durch Gestaltung, mit erhaltener Tabellen-Semantik; auf dem Desktop MUST kein Spaltenkopf und keine Schaltfläche mitten im Wort umbrechen.
 - **FR-012**: Status und Meldungen (offen, erledigt, Fehler, Warnung) MUST außer durch Farbe auch durch Text erkennbar bleiben.
 - **FR-013**: Die Gestaltung MUST reduzierte Bewegung respektieren und im Modus „forced colors“ Fokus und Rahmen sichtbar lassen.
-- **FR-014**: Startseite und „Lead prüfen“ MUST mit Vorher- und Nachher-Screenshots (Desktop und 360 px) auf der Gate-Seite gezeigt werden.
+- **FR-014**: Startseite und „Lead prüfen“ MUST mit Vorher- und Nachher-Screenshots (Desktop und 360 px) auf der Gate-Seite gezeigt werden; am C3-Gate gilt das für jeden umgestalteten Bildschirm.
+- **FR-015**: Status-Plaketten (z. B. „offen“, „erledigt“, „Antwort ausstehend“) MUST Farben aus der Palette „Waldgrün“ verwenden, die mit dem Akzent harmonieren, über eigene Status-Tokens; Kontrast nach FR-008, Zustand weiterhin auch als Text (FR-012).
 
 ### Key Entities
 
