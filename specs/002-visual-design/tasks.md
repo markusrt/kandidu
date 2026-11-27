@@ -67,10 +67,10 @@ tokens only, without changing roles, labels, texts or behavior.
 **Independent Test**: e2e/design.spec.ts covers every main screen at default width and 360 px; the existing suite stays unchanged and green.
 
 - [x] T015 [US2] Extend e2e/design.spec.ts to every main screen: setup (profil, vorlagen, lebenslauf, nachweise), Platzhalter, Daten, project steps (links, prompt, antwort, leads), lead steps (anschreiben, freigabe, paket, verlauf) with a released lead, and "Seite nicht gefunden"; axe zero findings, no horizontal scroll at 360 px, visible focus (SC-003–SC-005)
-- [ ] T016 [US2] Restyle the setup screens and the tag input, the file fields and the document list (src/ui/style.css only) (FR-001, FR-005, FR-006, FR-010)
-- [ ] T017 [US2] Restyle Platzhalter (table, examples), Daten (backup/import, confirmations), "Seite nicht gefunden", the storage and failure banners and the recovery card (FR-001, FR-012)
-- [ ] T018 [US2] Restyle the project steps (links list, prompt text, response and issues) and the remaining lead steps (cover letter, gate, package editor, history and comments, Markdown preview) (FR-001, FR-012)
-- [ ] T019 [US2] Extend scripts/capture-design.mjs to all screens (before from `main`, after from the branch); design-critic loop per screen group (setup, info pages, project, lead), max 3 rounds, open nits to STATUS (SC-008, FR-014); commit US2
+- [x] T016 [US2] Restyle the setup screens and the tag input, the file fields and the document list (src/ui/style.css only) (FR-001, FR-005, FR-006, FR-010)
+- [x] T017 [US2] Restyle Platzhalter (table, examples), Daten (backup/import, confirmations), "Seite nicht gefunden", the storage and failure banners and the recovery card (FR-001, FR-012)
+- [x] T018 [US2] Restyle the project steps (links list, prompt text, response and issues) and the remaining lead steps (cover letter, gate, package editor, history and comments, Markdown preview) (FR-001, FR-012)
+- [x] T019 [US2] Extend scripts/capture-design.mjs to all screens (before from `main`, after from the branch); design-critic loop per screen group (setup, info pages, project, lead), max 3 rounds, open nits to STATUS (SC-008, FR-014); commit US2
 
 ---
 
