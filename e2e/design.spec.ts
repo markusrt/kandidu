@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { createProjectWithLeads, openLead } from "./flows";
+import { createProjectWithLeads, openLead, setupReleasedLead } from "./flows";
 
 // Visual design checks (specs/002-visual-design): axe without any finding,
 // no horizontal scrolling at 360 px, visible focus with ≥ 3:1 contrast, and
@@ -83,47 +83,86 @@ async function checkView(page: Page, view: string) {
   await expectVisibleFocus(page, view);
 }
 
-for (const direction of ["calm", "guided"] as const) {
-  const query = direction === "guided" ? "?design=guided" : "";
+for (const width of [undefined, 360]) {
+  const label = width ? `${width} px` : "default width";
 
-  for (const width of [undefined, 360]) {
-    const label = `${direction}${width ? ` ${width} px` : ""}`;
+  test(`design: home and lead review pass axe, width and focus (${label})`, async ({
+    page,
+  }) => {
+    if (width) await page.setViewportSize({ width, height: 780 });
+    await page.goto("/#/");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Deine Bewerbungen",
+    );
+    expect(
+      await page.evaluate(() =>
+        document.fonts.check('16px "Atkinson Hyperlegible Next"'),
+      ),
+      "webfont loaded",
+    ).toBe(true);
+    await checkView(page, `home empty (${label})`);
 
-    test(`design: home and lead review pass axe, width and focus (${label})`, async ({
-      page,
-    }) => {
-      if (width) await page.setViewportSize({ width, height: 780 });
-      await page.goto(`/${query}#/`);
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-        "Deine Bewerbungen",
-      );
-      expect(
-        await page.evaluate(() =>
-          document.fonts.check('16px "Atkinson Hyperlegible Next"'),
-        ),
-        "webfont loaded",
-      ).toBe(true);
-      await checkView(page, `home empty (${label})`);
+    await createProjectWithLeads(page, "valid-plain");
+    await page.goto("/#/");
+    await expect(
+      page.getByRole("link", { name: "Ausbildung zum Industriekaufmann" }),
+    ).toBeVisible();
+    await checkView(page, `home (${label})`);
 
-      await createProjectWithLeads(page, "valid-plain");
-      await page.goto(`/${query}#/`);
-      await expect(
-        page.getByRole("link", { name: "Ausbildung zum Industriekaufmann" }),
-      ).toBeVisible();
-      await checkView(page, `home (${label})`);
+    await page
+      .getByRole("link", { name: "Ausbildung zum Industriekaufmann" })
+      .click();
+    await page
+      .getByRole("navigation", { name: "Schritte des Projekts" })
+      .getByRole("link", { name: "Leads", exact: true })
+      .click();
+    await openLead(page, "Beispiel GmbH");
+    await expect(
+      page.getByRole("heading", { name: "Lead prüfen und bearbeiten" }),
+    ).toBeVisible();
+    await checkView(page, `lead review (${label})`);
+  });
+}
 
-      await page
-        .getByRole("link", { name: "Ausbildung zum Industriekaufmann" })
-        .click();
-      await page
-        .getByRole("navigation", { name: "Schritte des Projekts" })
-        .getByRole("link", { name: "Leads", exact: true })
-        .click();
-      await openLead(page, "Beispiel GmbH");
-      await expect(
-        page.getByRole("heading", { name: "Lead prüfen und bearbeiten" }),
-      ).toBeVisible();
-      await checkView(page, `lead review (${label})`);
-    });
-  }
+// Every other main screen (US2, T015): setup, info pages, project steps and
+// lead steps of a released lead, and the not-found page.
+const SCREENS = [
+  "#/einrichtung/profil",
+  "#/einrichtung/vorlagen",
+  "#/einrichtung/lebenslauf",
+  "#/einrichtung/nachweise",
+  "#/platzhalter",
+  "#/daten",
+  "{project}/links",
+  "{project}/prompt",
+  "{project}/antwort",
+  "{project}/leads",
+  "{lead}/anschreiben",
+  "{lead}/freigabe",
+  "{lead}/paket",
+  "{lead}/verlauf",
+  "#/gibt-es-nicht",
+];
+
+for (const width of [undefined, 360]) {
+  const label = width ? `${width} px` : "default width";
+
+  test(`design: every main screen passes axe, width and focus (${label})`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    if (width) await page.setViewportSize({ width, height: 780 });
+    await setupReleasedLead(page, { cvPages: 1, coverPages: 1 });
+    const hash = new URL(page.url()).hash;
+    const lead = hash.slice(0, hash.lastIndexOf("/"));
+    const project = lead.slice(0, lead.indexOf("/leads/"));
+    for (const screen of SCREENS) {
+      const target = screen
+        .replace("{project}", project)
+        .replace("{lead}", lead);
+      await page.goto(`/${target}`);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await checkView(page, `${screen} (${label})`);
+    }
+  });
 }

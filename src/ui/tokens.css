@@ -24,6 +24,14 @@
   --warn-line: #ead2a4;
   --ok: #2a6a4c;
   --ok-soft: #e5f0ea;
+  /* Status chips (FR-015), variant "Moos": open in a moss tone next to the
+     accent hue, done in the accent green. */
+  --status-open: #5a5f1c;
+  --status-open-soft: #eff0dc;
+  --status-open-line: #cfd3a6;
+  --status-done: #2a6a4c;
+  --status-done-soft: #e5f0ea;
+  --status-done-line: #b5d0c1;
   /* Focus */
   --focus: #b4530a;
   --focus-width: 3px;

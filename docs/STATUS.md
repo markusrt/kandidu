@@ -87,10 +87,42 @@
 - Analyze (by hand, 2026-11-27): every new task cites FR/SC IDs; FR-001–FR-015
   and SC-001–SC-008 are covered (FR-007/SC-001/SC-002 at the gate T025);
   no constitution conflict. SC-009 met at C1.
-- **Exact next action:** start a fresh session (AGENTS.md "Context budget":
-  after the planning commit), then `/speckit-implement` from T012 up to the
-  C3 GATE T025, one story at a time, each committed. Node 24.21.0: put
-  `~/.local/node/node-v24.21.0-linux-x64/bin` first on `PATH` in this orb.
+- Light phase session (Amp thread T-01a21bc5-615f-7052-bc09-4f8eb706d6fb,
+  2026-11-27): the branch's three commits were copied object by object from
+  the planning thread (same SHAs). Node 24.21.0 in `~/.local/node/bin`
+  (checksum verified), first on `PATH`. Playwright Chromium installed with
+  `pnpm exec playwright install chromium`.
+- **Phase 4 (T012–T014) done, plus T015.** "Geführt" is the default style in
+  `src/ui/style.css`; `direction-guided.css` and the `?design=` switch are
+  gone; `e2e/design.spec.ts` and `scripts/capture-design.mjs` cover the one
+  direction. Status chips (FR-015) use `--status-open*`/`--status-done*`,
+  variant "Moos" (open #5a5f1c on #eff0dc 5.88:1, done #2a6a4c on #e5f0ea
+  5.51:1, 1 px inset rings); pairs in `tokens.test.ts`. Alternatives "Erde"
+  and "Salbei" go on the C3 gate page. T015 (every main screen in
+  `e2e/design.spec.ts`) landed here because it caught a T012 regression: the
+  lead table on the Leads step overflowed by 96 px at 1280 px (table width
+  100% plus the step-column margin); fixed with `width: calc(100% - 15rem)`.
+- design-critic Phase 4 (home, lead review, Leads step): round 1 → 0 blocker,
+  2 should-fix (no rule above "Stelle"; doubled gaps in `.field-grid`), 2 nits
+  (success message close to h1; footer narrower than stepper pages), all
+  fixed. Round 2 → 1 should-fix (gap above "Stelle" 24+24 px), 1 nit
+  (uneven section ends), both fixed. Round 3 → 0 blocker, 0 should-fix
+  (SC-008 met). Open nits: inner padding of the "Motivationsteil"
+  `.field-group` (to US2 T018); Leads step content not in a card (US2/US3);
+  open vs done chips differ only by hue and word (outline variant for the
+  owner); C1 nits (colon after checklist labels, footer rule wider than text).
+- Checks Phase 4: `KANDIDU_E2E_PORT=4191 pnpm verify` exit 0 — unit 29 files /
+  373 tests, e2e 117 passed / 1 skipped (design spec: 8, home + lead review
+  and every main screen, default width and 360 px, chromium and mobile).
+  SC-001/SC-002 diff against `main` (domain, storage, i18n, llm, files,
+  existing e2e files) empty.
+- Preview: Amp orb service `kandidu-preview` (port 4182), portal
+  <https://t-03hb8nlytmwblc3uq27hhvcor-p27647.onamp.dev/> answered 200;
+  reachable via Amp only while this orb runs.
+- **Exact next action:** US2 T016–T019 (restyle the remaining screens,
+  capture all screens, critic loop), commit; then US3 T020–T022, Polish
+  T023–T024, C3 GATE T025. Node 24.21.0: put `~/.local/node/bin` first on
+  `PATH`.
 
 ## Checkpoint and authorization
 

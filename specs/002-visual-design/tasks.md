@@ -54,9 +54,9 @@ tokens only, without changing roles, labels, texts or behavior.
 
 ## Phase 4: Apply the C1 decision (blocks US2 and US3)
 
-- [ ] T012 Make "Geführt" the default: move the rules of src/ui/direction-guided.css into src/ui/style.css without the `html[data-direction="guided"]` scope, delete direction-guided.css, its import and the `?design=` switch in src/main.tsx; reduce e2e/design.spec.ts and scripts/capture-design.mjs to the one direction (FR-004)
-- [ ] T013 Status chip tokens: add `--status-open`, `--status-open-soft`, `--status-done`, `--status-done-soft` to src/ui/tokens.css in colors that harmonize with Waldgrün; use them for `.checklist strong` and `.badge`; add their pairs (≥ 4.5:1) to src/ui/tokens.test.ts; render 2–3 chip variants for the owner on the C3 gate page with the chosen one marked (FR-015, FR-008, FR-012)
-- [ ] T014 Verify: `pnpm test`, `pnpm build && pnpm test:e2e e2e/design.spec.ts`; design-critic round on home and "Lead prüfen" (max 3 rounds, SC-008); commit
+- [x] T012 Make "Geführt" the default: move the rules of src/ui/direction-guided.css into src/ui/style.css without the `html[data-direction="guided"]` scope, delete direction-guided.css, its import and the `?design=` switch in src/main.tsx; reduce e2e/design.spec.ts and scripts/capture-design.mjs to the one direction (FR-004)
+- [x] T013 Status chip tokens: add `--status-open`, `--status-open-soft`, `--status-done`, `--status-done-soft` to src/ui/tokens.css in colors that harmonize with Waldgrün; use them for `.checklist strong` and `.badge`; add their pairs (≥ 4.5:1) to src/ui/tokens.test.ts; render 2–3 chip variants for the owner on the C3 gate page with the chosen one marked (FR-015, FR-008, FR-012)
+- [x] T014 Verify: `pnpm test`, `pnpm build && pnpm test:e2e e2e/design.spec.ts`; design-critic round on home and "Lead prüfen" (max 3 rounds, SC-008); commit
 
 ---
 
@@ -66,7 +66,7 @@ tokens only, without changing roles, labels, texts or behavior.
 
 **Independent Test**: e2e/design.spec.ts covers every main screen at default width and 360 px; the existing suite stays unchanged and green.
 
-- [ ] T015 [US2] Extend e2e/design.spec.ts to every main screen: setup (profil, vorlagen, lebenslauf, nachweise), Platzhalter, Daten, project steps (links, prompt, antwort, leads), lead steps (anschreiben, freigabe, paket, verlauf) with a released lead, and "Seite nicht gefunden"; axe zero findings, no horizontal scroll at 360 px, visible focus (SC-003–SC-005)
+- [x] T015 [US2] Extend e2e/design.spec.ts to every main screen: setup (profil, vorlagen, lebenslauf, nachweise), Platzhalter, Daten, project steps (links, prompt, antwort, leads), lead steps (anschreiben, freigabe, paket, verlauf) with a released lead, and "Seite nicht gefunden"; axe zero findings, no horizontal scroll at 360 px, visible focus (SC-003–SC-005)
 - [ ] T016 [US2] Restyle the setup screens and the tag input, the file fields and the document list (src/ui/style.css only) (FR-001, FR-005, FR-006, FR-010)
 - [ ] T017 [US2] Restyle Platzhalter (table, examples), Daten (backup/import, confirmations), "Seite nicht gefunden", the storage and failure banners and the recovery card (FR-001, FR-012)
 - [ ] T018 [US2] Restyle the project steps (links list, prompt text, response and issues) and the remaining lead steps (cover letter, gate, package editor, history and comments, Markdown preview) (FR-001, FR-012)
