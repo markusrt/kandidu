@@ -64,6 +64,8 @@ describe("design tokens", () => {
     ["--error", "--error-soft", 4.5],
     ["--warn", "--warn-soft", 4.5],
     ["--ok", "--ok-soft", 4.5],
+    ["--status-open", "--status-open-soft", 4.5],
+    ["--status-done", "--status-done-soft", 4.5],
     ["--border-strong", "--paper", 3],
     ["--border-strong", "--page", 3],
     ["--focus", "--paper", 3],
