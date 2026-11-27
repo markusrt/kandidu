@@ -17,17 +17,17 @@ owner's C1 decision.
 
 ## Phase 1: Setup
 
-- [ ] T001 Add `@fontsource/atkinson-hyperlegible-next` 5.3.0 (exact version) with `pnpm add`, import the latin 400 and 700 CSS in src/main.tsx; confirm the built `dist/` contains only those WOFF2 files and no foreign URL (FR-002, SC-007, ADR 011)
-- [ ] T002 [P] [ROUTINE] Write scripts/capture-design.mjs: given a preview origin, an output dir and a prefix, seeds synthetic data through the UI (project "Ausbildung zum Industriekaufmann" with LLM fixture `src/llm/fixtures/valid-plain.txt`), and saves full-page screenshots of home (empty and with project) and "Lead prüfen" at 1280 px and 360 px (2x), for `?design=` unset and `guided` (FR-014)
-- [ ] T003 [P] Capture before-screenshots from `main` into specs/002-visual-design/review/img/before-*.png with T002's script (FR-014)
+- [x] T001 Add `@fontsource/atkinson-hyperlegible-next` 5.3.0 (exact version) with `pnpm add`, import the latin 400 and 700 CSS in src/main.tsx; confirm the built `dist/` contains only those WOFF2 files and no foreign URL (FR-002, SC-007, ADR 011)
+- [x] T002 [P] [ROUTINE] Write scripts/capture-design.mjs: given a preview origin, an output dir and a prefix, seeds synthetic data through the UI (project "Ausbildung zum Industriekaufmann" with LLM fixture `src/llm/fixtures/valid-plain.txt`), and saves full-page screenshots of home (empty and with project) and "Lead prüfen" at 1280 px and 360 px (2x), for `?design=` unset and `guided` (FR-014)
+- [x] T003 [P] Capture before-screenshots from `main` into specs/002-visual-design/review/img/before-*.png with T002's script (FR-014)
 
 ---
 
 ## Phase 2: Foundational
 
-- [ ] T004 Create src/ui/tokens.css per contracts/design-tokens.md with the "Waldgrün" palette and type/space/shape scales; import it before style.css in src/main.tsx; move the one remaining color literal (`#7a8b97`) of src/ui/style.css into a token (FR-001, FR-003)
-- [ ] T005 [P] Add src/ui/tokens.test.ts: fails on `#hex`, `rgb(`, `rgba(`, `hsl(` in any src/ui/**/*.css except tokens.css; and checks the contrast pairs of contracts/design-tokens.md from the parsed token values (FR-001, FR-008, SC-006)
-- [ ] T006 [P] Add e2e/design.spec.ts: for home (empty, with project) and "Lead prüfen" on both Playwright projects plus a 360 px context: axe WCAG 2.1 A/AA with zero violations of any impact; `scrollWidth <= innerWidth` at 360 px; `:focus-visible` outline contrast ≥ 3:1 against its background for the first tabbable controls; no foreign requests (existing guard). Run once for `?design=guided` too (FR-008–FR-010, SC-003–SC-005, SC-007)
+- [x] T004 Create src/ui/tokens.css per contracts/design-tokens.md with the "Waldgrün" palette and type/space/shape scales; import it before style.css in src/main.tsx; move the one remaining color literal (`#7a8b97`) of src/ui/style.css into a token (FR-001, FR-003)
+- [x] T005 [P] Add src/ui/tokens.test.ts: fails on `#hex`, `rgb(`, `rgba(`, `hsl(` in any src/ui/**/*.css except tokens.css; and checks the contrast pairs of contracts/design-tokens.md from the parsed token values (FR-001, FR-008, SC-006)
+- [x] T006 [P] Add e2e/design.spec.ts: for home (empty, with project) and "Lead prüfen" on both Playwright projects plus a 360 px context: axe WCAG 2.1 A/AA with zero violations of any impact; `scrollWidth <= innerWidth` at 360 px; `:focus-visible` outline contrast ≥ 3:1 against its background for the first tabbable controls; no foreign requests (existing guard). Run once for `?design=guided` too (FR-008–FR-010, SC-003–SC-005, SC-007)
 
 **Checkpoint**: tokens and checks in place; existing suite still green.
 
@@ -42,10 +42,10 @@ tokens only, without changing roles, labels, texts or behavior.
 
 **Independent Test**: T006 plus the unchanged existing suite; screenshots of both directions.
 
-- [ ] T007 [US1] Restyle src/ui/style.css as "Ruhig" for the shared shell (header, nav, footer, buttons, fields, cards, checklist, badges, stepper, notices, focus, forced-colors, reduced motion) and the home and "Lead prüfen" screens, tokens only (FR-001–FR-003, FR-005, FR-006, FR-008–FR-010, FR-012, FR-013)
-- [ ] T008 [US1] Add src/ui/direction-guided.css scoped to `html[data-direction="guided"]` (stepper column with progress on desktop, compact bar on ≤ 40rem with visually hidden non-current labels, colored header) and the spike-only `?design=guided` switch in src/main.tsx (FR-004, FR-006, FR-010)
-- [ ] T009 [US1] Design loop per screen (home, "Lead prüfen") × direction: capture → `design-critic` (.claude/agents/design-critic.md) → fix → `pnpm test` + `pnpm build && pnpm test:e2e e2e/design.spec.ts` → capture; max 3 rounds; log rounds and open nits in docs/STATUS.md (SC-008)
-- [ ] T010 [US1] Capture after-screenshots for both directions into specs/002-visual-design/review/img/ (FR-014)
+- [x] T007 [US1] Restyle src/ui/style.css as "Ruhig" for the shared shell (header, nav, footer, buttons, fields, cards, checklist, badges, stepper, notices, focus, forced-colors, reduced motion) and the home and "Lead prüfen" screens, tokens only (FR-001–FR-003, FR-005, FR-006, FR-008–FR-010, FR-012, FR-013)
+- [x] T008 [US1] Add src/ui/direction-guided.css scoped to `html[data-direction="guided"]` (stepper column with progress on desktop, compact bar on ≤ 40rem with visually hidden non-current labels, colored header) and the spike-only `?design=guided` switch in src/main.tsx (FR-004, FR-006, FR-010)
+- [x] T009 [US1] Design loop per screen (home, "Lead prüfen") × direction: capture → `design-critic` (.claude/agents/design-critic.md) → fix → `pnpm test` + `pnpm build && pnpm test:e2e e2e/design.spec.ts` → capture; max 3 rounds; log rounds and open nits in docs/STATUS.md (SC-008)
+- [x] T010 [US1] Capture after-screenshots for both directions into specs/002-visual-design/review/img/ (FR-014)
 
 ### C1 GATE
 
